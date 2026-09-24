@@ -1,0 +1,22 @@
+[
+  {
+    "name": "red_goal",
+    "alliance": "red",
+    "rect": [
+      20,
+      200,
+      120,
+      140
+    ]
+  },
+  {
+    "name": "blue_goal",
+    "alliance": "blue",
+    "rect": [
+      820,
+      200,
+      120,
+      140
+    ]
+  }
+]

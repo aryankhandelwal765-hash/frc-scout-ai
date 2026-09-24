@@ -1,0 +1,57 @@
+# FRC Scout AI — full stack (Ollama + API/frontend combined).
+#
+# Bring it up:   docker compose up -d --build
+# Tail logs:     docker compose logs -f api
+# Pull models:   docker compose exec ollama ollama pull qwen3:8b
+#                docker compose exec ollama ollama pull qwen2.5:3b
+# Wipe cache:    curl -X DELETE http://localhost:8000/cache
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # Uncomment on machines with an NVIDIA GPU (needs nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  api:
+    build: .
+    depends_on:
+      - ollama
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Ollama service DNS lives on the compose network as "ollama".
+      OLLAMA_BASE: http://ollama:11434
+      CACHE_DB_PATH: /data/cache.db
+    volumes:
+      - api_data:/data
+    restart: unless-stopped
+
+  # Optional: nginx serves the built frontend + proxies /api → api container.
+  # Skip and hit the API directly at :8000 during development.
+  frontend:
+    image: nginx:alpine
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  api_data:

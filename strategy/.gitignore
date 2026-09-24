@@ -1,0 +1,48 @@
+# Secrets — NEVER commit
+.env
+.env.local
+scout/.streamlit/secrets.toml
+scout/user_settings.json
+
+# Persistent cache / local state
+scout/cache.db
+scout/cache.db-journal
+scout/cache.db-wal
+scout/cache.db-shm
+.logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+
+# Model artefacts too big for git (use Git LFS if you need them versioned)
+scout/models/*.pkl
+scout/data/raw_matches/
+scout/data/scouting/
+scout/data/statbotics/
+
+# Graphify output
+graphify-out/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Streamlit runtime
+.streamlit/

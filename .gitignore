@@ -1,0 +1,103 @@
+# ─── Secrets — NEVER commit ────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+.tba_key
+**/.tba_key
+secrets.toml
+**/.streamlit/secrets.toml
+**/user_settings.json
+
+# ─── Private notes (not part of the public repo) ───────────────────────────
+HANDOFF.md
+
+# ─── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ─── Node / Vite ───────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+*.tsbuildinfo
+
+# ─── Local state / caches ──────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+.logs/
+strategy/scout/clips_cache/
+
+# ─── Model weights (train locally or fetch — see vision/TRAINING.md) ───────
+*.pt
+*.pth
+*.onnx
+*.pkl
+vision/weights/
+vision/runs/
+runs/
+
+# ─── Match video (download via match_pipeline/download_matches.py) ─────────
+*.mp4
+*.mov
+*.avi
+*.mkv
+vision/match_pipeline/videos/
+vision/match_pipeline/videos_raw/
+vision/dataset/
+
+# ─── Generated pipeline output (regenerate; see docs) ──────────────────────
+# One representative event is committed under examples/ instead.
+vision/match_pipeline/results/
+vision/match_pipeline/topdown_paths/
+vision/match_pipeline/zone_paths/
+vision/match_pipeline/team_routes/
+vision/match_pipeline/auto_book/
+vision/match_pipeline/preferred_paths/
+vision/match_pipeline/truth/
+vision/match_pipeline/training/
+vision/match_pipeline/reports/
+vision/match_pipeline/truth.json
+vision/match_pipeline/report.json
+vision/match_pipeline/report.csv
+vision/match_pipeline/team_routes.json
+vision/match_pipeline/teleop_facts.json
+vision/match_pipeline/auto_start.json
+vision/match_pipeline/only_list.json
+vision/match_pipeline/scout_table.csv
+vision/match_pipeline/fuel_split.csv
+vision/match_pipeline/steals.csv
+vision/match_pipeline/path_quality.csv
+out/
+
+# ─── Generated strategy data (regenerate from TBA + vision pipeline) ───────
+strategy/scout/data/raw_matches/
+strategy/scout/data/statbotics/
+strategy/scout/models/*.pkl
+
+# ─── Calibration backups (calib.json itself IS tracked — it's config) ──────
+vision/match_pipeline/calib.json.bak*
+vision/match_pipeline/*.png
+!vision/match_pipeline/reference_frame.png
+
+# ─── Tooling / editor / OS ─────────────────────────────────────────────────
+graphify-out/
+.claude/*.local.json
+**/.claude/*.local.json
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

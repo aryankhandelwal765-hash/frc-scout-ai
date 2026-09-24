@@ -1,0 +1,33 @@
+# Core CV / numerics
+opencv-python>=5.0
+numpy>=2.0
+
+# Robot detection + tracking (YOLO, ByteTrack). Runs on Apple-Silicon GPU via MPS.
+ultralytics>=8.4
+torch>=2.13
+torchvision>=0.28
+
+# Text reading.
+#   pytesseract -> scoreboard ball counts + the match timer (big, high-contrast
+#                  overlay digits; also needs the tesseract BINARY, see below).
+#   easyocr     -> bumper TEAM NUMBERS. Tesseract reads nothing on those (small,
+#                  angled, dim scene text -- measured 0/107); easyocr does.
+pytesseract>=0.3.13
+easyocr>=1.7
+
+# TBA API over HTTPS. python.org framework Python ships no system CA bundle, so
+# tba.py and the easyocr model download both fall back to certifi's.
+certifi>=2026.1
+
+# Not imported directly, but easyocr/ultralytics pull these in and the pipeline
+# depends on their behaviour; pinned here so a fresh clone matches.
+pillow>=12.0
+scipy>=1.18
+
+# --- NON-pip prerequisites -------------------------------------------------
+# These are NOT installable with pip. Install them separately or the pipeline
+# fails at runtime:
+#   yt-dlp     -- downloads match videos      (pip install yt-dlp, or brew)
+#   ffmpeg     -- trims/crops/transcodes      (brew install ffmpeg)
+#   tesseract  -- binary behind pytesseract   (brew install tesseract)
+#                 scoring_estimator.py expects /opt/homebrew/bin/tesseract

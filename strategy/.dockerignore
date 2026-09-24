@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Local data / caches
+.logs/
+scout/cache.db
+scout/data/raw_matches/
+scout/data/scouting/
+graphify-out/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Env
+.env
+scout/.streamlit/secrets.toml

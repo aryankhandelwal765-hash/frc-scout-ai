@@ -1,0 +1,10 @@
+# ByteTrack tuned for FRC bulk-ball footage: robots get buried in ball piles for
+# seconds at a time, so keep lost tracks alive far longer to re-link the same
+# robot instead of minting a new ID (reduces fragmentation of per-robot totals).
+tracker_type: bytetrack
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.30 # slightly higher -> fewer spurious new IDs
+track_buffer: 180 # 3s @ 60fps of occlusion tolerance (was 30)
+match_thresh: 0.85 # a touch looser association to re-link a robot that drifted while occluded
+fuse_score: True
