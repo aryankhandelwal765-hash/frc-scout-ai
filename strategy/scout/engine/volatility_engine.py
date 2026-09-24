@@ -1,6 +1,6 @@
 """Volatility engine — consistency and risk profile from Statbotics EPA stats.
 
-Adapts the legacy playoff-stability / reliability concepts (legacy/metric_engine.py)
+Adapts the original playoff-stability / reliability concepts (removed in the public release)
 onto EPA: how much a team's contribution swings match-to-match, and how much
 upside (ceiling) it carries. Consumes the stats dict from statbotics_loader.
 

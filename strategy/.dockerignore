@@ -28,4 +28,3 @@ graphify-out/
 
 # Env
 .env
-scout/.streamlit/secrets.toml

@@ -1,6 +1,6 @@
 """Archetype engine — classify a team's playstyle from Statbotics EPA stats.
 
-The legacy scouting-trait role logic (legacy/metric_engine.py) is the conceptual
+The original scouting-trait role logic (removed in the public release) is the conceptual
 blueprint, but scouting CSVs are empty, so archetypes are derived from the live
 EPA breakdown (auto / teleop / endgame points) plus overall EPA and win rate.
 

@@ -14,8 +14,8 @@ stats schema the engines consume out of TBA primitives:
 Public interface mirrors statbotics_loader so it is a drop-in provider:
     is_configured(), is_reachable(), get_team_stats(team, year).
 
-Requires a free TBA read key (config.get_tba_key): env TBA_AUTH_KEY or
-scout/.streamlit/secrets.toml.
+Requires a free TBA read key (config.get_tba_key), from the TBA_AUTH_KEY
+environment variable.
 """
 
 import statistics

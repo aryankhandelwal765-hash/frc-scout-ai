@@ -1,7 +1,6 @@
 # Secrets — NEVER commit
 .env
 .env.local
-scout/.streamlit/secrets.toml
 scout/user_settings.json
 
 # Persistent cache / local state
@@ -44,5 +43,3 @@ graphify-out/
 .DS_Store
 Thumbs.db
 
-# Streamlit runtime
-.streamlit/

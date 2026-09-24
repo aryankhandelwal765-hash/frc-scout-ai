@@ -1,32 +1,35 @@
-# React + TypeScript + Vite
+# frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript dashboard for the FRC Scout AI strategy API.
 
-Currently, two official plugins are available:
+Two pages, no router — page state lives in `App.tsx`:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Match Analysis** — quantitative dashboard (win probability, per-alliance OPR,
+  chemistry, phase split, per-robot cards) plus the Strategy and Captain LLM
+  reads, streamed in parallel.
+- **Captain** — a single alliance briefing on its own page.
 
-## React Compiler
+Streaming reads arrive as NDJSON over HTTP and are consumed by `useReader.ts`
+(one read) and `useBots.ts` (six per-robot reads). Both render the model's
+thinking phase as a progress bar before the answer text appears.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run
 
-## Expanding the Oxlint configuration
+The API must be running on `:8000` first — see the repo root README. Vite
+proxies `/api` to it.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Build and check
+
+```bash
+npm run build        # production bundle -> dist/
+npm run lint         # oxlint
+npx tsc --noEmit     # type check
+```
+
+`dist/` is also served directly by the FastAPI app, so a single-container
+deploy needs no separate web server.

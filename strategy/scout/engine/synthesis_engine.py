@@ -160,7 +160,7 @@ def synthesize(prediction: dict, notes: str | None = None, model: str | None = N
 
 
 def stream_synthesis(prediction: dict, notes: str | None = None, model: str | None = None):
-    """Stream the strategy read token-by-token (for Streamlit / API streaming).
+    """Stream the strategy read token-by-token (drives the NDJSON API stream).
 
     Yields text chunks; build the brief first via build_strategy_brief if you
     also need the structured layers.

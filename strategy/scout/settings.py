@@ -1,7 +1,8 @@
 """User settings with on-disk persistence.
 
-Streamlit session_state resets on restart, so the user's team number is stored in
-a small JSON file (BASE_DIR/user_settings.json) that survives restarts.
+The user's team number is stored in a small JSON file
+(BASE_DIR/user_settings.json) so it survives an API restart. Read and written
+by the /settings endpoints in scout.api.main.
 """
 
 import json

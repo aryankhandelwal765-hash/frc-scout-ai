@@ -1,6 +1,6 @@
 """Chemistry engine — alliance synergy from EPA-derived archetypes.
 
-Adapts the legacy alliance-synergy logic (legacy/alliance_synergy.py) — role
+Adapts the original alliance-synergy logic (removed in the public release) — role
 balance, offensive power, redundancy risk — onto the EPA archetypes produced by
 archetype_engine, since scouting-trait data is unavailable.
 
