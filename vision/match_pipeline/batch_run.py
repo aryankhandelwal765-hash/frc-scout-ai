@@ -25,7 +25,10 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PARENT = os.path.dirname(HERE)
+# The classic-CV modules (scoring_estimator, ...) live in vision/classic.
+CLASSIC = os.path.join(PARENT, "classic")
 sys.path.insert(0, PARENT)          # import the estimator from the project root
+sys.path.insert(0, CLASSIC)
 VIDEOS = os.path.join(HERE, "videos")
 RESULTS = os.path.join(HERE, "results")
 
@@ -52,6 +55,7 @@ def _run_one(args):
               "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS", "OMP_THREAD_LIMIT"):
         os.environ.setdefault(v, "1")
     sys.path.insert(0, PARENT)
+    sys.path.insert(0, CLASSIC)
     import scoring_estimator as se
     import cv2
     cv2.setNumThreads(1)

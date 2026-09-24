@@ -27,11 +27,15 @@ import argparse
 import csv
 import json
 import os
+import sys
 from collections import defaultdict
 
 import cv2
 import numpy as np
 from ultralytics import YOLO
+
+# The classic-CV modules this builds on live in vision/classic.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "classic"))
 
 from scoring_estimator import (SCOREBOARD, YELLOW_LO, YELLOW_HI,
                                ocr_ball_count, moving_ball_mask)

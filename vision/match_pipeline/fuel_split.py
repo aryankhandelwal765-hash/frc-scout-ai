@@ -208,7 +208,7 @@ def main():
     a = p.parse_args()
     mapper = td.load_mapper()
     if mapper is None:
-        raise SystemExit("No field map -- run autofit_fieldmap.py first.")
+        raise SystemExit("No field map -- run multi_video_apriltag_calib.py first.")
 
     matches = ONLY or sorted(
         os.path.basename(os.path.dirname(x))

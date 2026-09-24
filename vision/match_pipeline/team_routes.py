@@ -320,7 +320,7 @@ def main():
 
     mapper = td.load_mapper()
     if mapper is None:
-        raise SystemExit("No field map -- run autofit_fieldmap.py or make_fieldmap.py.")
+        raise SystemExit("No field map -- run multi_video_apriltag_calib.py first.")
 
     per = load_runs(mapper)
     json_path = os.path.join(HERE, "team_routes.json")

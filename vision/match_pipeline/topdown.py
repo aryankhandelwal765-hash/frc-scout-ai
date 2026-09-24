@@ -8,7 +8,7 @@ heavy fisheye -- straight lines bow a little near the edges -- but plenty for a
 readable auto book. Undistortion (camera calibration) would remove the residual bow.
 
 Canonical field: blue alliance LEFT, red RIGHT (to match the broadcast), so clicking
-corners left->right in make_homography lines up with what you see.
+corners left->right in the calibration step lines up with what you see.
 """
 
 import json

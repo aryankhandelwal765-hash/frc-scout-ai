@@ -1,0 +1,2417 @@
+{
+  "frc2056": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.23,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Neutral Mid-Right",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_f1m3",
+          "2026hop_qm106",
+          "2026hop_qm91"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.12,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_f1m2",
+          "2026hop_qm13"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc581": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.35,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm19",
+          "2026hop_qm49",
+          "2026hop_qm58"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.25,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Bot Blue Trench",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_f1m2",
+          "2026hop_qm74",
+          "2026hop_qm86"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.48,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Blue Outpost",
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Bot Blue Trench",
+          "Neutral Bot-Right",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Neutral Bot-Left"
+        ],
+        "matches": [
+          "2026hop_f1m3",
+          "2026hop_qm10"
+        ]
+      }
+    ],
+    "n_total": 8
+  },
+  "frc3506": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 7,
+        "delayed": false,
+        "mean_delay_s": 0.8,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Neutral Bot-Left",
+          "Neutral Mid-Right",
+          "Bot Blue Trench",
+          "Top Blue Bump",
+          "Bot Blue Trench",
+          "Bot Blue Bump",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Neutral Bot-Right",
+          "Neutral Mid-Left",
+          "Bot Blue Bump",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_f1m3",
+          "2026hop_qm112",
+          "2026hop_qm37",
+          "2026hop_qm48",
+          "2026hop_qm60",
+          "2026hop_qm8",
+          "2026hop_qm83"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc4143": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.3,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Blue Center",
+          "Blue Center",
+          "Blue Depot",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Top-Right",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_f1m3",
+          "2026hop_qm105",
+          "2026hop_qm21",
+          "2026hop_qm88"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc4201": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": true,
+        "mean_delay_s": 1.95,
+        "zone_sequence": [
+          "Blue Depot",
+          "Top Blue Bump",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Hub",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Bot Blue Bump"
+        ],
+        "matches": [
+          "2026hop_qm1",
+          "2026hop_qm117",
+          "2026hop_qm32",
+          "2026hop_qm59",
+          "2026hop_qm84"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc9785": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 6.9,
+        "zone_sequence": [
+          "Blue Center",
+          "Top Blue Bump",
+          "Neutral Mid-Left",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm10",
+          "2026hop_qm56",
+          "2026hop_qm66"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.4,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm108",
+          "2026hop_qm116",
+          "2026hop_qm35"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc3297": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 6,
+        "delayed": true,
+        "mean_delay_s": 3.98,
+        "zone_sequence": [
+          "Blue Center",
+          "Top Blue Bump",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Mid-Left",
+          "Blue Center",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm10",
+          "2026hop_qm123",
+          "2026hop_qm20",
+          "2026hop_qm54",
+          "2026hop_qm71",
+          "2026hop_qm83"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc1732": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 2.34,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm102",
+          "2026hop_qm21",
+          "2026hop_qm91"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.47,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Bot Blue Bump"
+        ],
+        "matches": [
+          "2026hop_qm10",
+          "2026hop_qm70"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc11493": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": true,
+        "mean_delay_s": 19.69,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm11",
+          "2026hop_qm113",
+          "2026hop_qm60",
+          "2026hop_qm68"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 3.99,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm22",
+          "2026hop_qm30",
+          "2026hop_qm43"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.1,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm100",
+          "2026hop_qm92"
+        ]
+      }
+    ],
+    "n_total": 9
+  },
+  "frc1259": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 1.0,
+        "zone_sequence": [
+          "Blue Hub",
+          "Top Blue Bump",
+          "Neutral Top-Left",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Blue Depot",
+          "Top Blue Trench",
+          "Blue Hub",
+          "Blue Center",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm100",
+          "2026hop_qm14",
+          "2026hop_qm34",
+          "2026hop_qm78"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.39,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm67",
+          "2026hop_qm89"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc8749": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 5.25,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm100",
+          "2026hop_qm52"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.34,
+        "zone_sequence": [
+          "Neutral Bot-Right",
+          "Neutral Bot-Left",
+          "Blue Hub",
+          "Blue Outpost",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm26",
+          "2026hop_qm88"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc10131": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.51,
+        "zone_sequence": [
+          "Blue Center",
+          "Top Blue Bump",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Blue Center",
+          "Neutral Bot-Left",
+          "Blue Hub",
+          "Blue Hub",
+          "Top Blue Bump",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm100",
+          "2026hop_qm112",
+          "2026hop_qm3",
+          "2026hop_qm32"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc1706": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": false,
+        "mean_delay_s": 1.45,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Neutral Mid-Right",
+          "Bot Blue Trench",
+          "Neutral Mid-Right",
+          "Blue Outpost",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm100",
+          "2026hop_qm20",
+          "2026hop_qm44",
+          "2026hop_qm57",
+          "2026hop_qm70"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc11024": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 6,
+        "delayed": true,
+        "mean_delay_s": 16.3,
+        "zone_sequence": [
+          "Blue Center",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm101",
+          "2026hop_qm122",
+          "2026hop_qm23",
+          "2026hop_qm44",
+          "2026hop_qm65",
+          "2026hop_qm9"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc540": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.65,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Hub",
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm102",
+          "2026hop_qm14",
+          "2026hop_qm40"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 19.99,
+        "zone_sequence": [
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm116",
+          "2026hop_qm29"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc10907": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": true,
+        "mean_delay_s": 16.09,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Depot",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm102",
+          "2026hop_qm18",
+          "2026hop_qm44",
+          "2026hop_qm56",
+          "2026hop_qm71"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc3641": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.34,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Depot",
+          "Blue Center",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm102",
+          "2026hop_qm113",
+          "2026hop_qm3"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc4191": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 12.06,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm117",
+          "2026hop_qm81"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 5.67,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm103",
+          "2026hop_qm58"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.15,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm22",
+          "2026hop_qm37"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc1287": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.51,
+        "zone_sequence": [
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm103",
+          "2026hop_qm112",
+          "2026hop_qm47"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 4.42,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm25",
+          "2026hop_qm92"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc8214": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 2.89,
+        "zone_sequence": [
+          "Blue Center",
+          "Neutral Mid-Left",
+          "Top Blue Bump",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm118",
+          "2026hop_qm43",
+          "2026hop_qm6"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.55,
+        "zone_sequence": [
+          "Neutral Bot-Right",
+          "Bot Blue Trench",
+          "Neutral Mid-Right",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm103",
+          "2026hop_qm54"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc2834": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": true,
+        "mean_delay_s": 15.1,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm112",
+          "2026hop_qm2",
+          "2026hop_qm71",
+          "2026hop_qm85"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.5,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm104",
+          "2026hop_qm27",
+          "2026hop_qm48"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc8005": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.2,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm104",
+          "2026hop_qm43",
+          "2026hop_qm80"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc573": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.5,
+        "zone_sequence": [
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Blue Hub",
+          "Top Blue Bump",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm104",
+          "2026hop_qm113",
+          "2026hop_qm67"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.53,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm24",
+          "2026hop_qm41",
+          "2026hop_qm52"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc6639": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": true,
+        "mean_delay_s": 18.83,
+        "zone_sequence": [
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm120",
+          "2026hop_qm18",
+          "2026hop_qm53",
+          "2026hop_qm92"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 2.18,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm105",
+          "2026hop_qm33"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 3.24,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm64",
+          "2026hop_qm84"
+        ]
+      }
+    ],
+    "n_total": 8
+  },
+  "frc9449": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 1.21,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Top Blue Bump",
+          "Blue Center",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm105",
+          "2026hop_qm114",
+          "2026hop_qm62",
+          "2026hop_qm77"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc3467": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.16,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm37",
+          "2026hop_qm92"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.39,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm106",
+          "2026hop_qm116"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc2383": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 6.77,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Top-Left",
+          "Neutral Top-Left",
+          "Blue Center",
+          "Blue Depot",
+          "Top Blue Trench",
+          "Top Blue Bump",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm115",
+          "2026hop_qm53",
+          "2026hop_qm66"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.16,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Hub",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm106",
+          "2026hop_qm87"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc6200": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 14.49,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm108",
+          "2026hop_qm30",
+          "2026hop_qm52"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 20.0,
+        "zone_sequence": [
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm19",
+          "2026hop_qm4"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc8267": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 6.93,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Hub",
+          "Bot Blue Bump",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Neutral Bot-Right",
+          "Neutral Mid-Left",
+          "Bot Blue Bump",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm108",
+          "2026hop_qm20",
+          "2026hop_qm73"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc6329": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 2.98,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Bot Blue Trench",
+          "Blue Center",
+          "Blue Outpost",
+          "Neutral Bot-Left",
+          "Neutral Bot-Right"
+        ],
+        "matches": [
+          "2026hop_qm11",
+          "2026hop_qm20",
+          "2026hop_qm41"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc7451": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": true,
+        "mean_delay_s": 12.88,
+        "zone_sequence": [
+          "Blue Depot",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm111",
+          "2026hop_qm119",
+          "2026hop_qm28",
+          "2026hop_qm51",
+          "2026hop_qm6"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.46,
+        "zone_sequence": [
+          "Blue Center",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm14",
+          "2026hop_qm40"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc9692": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 2.3,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Outpost",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm78",
+          "2026hop_qm9"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.25,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Bot Blue Bump",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm111",
+          "2026hop_qm69"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc1014": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 2.14,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Hub",
+          "Blue Outpost",
+          "Blue Center",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Hub",
+          "Bot Blue Bump",
+          "Neutral Mid-Left",
+          "Neutral Mid-Right",
+          "Neutral Top-Left",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm121",
+          "2026hop_qm7",
+          "2026hop_qm72"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.32,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm15",
+          "2026hop_qm56"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 5.59,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm111",
+          "2026hop_qm27"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc3015": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.6,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Mid-Left",
+          "Blue Center",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Top Blue Bump",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm111",
+          "2026hop_qm16",
+          "2026hop_qm2",
+          "2026hop_qm44"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc6517": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.33,
+        "zone_sequence": [
+          "Neutral Bot-Right",
+          "Blue Depot",
+          "Bot Blue Trench",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Bump",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm111",
+          "2026hop_qm21",
+          "2026hop_qm46",
+          "2026hop_qm74"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc8044": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.22,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Top-Right",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Top Blue Bump",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm62",
+          "2026hop_qm74",
+          "2026hop_qm85"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.21,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm115",
+          "2026hop_qm18"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc2659": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": false,
+        "mean_delay_s": 0.55,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Center",
+          "Bot Blue Trench",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Bot Blue Trench",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm115",
+          "2026hop_qm2",
+          "2026hop_qm49",
+          "2026hop_qm68",
+          "2026hop_qm83"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc1986": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.36,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Mid-Right",
+          "Blue Depot",
+          "Blue Depot",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm116",
+          "2026hop_qm60",
+          "2026hop_qm87"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.49,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Hub",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Bot Blue Bump",
+          "Blue Hub",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Bot-Left",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm16",
+          "2026hop_qm26",
+          "2026hop_qm6"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc1710": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.82,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm13",
+          "2026hop_qm44"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.66,
+        "zone_sequence": [
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm116",
+          "2026hop_qm36"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc4613": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.22,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Bot Blue Bump"
+        ],
+        "matches": [
+          "2026hop_qm116",
+          "2026hop_qm28",
+          "2026hop_qm53"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc5086": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 1.0,
+        "zone_sequence": [
+          "Blue Depot",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm117",
+          "2026hop_qm19"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.32,
+        "zone_sequence": [
+          "Red Outpost",
+          "Bot Red Bump",
+          "Bot Red Trench",
+          "Blue Depot",
+          "Bot Red Trench",
+          "Neutral Bot-Right",
+          "Bot Red Trench",
+          "Red Outpost"
+        ],
+        "matches": [
+          "2026hop_qm29",
+          "2026hop_qm50"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc5454": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.77,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm118",
+          "2026hop_qm15",
+          "2026hop_qm84"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 1.25,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Bump"
+        ],
+        "matches": [
+          "2026hop_qm60",
+          "2026hop_qm73"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc1625": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.42,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Hub",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm119",
+          "2026hop_qm22",
+          "2026hop_qm62",
+          "2026hop_qm72"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc6121": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.5,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Blue Outpost",
+          "Blue Outpost",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm119",
+          "2026hop_qm59",
+          "2026hop_qm67"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.45,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Top-Right",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm49",
+          "2026hop_qm87"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc11270": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 1.35,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm46",
+          "2026hop_qm60",
+          "2026hop_qm77"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 10.37,
+        "zone_sequence": [
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm20",
+          "2026hop_qm68"
+        ]
+      },
+      {
+        "id": 2,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.23,
+        "zone_sequence": [
+          "Neutral Bot-Right",
+          "Neutral Mid-Right",
+          "Red Hub",
+          "Bot Red Bump",
+          "Red Center",
+          "Red Outpost",
+          "Red Center",
+          "Red Outpost",
+          "Red Center",
+          "Red Outpost"
+        ],
+        "matches": [
+          "2026hop_qm119",
+          "2026hop_qm89"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc2220": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.32,
+        "zone_sequence": [
+          "Blue Depot",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm123",
+          "2026hop_qm22",
+          "2026hop_qm67"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.52,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm12",
+          "2026hop_qm55"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc1701": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.41,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Neutral Bot-Left",
+          "Neutral Bot-Left",
+          "Neutral Bot-Left",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm120",
+          "2026hop_qm5",
+          "2026hop_qm63"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc188": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": true,
+        "mean_delay_s": 6.0,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm121",
+          "2026hop_qm5",
+          "2026hop_qm69"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc7287": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 5,
+        "delayed": false,
+        "mean_delay_s": 1.01,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm121",
+          "2026hop_qm17",
+          "2026hop_qm28",
+          "2026hop_qm39",
+          "2026hop_qm7"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc6152": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.52,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Top Blue Bump"
+        ],
+        "matches": [
+          "2026hop_qm41",
+          "2026hop_qm61",
+          "2026hop_qm7",
+          "2026hop_qm70"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.4,
+        "zone_sequence": [
+          "Blue Outpost",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Bot Blue Trench",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm16",
+          "2026hop_qm92"
+        ]
+      }
+    ],
+    "n_total": 6
+  },
+  "frc2607": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.68,
+        "zone_sequence": [
+          "Blue Depot",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Top Blue Bump",
+          "Blue Depot",
+          "Top Blue Bump",
+          "Neutral Top-Left"
+        ],
+        "matches": [
+          "2026hop_qm17",
+          "2026hop_qm77",
+          "2026hop_qm9",
+          "2026hop_qm90"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 1.38,
+        "zone_sequence": [
+          "Blue Center",
+          "Blue Depot",
+          "Bot Blue Bump",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm26",
+          "2026hop_qm50",
+          "2026hop_qm67"
+        ]
+      }
+    ],
+    "n_total": 7
+  },
+  "frc238": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.51,
+        "zone_sequence": [
+          "Blue Depot",
+          "Top Blue Trench",
+          "Top Blue Bump",
+          "Neutral Top-Left",
+          "Blue Center",
+          "Blue Hub",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm17",
+          "2026hop_qm31",
+          "2026hop_qm4"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc761": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.74,
+        "zone_sequence": [
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Blue Outpost",
+          "Blue Outpost",
+          "Bot Blue Bump",
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Trench",
+          "Bot Blue Bump",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm18",
+          "2026hop_qm7",
+          "2026hop_qm87"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 4.65,
+        "zone_sequence": [
+          "Blue Center",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm55",
+          "2026hop_qm63"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc2199": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": true,
+        "mean_delay_s": 19.98,
+        "zone_sequence": [
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm23",
+          "2026hop_qm31",
+          "2026hop_qm40",
+          "2026hop_qm53"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc5000": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.27,
+        "zone_sequence": [
+          "Blue Depot",
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm23",
+          "2026hop_qm86"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.48,
+        "zone_sequence": [
+          "Neutral Mid-Right",
+          "Blue Outpost",
+          "Neutral Top-Left",
+          "Neutral Bot-Right",
+          "Neutral Top-Left",
+          "Neutral Bot-Left",
+          "Blue Outpost",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left"
+        ],
+        "matches": [
+          "2026hop_qm32",
+          "2026hop_qm51"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc8513": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.46,
+        "zone_sequence": [
+          "Blue Center",
+          "Neutral Mid-Right",
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Top Blue Bump",
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Neutral Top-Left",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm24",
+          "2026hop_qm69"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.96,
+        "zone_sequence": [
+          "Bot Blue Bump",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left",
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Blue Outpost",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Neutral Bot-Left"
+        ],
+        "matches": [
+          "2026hop_qm33",
+          "2026hop_qm46"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc910": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 1.13,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Bot Blue Trench",
+          "Blue Center",
+          "Neutral Mid-Right",
+          "Blue Center",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm25",
+          "2026hop_qm49",
+          "2026hop_qm57"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc503": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 4,
+        "delayed": false,
+        "mean_delay_s": 0.44,
+        "zone_sequence": [
+          "Neutral Top-Left",
+          "Neutral Mid-Left",
+          "Top Blue Trench",
+          "Blue Depot",
+          "Neutral Bot-Left"
+        ],
+        "matches": [
+          "2026hop_qm25",
+          "2026hop_qm37",
+          "2026hop_qm59",
+          "2026hop_qm73"
+        ]
+      }
+    ],
+    "n_total": 4
+  },
+  "frc1787": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.54,
+        "zone_sequence": [
+          "Neutral Bot-Right",
+          "Neutral Mid-Right",
+          "Neutral Mid-Left",
+          "Blue Hub",
+          "Bot Blue Bump",
+          "Blue Outpost",
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Neutral Mid-Left"
+        ],
+        "matches": [
+          "2026hop_qm34",
+          "2026hop_qm44",
+          "2026hop_qm69"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.29,
+        "zone_sequence": [
+          "Blue Depot",
+          "Neutral Top-Right",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Neutral Top-Left",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm3",
+          "2026hop_qm84"
+        ]
+      }
+    ],
+    "n_total": 5
+  },
+  "frc3539": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 3,
+        "delayed": false,
+        "mean_delay_s": 0.44,
+        "zone_sequence": [
+          "Top Blue Trench",
+          "Neutral Top-Left",
+          "Neutral Top-Left",
+          "Blue Hub",
+          "Neutral Top-Left",
+          "Blue Depot",
+          "Blue Center"
+        ],
+        "matches": [
+          "2026hop_qm41",
+          "2026hop_qm75",
+          "2026hop_qm90"
+        ]
+      }
+    ],
+    "n_total": 3
+  },
+  "frc3035": {
+    "clusters": [
+      {
+        "id": 0,
+        "n_runs": 2,
+        "delayed": true,
+        "mean_delay_s": 2.17,
+        "zone_sequence": [
+          "Blue Depot",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot",
+          "Blue Center",
+          "Blue Depot"
+        ],
+        "matches": [
+          "2026hop_qm61",
+          "2026hop_qm91"
+        ]
+      },
+      {
+        "id": 1,
+        "n_runs": 2,
+        "delayed": false,
+        "mean_delay_s": 0.22,
+        "zone_sequence": [
+          "Bot Blue Trench",
+          "Neutral Bot-Left",
+          "Bot Blue Bump",
+          "Bot Blue Trench",
+          "Blue Outpost"
+        ],
+        "matches": [
+          "2026hop_qm72",
+          "2026hop_qm81"
+        ]
+      }
+    ],
+    "n_total": 4
+  }
+}

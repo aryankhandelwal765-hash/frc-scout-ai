@@ -64,7 +64,7 @@ occupies 158.6..205.6in and where the trenches sit.
 | `scout_table.py` | one row per (match, team) in hand-scouting schema, source-tagged |
 | `report_llm.py` | readable scouting notes via local Ollama, facts-only prompt |
 | `export_to_strategy.py` | hand-off to the strategy strategy system |
-| `autofit_fieldmap.py` / `calibrate_field.py` | camera→field map (autofit is active) |
+| `multi_video_apriltag_calib.py` + `fit_2d_correction.py` | camera→field map (canonical; older variants in `_archive/`) |
 | `topdown.py` / `topdown_paths.py` / `team_routes.py` | bird's-eye field + route books |
 | `render_full_match.py` / `render_fusion.py` / `render_autopaths.py` | visual checks |
 

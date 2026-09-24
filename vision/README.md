@@ -18,14 +18,14 @@ frame ─► color masks ─► robot blobs + round ball blobs
 
 | file | what it is |
 |------|-----------|
-| `track_match.py` | main entry point (robots **and** balls **and** scoring) |
-| `config.py` | color presets, tunable params, goal-zone type |
-| `detection.py` | color masks, robot blobs, circular ball blobs |
-| `tracking.py` | nearest-centroid tracker with a grace period |
-| `scoring.py` | possession + goal-zone scoring engine |
-| `overlay.py` | annotated-video drawing (boxes, balls, scoreboard) |
-| `make_test_clip.py` | generates a synthetic clip to validate the pipeline |
-| `robot_tracker.py` | the original robots-only script (kept for reference) |
+| `classic/track_match.py` | main entry point (robots **and** balls **and** scoring) |
+| `classic/config.py` | color presets, tunable params, goal-zone type |
+| `classic/detection.py` | color masks, robot blobs, circular ball blobs |
+| `classic/tracking.py` | nearest-centroid tracker with a grace period |
+| `classic/scoring.py` | possession + goal-zone scoring engine |
+| `classic/overlay.py` | annotated-video drawing (boxes, balls, scoreboard) |
+| `classic/make_test_clip.py` | generates a synthetic clip to validate the pipeline |
+| `classic/robot_tracker.py` | the original robots-only script (kept for reference) |
 
 ## 1. Setup
 
@@ -40,8 +40,8 @@ pip install -r requirements.txt
 The synthetic clip has a known answer — Red robot scores 2 balls, Blue scores 1:
 
 ```bash
-python make_test_clip.py                              # -> test_clip.mp4, test_zones.json
-python track_match.py --input test_clip.mp4 --zones test_zones.json --outdir out
+python classic/make_test_clip.py                              # -> test_clip.mp4, test_zones.json
+python classic/track_match.py --input test_clip.mp4 --zones test_zones.json --outdir out
 ```
 
 You should see `RED 2 / BLUE 1`, and `out/annotated.mp4` shows the boxes, ball
@@ -70,7 +70,7 @@ Scoring = "a ball disappeared inside a goal region." You define those regions
 once per camera angle by dragging boxes on the first frame:
 
 ```bash
-python track_match.py --input clip_trimmed.mp4 --pick-zones --zones-out zones.json
+python classic/track_match.py --input clip_trimmed.mp4 --pick-zones --zones-out zones.json
 ```
 
 Drag a box around each goal/hub, press ENTER after each, ESC when done, and
@@ -90,7 +90,7 @@ last possessed the ball (use it for a single central hub).
 ## 5. Run it
 
 ```bash
-python track_match.py --input clip_trimmed.mp4 --zones zones.json --outdir out --ball-color yellow
+python classic/track_match.py --input clip_trimmed.mp4 --zones zones.json --outdir out --ball-color yellow
 ```
 
 Outputs in `out/`:
@@ -107,7 +107,7 @@ circularity filter — yellow is far more robust when your game allows it.
 
 ## 6. Tuning (broadcast footage is messier)
 
-In rough order of impact — flags override the defaults in `config.py`:
+In rough order of impact — flags override the defaults in `classic/config.py`:
 
 1. **`--robot-min-area` / `--ball-min-area`** — raise to kill crowd/banner noise;
    most junk blobs are small. Balls are much smaller than robots.
@@ -117,7 +117,7 @@ In rough order of impact — flags override the defaults in `config.py`:
    objects; lower it if real balls get missed (motion blur flattens circles).
 4. **`--possession-radius`** — px within which a ball counts as "held" by a robot.
    Too small → shots aren't attributed; too big → wrong robot gets credit.
-5. **Narrow the HSV ranges** in `config.py` — sample real bumper/ball pixels from a
+5. **Narrow the HSV ranges** in `classic/config.py` — sample real bumper/ball pixels from a
    frame (`cv2.imwrite` a frame, open in Preview, use the color picker) and
    tighten the ranges around what you actually see.
 
