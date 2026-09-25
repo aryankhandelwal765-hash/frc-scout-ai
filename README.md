@@ -1,178 +1,331 @@
 # FRC Scout AI
 
-Turns FRC match video and The Blue Alliance data into an alliance-strategy briefing — computer vision measures what each robot actually did, a quantitative model predicts the match, and a local LLM writes the scouting read.
+Measures FRC robots from match video and fuses that with The Blue Alliance into a strategy brief.
 
-## The problem
+[![CI](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml)
 
-FRC scouting is manual. Someone sits in the stands with a clipboard (or a tablet form) and tallies what each robot does, match after match. The data is thin, inconsistent between scouts, and by the time you need it — standing at the alliance selection table, or three minutes before a match — nobody has time to read a spreadsheet.
+<!-- TODO(aryan): record a ~20s screen capture of an analyze run (match setup ->
+     dashboard -> streaming captain read) and save it to docs/media/hero.gif. -->
+![demo](docs/media/hero.gif)
 
-This replaces the clipboard with two things: a CV pipeline that measures per-robot scoring straight from match video, and a strategy layer that fuses those measurements with TBA's aggregate stats (OPR/EPA) and streams a plain-English briefing.
+## What it does
 
-## Repo layout
+Scouting an FRC event normally means humans with clipboards watching matches and
+typing what they saw. This replaces the watching half with computer vision: a
+YOLO detector and ByteTrack follow every robot through the broadcast, bumper
+numbers are read with OCR to work out which robot is which team, and the field
+is calibrated so paths can be measured in field coordinates rather than pixels.
 
-Two sub-systems in one repo, joined at a single seam.
-
-```
-frc-scout-ai/
-  vision/                 the measurement half — what each robot actually did
-    track_match.py        classic-CV entry point (no training, CPU-only)
-    detector_estimator.py YOLO-based per-robot scoring estimator
-    match_pipeline/       batch jobs over downloaded match video
-      batch_run.py          run the estimator across every video
-      identify.py           team identity by bumper-number OCR voting
-      export_to_strategy.py hand measured scouting data to strategy/
-  strategy/               the decision half — what to do about it
-    scout/                the Python package
-      engine/               prediction, archetypes, volatility, chemistry,
-                            vision ingest, LLM synthesis
-      api/                  FastAPI app, NDJSON streaming endpoints
-      training/             offline dataset builders + model trainers
-      pages/                Streamlit pages (legacy but functional)
-    frontend/             React 19 + TypeScript dashboard
-```
+Those measurements are joined with The Blue Alliance's official results and OPR
+aggregates, run through archetype, volatility and chemistry engines, and handed
+to a local LLM that writes a strategy brief for a specific matchup. The whole
+thing runs on a laptop — the model is served by Ollama, so no match data leaves
+the machine.
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    V["Match video<br/>(yt-dlp)"] --> P
+
+    subgraph P["vision/match_pipeline"]
+        direction TB
+        P1["YOLO detector<br/>+ ByteTrack"] --> P2["fragment stitching"]
+        P2 --> P3["bumper OCR<br/>identity voting"]
+        P3 --> P4["field calibration<br/>+ homography"]
+        P4 --> P5["Kalman smoothing<br/>auto paths · zones · steals"]
+    end
+
+    P --> EX["export_to_strategy.py<br/>scout_table.csv"]
+    EX --> VL["vision_loader.py"]
+    TBA[("The Blue Alliance")] --> TL["tba_loader.py"]
+    SB[("Statbotics<br/>alternate provider")] -.-> TL
+
+    VL --> SY
+    TL --> PR["prediction_engine<br/>archetype · volatility · chemistry"]
+    PR --> SY["synthesis_engine<br/>build_strategy_brief()"]
+    OL[("Ollama<br/>qwen3:8b")] --> SY
+
+    SY --> API["FastAPI<br/>NDJSON streaming"]
+    API --> UI["React dashboard"]
+
+    P -.->|TBA ground truth| CT["compare_tba.py<br/>accuracy check"]
+    TBA -.-> CT
 ```
-vision/                      strategy/
- match video                      TBA API (OPR/EPA, schedules)
-      │                                │
-      ▼                                ▼
- YOLO robot detect ──┐          prediction_engine
- + bumper-colour     │          archetype / volatility / chemistry engines
-   alliance class    │                 │
-      ▼              │                 │
- per-robot tracking  │                 │
- + scoreboard OCR    │                 │
-      ▼              │                 │
- bumper-number       │                 │
- identity voting     │                 │
-      ▼              │                 │
- results/<match>/    │                 │
-   estimate.json  ───┴──► vision_loader.py ──► synthesis_engine.build_strategy_brief()
-   identity.json                                        │
-                                                        ▼
-                                              Ollama (qwen3:8b), streamed
-                                                        │
-                                              NDJSON over HTTP
-                                                        ▼
-                                              React dashboard
-```
 
-**The fusion point is `strategy/scout/engine/vision_loader.py`.** It reads `vision/match_pipeline/results/*/estimate.json` and `identity.json`, joins them to TBA data by team number, and injects CV-measured ball counts into the LLM prompt. The briefing cites measured scoring alongside TBA aggregates rather than guessing from OPR alone.
+## Vision pipeline
 
-### `vision` — the CV pipeline
+The measurement half, and the part with the interesting problems. Everything
+below lives in `vision/match_pipeline/`.
 
-Per match video, run as a batch job (`match_pipeline/batch_run.py`, one process per video):
+### Detection and tracking
 
-1. **Detect** robots with a YOLO detector trained on bumper colour, so alliance comes from the bumper class rather than a field-half split.
-2. **Track** each robot across frames into persistent per-alliance IDs.
-3. **Measure** per-robot scoring activity from ball motion around each robot's box.
-4. **OCR the scoreboard** for authoritative per-alliance totals, then apportion each alliance's real total across its robots by measured activity. Alliance totals are exact; the per-robot split is an estimate.
-5. **Identify** teams by voting on OCR'd bumper numbers (`identify.py`), scored only against the six teams TBA says are in the match — so partial reads still resolve, and a ~16%-per-frame read rate becomes a confident per-track identity.
+A YOLOv8 detector fine-tuned on bumper colour finds robots in each frame;
+ByteTrack (`bytetrack_frc.yaml`, `trajectories.py`) links them across frames.
+Alliance comes from bumper colour, not which half of the field a robot is
+standing in — robots cross the field constantly, so field half is not identity.
 
-`export_to_strategy.py` writes the result into the per-team-per-match CSV schema strategy's aggregator already expected from hand scouting.
+Static field structures are the main false-positive source: the hub tower's blue
+panels and the red ramps read as bumpers. `trajectories.py` builds a mask of the
+static field and drops live detections that overlap it.
 
-There is also a standalone classic-CV path (`track_match.py`: HSV thresholding + contour detection + nearest-centroid tracking, no training, CPU-only) kept for the zero-setup case — `make_test_clip.py` generates a synthetic clip with a known answer to validate the pipeline end to end.
+### Fragment stitching
 
-### `strategy` — the strategy system
+ByteTrack loses a robot behind traffic and re-acquires it under a new track id.
+Measured on `2026hop_qm100`: robot 1706 is read correctly off its bumper on
+track 19, track 19 dies, and the later fragments get labelled by rank order — so
+the same robot is 1706 for two seconds and 3035 afterwards. The read was right;
+it just did not survive the id change.
 
-- **`engine/tba_loader.py`** — TBA v3 client behind a two-tier cache (10-min in-memory → 24h SQLite → network). Measured: first `GET /team/254` 6.3s, subsequent 16ms.
-- **`engine/prediction_engine.py`** — EPA win probability plus an ML score model; `predict_match()` is the entry point.
-- **`engine/archetype_engine.py` / `volatility_engine.py` / `chemistry_engine.py`** — playstyle classification, floor/ceiling/consistency from EPA spread, and alliance synergy from archetype pairings.
-- **`engine/synthesis_engine.py`** — the god node. Merges quantitative output, vision measurements and free-text notes into the LLM prompt. Four variants: strategy read, captain's briefing, my-team coaching, per-robot breakdown.
-- **`engine/ollama_client.py`** — streams `("thinking" | "content", text)` events, so the UI can show a real progress bar during the model's reasoning phase instead of hanging.
-- **`api/main.py`** — FastAPI, NDJSON streaming endpoints, serves the built frontend as static files for single-container deploys.
+`stitch.py` links fragment B to fragment A when B starts shortly after A ended,
+near where A was *heading*. The gate is velocity-aware: a robot that was moving
+keeps moving through the gap, so B's start is compared against A's position
+extrapolated forward, and the gate widens with gap length because the
+extrapolation degrades. Every distance is a fraction of the field-crop width, so
+nothing breaks at a different resolution.
 
-The React frontend (no router — page state in `App.tsx`) renders a win-probability banner, per-robot bento cards, and live streaming progress with token counts and ETA.
+### Identity: OCR voting, not rank order
 
-### Notable design decisions
+**Why voting beats rank order.** The obvious way to name robots is driver-station
+order: TBA gives each alliance's three team keys in station order, robots line up
+by station at auto start, so assign left to right. That is a guess, and it is
+wrong whenever the detector misses a robot or two robots swap early. It also
+fails silently — you get a confident label with no evidence behind it.
 
-- **Endgame is hard-zeroed.** `_phase_points` in `tba_loader.py` returns zero for endgame, and every prompt forbids mentioning it, because climb is worth ~nothing in the 2026 game. Phase bars show auto/teleop only.
-- **Unmeasured ≠ zero.** strategy's aggregator reads a missing column as an empty series and returns 0, which reads as "this team never does that" rather than "we didn't measure it." `export_to_strategy.py` guards this explicitly — it's a real way to mislead a pick list.
-- **Streaming state updaters must be pure.** React 18 StrictMode double-invokes them; an in-place mutation renders every token twice.
+Instead, bumper numbers are read directly (`read_numbers.py`, `identify.py`).
+Tesseract reads nothing on bumpers at this scale (measured 0 of 107); EasyOCR
+does. Reads are noisy per frame, so they are treated as **votes** keyed by track
+id, and the majority across a track wins. Because fragments are stitched first, a
+read *anywhere* on a chain names the whole chain.
 
-## Tech stack
+Frames are sampled per track rather than on a uniform stride. A uniform stride
+spends its budget on whichever robot happens to be visible most and starves the
+rest.
 
-**Vision** — Python, YOLOv8 (Ultralytics), ByteTrack, OpenCV, Tesseract OCR, NumPy
-**Backend** — FastAPI, Uvicorn, SQLite, pandas, scikit-learn
-**LLM** — Ollama running `qwen3:8b` locally
-**Frontend** — React 19, TypeScript, Vite, `motion`
-**Data** — The Blue Alliance API v3, Statbotics v3 (fallback)
-**Deploy** — Docker Compose (ollama + api + nginx frontend)
+Identity is **graded**, and every robot records how it was named:
 
-## Setup
+| source | meaning |
+|---|---|
+| `read` | bumper number actually read |
+| `elim` | the only team left once the others were read |
+| `rank` | left-to-right station guess, unvalidated |
 
-Requires Python 3.13, Node 18+, [Ollama](https://ollama.com), and a free [TBA read API key](https://www.thebluealliance.com/account).
+Station order is the last resort, and it is labelled as such rather than being
+laundered into the same confidence as a real read.
+
+### Calibration
+
+Three approaches were built and measured against each other: a robot-point-cloud
+autofit, hand-clicked landmarks, and an AprilTag PnP solve. The canonical path
+today is two phases, driven by `overnight_pipeline.py`:
+
+1. `multi_video_apriltag_calib.py` — accumulate AprilTag observations across
+   *every* video in the event and solve one ground homography. Using all videos
+   rather than one is much better conditioned.
+2. `fit_2d_correction.py` — fit a degree-2 polynomial correction on top, using
+   robots sitting on the starting line at match start as ground truth.
+
+Superseded calibration scripts are in `match_pipeline/_archive/` with a note on
+why each lost.
+
+### Smoothing and derived facts
+
+`smooth_trajectories.py` runs a Kalman filter over the tracks. From smoothed
+paths in field coordinates the pipeline derives auto paths and the 22 named field
+zones (`zones.py`, `auto_paths.py`), a per-robot fuel split (`fuel_split.py`),
+and cross-half excursions (`steals.py`).
+
+### Validation
+
+Two independent checks, neither needing hand labels:
+
+- **Against TBA.** `compare_tba.py` compares the vision estimate with the
+  official `score_breakdown` per alliance per match.
+- **Against the rulebook.** Fully crossing the centre line during auto is a major
+  foul, so a path that does is almost certainly a vision error, not a robot
+  error. `validate_paths.py` turns that into an accuracy estimate.
+
+### "Unmeasured is not zero"
+
+The export to the strategy side (`export_to_strategy.py`) only emits columns that
+are actually measured. Climb and defence are not measured by this pipeline, and a
+missing value is written as missing rather than 0 — a zero would read downstream
+as "this robot never climbs" instead of "we did not look". The generated scouting
+notes are facts only, with no human judgement mixed in.
+
+## Results
+
+2026 Hopper division. 140 matches were processed; 112 produced both an
+`estimate.json` and an `identity.json`. Numbers below are computed from
+`examples/2026hop/report.json`, which is committed — rerun `compare_tba.py` to
+reproduce them.
+
+Vision's per-alliance ball count vs TBA's `hubScore.totalCount`:
+
+| | alliance-pairs | matches | MAE | bias (vision − TBA) | Pearson r |
+|---|---|---|---|---|---|
+| All rows | 278 | 139 | 104.8 | −70.9 | 0.377 |
+| Scoreboard OCR produced a reading | 245 | 123 | 37.4 | **+1.0** | **0.862** |
+
+The gap between those rows is the headline finding. In 33 of 278 alliance-pairs
+(12%) the scoreboard OCR returned nothing and the estimate is 0, which drags the
+aggregate down and produces the large negative bias. Where the OCR reads at all,
+correlation is 0.86 and the estimator is essentially unbiased. The failures
+cluster in playoff matches (`f1m*`, `sf*`), which use a different broadcast
+overlay — a known, bounded problem rather than a diffuse accuracy one.
+
+Detection recall, and the per-identity-source accuracy table, are documented in
+`vision/match_pipeline/README.md` as ~2.3 of 3 robots per alliance and
+0.8 / 3.8 / 7.1% illegal-crossing rates for `read` / `elim` / `rank`.
+
+> TODO(aryan): the committed `examples/2026hop/path_quality.csv` does not
+> reproduce those crossing rates — recomputing from it gives 49.5% / 49.1% /
+> 60.6% (52.1% overall, n=670). The CSV is most likely stale, from before the
+> AprilTag calibration landed. Rerun `validate_paths.py` against the current
+> field map and put the real numbers here. Same for the ~2.3 recall figure,
+> which nothing on disk currently reproduces.
+
+## Strategy
+
+The decision half, in `strategy/scout/engine/`:
+
+- **`archetype_engine`** — playstyle from the EPA breakdown: phase shares and a
+  label (auto specialist, teleop workhorse, balanced contributor, …).
+- **`volatility_engine`** — floor, ceiling and consistency from `epa_sd` and
+  `epa_max`. A high-ceiling, low-floor robot is a different planning problem
+  from a metronome with the same average.
+- **`chemistry_engine`** — alliance synergy from the three archetypes: phase
+  coverage, scoring overlap, and top-heaviness (one robot carrying an alliance
+  is fragile).
+- **`prediction_engine`** — EPA win probability plus a trained score model.
+- **`synthesis_engine`** — merges the quantitative layers with vision-measured
+  scoring and any scouting notes into one prompt, then streams a read from a
+  local Ollama model. Variants: neutral strategy, alliance captain briefing,
+  coaching for your own team, and a short per-robot read for all six.
+
+Reads stream to the browser as NDJSON, including the model's thinking phase, so
+the UI shows live progress instead of a frozen spinner.
+
+## Quickstart
+
+Needs Python 3.13 (see `.python-version`), Node 24, and [Ollama](https://ollama.com).
+A free [TBA read key](https://www.thebluealliance.com/account) is required for
+live data.
+
+### Without Docker
 
 ```bash
-cp .env.example .env        # fill in TBA_AUTH_KEY
-```
+git clone https://github.com/aryankhandelwal765-hash/frc-scout-ai.git
+cd frc-scout-ai
 
-### Strategy app
+cp .env.example .env          # then put your TBA_AUTH_KEY in it
 
-```bash
-cd strategy
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-npm --prefix frontend install
+python3 -m venv strategy/.venv
+strategy/.venv/bin/python -m pip install -r strategy/requirements.txt
+
+ollama serve &                 # in its own terminal
 ollama pull qwen3:8b
 
-./start.sh                  # Ollama + API + Vite together
+strategy/.venv/bin/python -m uvicorn scout.api.main:app --port 8000 --app-dir strategy &
+
+npm --prefix strategy/frontend install
+npm --prefix strategy/frontend run dev
 ```
 
-App at http://localhost:5173, API docs at http://localhost:8000/docs.
+The app is at http://localhost:5173, the API docs at http://localhost:8000/docs.
+`strategy/start.sh` runs all three together.
 
-Running the pieces individually:
+Tests:
 
 ```bash
-ollama serve
-.venv/bin/python -m uvicorn scout.api.main:app --port 8000   # no --reload
-npm --prefix frontend run dev
+strategy/.venv/bin/python -m pip install -r requirements-dev.txt
+strategy/.venv/bin/python -m pytest
 ```
 
-> The `uvicorn` console script in `.venv/bin/` is sometimes missing — use `.venv/bin/python -m uvicorn` instead. `start.sh` calls the script directly and fails silently if it's absent; check `strategy/.logs/api.log`.
-
-### Vision pipeline
+### With Docker
 
 ```bash
-cd vision
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/aryankhandelwal765-hash/frc-scout-ai.git
+cd frc-scout-ai/strategy
 
-# Sanity-check with no footage: synthetic clip, known answer (RED 2 / BLUE 1)
-python make_test_clip.py
-python track_match.py --input test_clip.mp4 --zones test_zones.json --outdir out
-```
+cp ../.env.example .env       # then put your TBA_AUTH_KEY in it
 
-Batch pipeline over real matches:
+npm --prefix frontend install
+npm --prefix frontend run build
 
-```bash
-cd match_pipeline
-python download_matches.py --event 2026hop   # needs TBA_AUTH_KEY
-python batch_run.py --workers 12             # → results/<match>/estimate.json
-python identify.py                           # → results/<match>/identity.json
-python export_to_strategy.py                       # → strategy's scouting CSV
-```
-
-Model weights and match video are gitignored — weights download on first use via Ultralytics, and match video comes from `download_matches.py`. Pick a static broadcast angle; the tracker has no camera-motion compensation.
-
-### Docker
-
-```bash
-cp .env.example .env
-npm --prefix strategy/frontend run build
-cd strategy && docker compose up -d --build
+docker compose up -d --build
 docker compose exec ollama ollama pull qwen3:8b
 ```
 
-See `strategy/DEPLOY.md` for the full deployment checklist.
+The app is at http://localhost/. Set `OLLAMA_MODEL` in `.env` to use a different
+model. See [docs/deploy.md](docs/deploy.md) for the full checklist.
 
-## Screenshots
+### Running the vision pipeline
 
-<!-- TODO: add a screenshot of the Match Analysis dashboard (win banner + robot bento cards) -->
-<!-- TODO: add a GIF of a streaming strategy read, showing the reasoning → writing progress bar -->
-<!-- TODO: add a still from an annotated match render showing tracked robots + per-robot ball tallies -->
+The pipeline needs its own environment plus ffmpeg and tesseract, and match video
+it downloads itself. See [vision/README.md](vision/README.md) and
+[vision/match_pipeline/README.md](vision/match_pipeline/README.md).
 
-## Status
+```bash
+python3 -m venv vision/venv
+vision/venv/bin/python -m pip install -r vision/requirements.txt
+brew install ffmpeg tesseract
+```
 
-Personal project, built around the 2026 FRC season. Game-specific assumptions (notably the zeroed endgame) are baked into the scoring logic and prompts.
+## Repo layout
+
+```
+strategy/           FastAPI + React + LLM synthesis
+  scout/engine/     archetype · volatility · chemistry · prediction · synthesis
+  scout/api/        NDJSON streaming endpoints
+  frontend/         React 19 dashboard
+vision/
+  classic/          v1 classic-CV tracker (no ML; runs on any clip)
+  match_pipeline/   the production pipeline: detect, track, identify, calibrate
+  *.py              YOLO detector training toolchain
+examples/2026hop/   one event's real pipeline output, committed
+tests/              pytest suite, no network
+docs/               deployment guide and development notes
+```
+
+## Known limitations
+
+- **Detection recall is the ceiling on everything else.** Not every robot is
+  found in every frame, and nothing downstream can recover a robot that was
+  never detected. See the TODO above — the currently committed figures do not
+  agree and need a rerun.
+- **Per-robot splits are estimates; alliance totals are checkable.** The
+  scoreboard gives an exact per-alliance count. Dividing it among three robots
+  is a heuristic weighted by each robot's scoring-zone activity, and it is only
+  as good as the robots are separable in space. When all three are in one
+  churning pile, the split is unreliable.
+- **Scoring is a heuristic, not a rules engine.** The classic tracker credits a
+  ball to whichever robot possessed it last before it entered a goal zone. It
+  does not implement the game manual.
+- **Scoreboard OCR fails on playoff broadcasts.** 12% of alliance-pairs, almost
+  all playoff matches, produce no reading at all — see Results.
+- **Win probability is miscalibrated.** `predict_match` calls
+  `win_probability_from_diff` with `sigma=100` while OPR is on a roughly
+  300-per-team scale, so probabilities peg high on lopsided matchups. This is
+  deliberately left alone rather than tuned by eye; a test pins the current value
+  so it cannot drift silently. Fixing it properly means normalising OPR onto an
+  EPA scale in `feature_engineering.py`.
+- **`rank` identities are unproven.** `ALLIANCE_ORDER` has never been validated.
+  Treat every `rank`-sourced label as a guess.
+- **Endgame is hard-zeroed for 2026.** Climb is worth ~nothing this season, so
+  `tba_loader._phase_points` returns 0 for it and the prompts refuse to discuss
+  it. That is a season-specific rule, not a general one.
+
+## Roadmap
+
+- Normalise OPR onto the EPA scale and retune the win-probability sigma against
+  held-out matches.
+- Handle the playoff broadcast overlay so scoreboard OCR stops failing on `sf*`
+  and `f*` matches.
+- Validate `ALLIANCE_ORDER` so `rank` identities carry a real error bar.
+- Move the render queue off the in-process worker pool onto something that
+  survives an API restart.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

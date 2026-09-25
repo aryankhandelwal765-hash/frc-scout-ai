@@ -33,13 +33,13 @@ npm --prefix frontend run dev                                     # port 5173
 
 App at http://localhost:5173 · API docs at http://localhost:8000/docs · Logs in `strategy/.logs/`.
 
-**Environment gotcha:** the `uvicorn` script in `.venv/bin/` may be missing. Use
-`.venv/bin/python -m uvicorn ...` instead. `start.sh` uses `.venv/bin/uvicorn`
-directly and will silently fail if it doesn't exist — check `.logs/api.log`.
+**Environment gotcha:** the `uvicorn` console script is not always generated in
+`.venv/bin/`. Always invoke it as `.venv/bin/python -m uvicorn ...`; `start.sh`
+and the Dockerfile do this too. Logs in `.logs/api.log`.
 
 ### Running the stack (Docker / prod)
 
-See `DEPLOY.md`. Three-container compose: `ollama`, `api` (Dockerfile builds
+See `docs/deploy.md`. Three-container compose: `ollama`, `api` (Dockerfile builds
 frontend + API into one image), `frontend` (nginx serving static + `/api` proxy).
 
 ```bash
@@ -55,8 +55,8 @@ deploy works too (`docker run -p 8000:8000 frc-scout-ai`).
 ### Python environment
 
 - Venv: `strategy/.venv` (Python 3.13). Always use `.venv/bin/python`.
-- System `streamlit` on PATH is Python 3.12 and lacks deps — Streamlit UI works
-  because providers are lazy-imported; FastAPI **requires** the venv.
+- Providers are lazy-imported (only the active one loads), so the app runs on
+  TBA without `statbotics` installed. FastAPI **requires** the venv.
 - One-off scripts: `PYTHONPATH=<strategy root> .venv/bin/python <script>`.
 
 ### Frontend
@@ -73,9 +73,9 @@ Captain reads + BotSnapshot + ScoutingVideo) and `CaptainPage` (single briefing)
 
 ### TBA API key
 
-Required for live data. Set `TBA_AUTH_KEY` in `.env` OR
-`scout/.streamlit/secrets.toml`. Without it, all stats return None and pages
-show "No TBA API key configured".
+Required for live data. Set `TBA_AUTH_KEY` in `.env`, which is loaded into
+the environment. Without it, all stats return None and the UI says
+"No TBA API key configured".
 
 ### Architecture — strategy
 
@@ -86,9 +86,6 @@ scout/
   db.py                 — SQLite cache layer (kv_cache table); init on API startup;
                           TTLs: TBA 24h · predictions 1h · synthesis 12h
   settings.py           — my_team persistence (JSON at scout/user_settings.json)
-  stream_ui.py          — Streamlit streaming progress-bar widget
-  Home.py               — Streamlit multipage entry point (legacy but functional)
-  pages/                — Streamlit pages (auto-discovered)
   api/main.py           — FastAPI app; NDJSON streaming; StaticFiles mount for
                           single-container deploy; CORS_ORIGINS env-driven
   engine/
@@ -107,7 +104,6 @@ scout/
                            notes → LLM prompt; captain/coach/bot variants
     ollama_client.py     — Ollama HTTP client; yields ("thinking"|"content", text) events
   training/              — dataset builders + model trainers (offline)
-  legacy/                — old scouting CSV logic (kept as reference; CSVs are empty)
 
 frontend/src/
   types.ts               — shared TS types
@@ -200,9 +196,23 @@ GET  /vision/snapshot/{team}          — pre-match snapshot + clip URL
 GET  /scouting/matches                — every match w/ preproc + render status
 GET  /scouting/videos                 — list rendered mp4s
 GET  /scouting/videos/{key}           — serve rendered mp4
-POST /scouting/render/{key}           — blocking synchronous render (~1–5 min)
+POST /scouting/render/{key}           — QUEUE a render, returns 202 immediately
+GET  /scouting/render/{key}           — render job status (idle/running/done/error)
 GET  /scouting/clip/{team}/{key}      — 30s ffmpeg-cut highlight (~1 MB, cached)
 ```
+
+### Tests
+
+```bash
+strategy/.venv/bin/python -m pip install -r requirements-dev.txt
+strategy/.venv/bin/python -m pytest          # 115 tests, no network
+strategy/.venv/bin/python -m pytest -m "not slow"   # skip the video e2e
+```
+
+Root `conftest.py` puts `strategy/`, `vision/classic/` and
+`vision/match_pipeline/` on `sys.path`. An autouse fixture blocks real sockets,
+so an unmocked TBA/Statbotics/Ollama call fails loudly. Detector tests skip
+themselves when YOLO weights are absent.
 
 ### Known issues / TODO
 
@@ -211,8 +221,13 @@ GET  /scouting/clip/{team}/{key}      — 30s ffmpeg-cut highlight (~1 MB, cache
   normalize OPR → EPA scale in `feature_engineering.py`.
 - `models/*.pkl` trained on sklearn 1.6.1, venv has 1.8.0 →
   `InconsistentVersionWarning` on load (non-blocking).
-- `POST /scouting/render/{key}` blocks the HTTP thread. Move to a job queue
-  (RQ/Celery) if this hits production traffic.
+- The render job registry is in-process (a single-worker ThreadPoolExecutor in
+  `api/main.py`). It no longer blocks the request thread, but state is lost on
+  API restart — a render running at restart just reads as missing again. Move to
+  RQ/Celery if this ever hits real traffic.
+- `examples/2026hop/path_quality.csv` does not reproduce the illegal-crossing
+  rates quoted in `vision/match_pipeline/README.md`; it is probably stale. Rerun
+  `validate_paths.py` against the current field map.
 
 ---
 
@@ -230,9 +245,9 @@ pip install yt-dlp                   # match video downloader
 
 ### Two workflows
 
-**1. Standalone scoring on any clip** — from top-level `track_match.py`:
+**1. Standalone scoring on any clip** — from `vision/classic/track_match.py`:
 ```bash
-python track_match.py --input clip.mp4 --zones zones.json --outdir out --ball-color yellow
+python classic/track_match.py --input clip.mp4 --zones zones.json --outdir out --ball-color yellow
 ```
 Outputs per-robot ball tally + annotated mp4. See `vision/README.md` for
 the full flow (goal-zone picker, tuning levers, HSV calibration).
@@ -256,21 +271,28 @@ Each `results/<match_key>/` gets: `tracks.json`, `identity.json`,
 **Preprocessing = tracks + identity + auto_paths** must all exist before
 `render_full_match.py` will work. The strategy API's `/scouting/matches` endpoint
 reports per-match render status (`fresh` / `stale` / `missing` / no-preproc).
-Stale = render older than `render_full_match.py` / `stitch.py` / `topdown.py`
-mtime. Trigger re-render lazily via strategy UI's Scouting Video panel.
+Stale = the sha256 of `render_full_match.py` + `stitch.py` + `topdown.py` no
+longer matches the `.render_scripts.sha256` stamp written beside the mp4. (It
+used to compare mtimes, which went stale on any checkout.) Trigger a re-render
+from the Scouting Video panel; it queues on the API's worker pool and the UI
+polls `GET /scouting/render/{key}`.
 
 ### Architecture — vision (root level)
 
 ```
-track_match.py       — standalone entry (robots + balls + scoring)
-config.py           — HSV color presets, tunable params
-detection.py        — color masks, robot + ball blob extraction
-tracking.py         — nearest-centroid tracker w/ grace period
-scoring.py          — possession attribution + goal-zone scoring
-overlay.py          — annotated-video drawing
-scoring_estimator.py / detector_estimator.py — YOLO variants + TBA cross-check
+classic/            — v1 classic-CV tracker, self-contained:
+  track_match.py      — standalone entry (robots + balls + scoring)
+  config.py           — HSV color presets, tunable params
+  detection.py        — color masks, robot + ball blob extraction
+  tracking.py         — nearest-centroid tracker w/ grace period
+  scoring.py          — possession attribution + goal-zone scoring
+  overlay.py          — annotated-video drawing
+  scoring_estimator.py — rate-apportionment estimator (match_pipeline imports it)
+  make_test_clip.py   — synthetic clip w/ a known answer (RED 2 / BLUE 1)
+  calibrate.py / tune_color_masks.py — HSV tuning helpers
+detector_estimator.py — YOLO variant, builds on classic/scoring_estimator.py
 train_detector.py   — fine-tune YOLO on labeled frames
-calibrate.py / tune_color_masks.py — HSV tuning helpers
+annotate.py / extract_frames.py — labeling toolchain
 ```
 
 ### Architecture — vision/match_pipeline/

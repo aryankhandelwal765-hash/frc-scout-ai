@@ -1,3 +1,8 @@
+> **Historical.** This is the running build log from development, kept for
+> context on why things are the way they are. It describes the Streamlit UI
+> and the 35b model, both of which were replaced — see the root README and
+> CLAUDE.md for current state.
+
 ---
 name: strategy-frc-scout-build-plan
 description: FRC Scout AI (strategy) — build plan and codebase state for automating the strategy-captain role
@@ -8,7 +13,7 @@ metadata:
   modified: 2026-07-20T18:46:56.120Z
 ---
 
-**strategy** (`~/Desktop/strategy`) is FRC Scout AI — a 2026-season FRC match prediction + scouting tool. Goal: automate the user's old strategy-captain role (produce the qualitative "read" a strategy captain would give).
+**strategy** (`strategy/`) is FRC Scout AI — a 2026-season FRC match prediction + scouting tool. Goal: automate the strategy-captain role (produce the qualitative "read" a strategy captain would give).
 
 **Model decision (2026-07-18):** use `qwen3.6:35b-a3b` (already pulled locally, 23GB) as the qualitative synthesis / strategy-captain reasoning layer. `qwen2.5:3b` for fast/coding help. Ollama runs locally on the new Apple Silicon Mac (see [[ollama-lan-setup]]).
 
@@ -31,7 +36,7 @@ metadata:
   - `config.py` — added SYNTHESIS_MODEL="qwen3.6:35b-a3b", CODE_MODEL="qwen2.5:3b", OLLAMA_BASE. `ollama_client.py` — added `generate()` non-streaming helper + DEFAULT_SYNTHESIS_MODEL.
   - VERIFIED: offline engine logic + live 35b synthesis (~167s first call incl. model load; produces genuinely good captain reads that use archetype/chemistry/volatility + human notes). Run tests with strategy `.venv/bin/python` and `PYTHONPATH=<strategy root>`.
 - WIRED (2026-07-18): `pages/1_Match_Analysis.py` now uses synthesis_engine — build_strategy_brief + SYSTEM_PROMPT, renders archetype/volatility/chemistry per alliance, has a Scouting-notes textarea feeding `notes`, streams the strategy-captain read. Both pages' model pickers default to SYNTHESIS_MODEL. Verified: app boots headless, Match Analysis page renders, picker shows qwen3.6:35b-a3b.
-- ENTRY POINT: the app is a multipage Streamlit app rooted at `scout/Home.py` (pages auto-discovered from `scout/pages/`). Run: `cd ~/Desktop/strategy && streamlit run scout/Home.py`. The empty root `streamlit_app.py` decoy was DELETED to remove the "which app?" confusion. strategy is NOT a git repo — deletions are permanent, so only regenerable cruft was cleaned (`__pycache__`, `.pyc`, `.DS_Store`).
+- ENTRY POINT: the app is a multipage Streamlit app rooted at `scout/Home.py` (pages auto-discovered from `scout/pages/`). Run: `cd strategy && streamlit run scout/Home.py`. The empty root `streamlit_app.py` decoy was DELETED to remove the "which app?" confusion. strategy is NOT a git repo — deletions are permanent, so only regenerable cruft was cleaned (`__pycache__`, `.pyc`, `.DS_Store`).
 - DATA PROVIDER SWITCHED TO TBA (2026-07-18, user chose it): Statbotics API down ~9 days (their #414/#418), so built The Blue Alliance as the source.
   - `engine/tba_loader.py` (NEW) — maps TBA→engine stats schema: epa=mean OPR across events, epa_max/epa_sd from OPR spread, auto/teleop/endgame = OPR × phase shares from alliance score_breakdowns (defensive key lookup; teleopPoints assumed to include endgame, subtracted back out), W/L/T from season matches, rank/percentile=None. Same interface as statbotics_loader + is_configured().
   - `engine/data_source.py` (NEW) — dispatcher on `config.DATA_PROVIDER` ("tba"|"statbotics"). prediction_engine + both pages import from here now. Flip DATA_PROVIDER back to "statbotics" when it recovers.
@@ -39,7 +44,7 @@ metadata:
   - NEEDS USER ACTION: add a free TBA read key (thebluealliance.com/account) as TBA_AUTH_KEY in secrets.toml or env — I can't enter credentials. Until then get_team_stats returns None and pages show "No TBA API key configured".
   - VERIFIED: aggregation logic proven against synthetic TBA payloads (mean/sd/max OPR, W/L/T, phase shares all correct); dispatch + graceful no-key handling confirmed. LIVE fetch untested (no key yet) — 2026 endgame breakdown key name is a guess (contains 'endgame'+'points'); if TBA's 2026 key differs, endgame share silently 0 and needs a one-line fix in _phase_points.
 - CAVEATS: OPR is an EPA *proxy* (offense only, no defense/reliability); single-event teams get epa_sd=0 → volatility calls them "Metronome". Pre-existing: `models/*.pkl` trained on sklearn 1.6.1, venv has 1.8.0 → InconsistentVersionWarning (score model has epa_diff fallback; non-blocking but retrain/pin later).
-- FASTAPI BUILT (2026-07-18, plan step 4): `api/main.py` — endpoints GET /health, GET /team/{team}, POST /predict (quant-only, fast), POST /analyze (full incl. 35b read), POST /analyze/stream (streams read as text/plain). Pydantic validates exactly-3-teams-per-alliance (→422). CORS open for a future React frontend. Added `scout/api/__init__.py`; deleted redundant empty `api/tba.py` (TBA logic lives in engine/tba_loader.py). Added fastapi + uvicorn[standard] to requirements. Run: `cd ~/Desktop/strategy && uvicorn scout.api.main:app --reload --port 8000` (Swagger at /docs). VERIFIED: boots, /health correct, /predict 200, validation 422, /analyze/stream streams (tested with qwen2.5:3b for speed + used scouting note). Real numbers still gated on TBA key.
+- FASTAPI BUILT (2026-07-18, plan step 4): `api/main.py` — endpoints GET /health, GET /team/{team}, POST /predict (quant-only, fast), POST /analyze (full incl. 35b read), POST /analyze/stream (streams read as text/plain). Pydantic validates exactly-3-teams-per-alliance (→422). CORS open for a future React frontend. Added `scout/api/__init__.py`; deleted redundant empty `api/tba.py` (TBA logic lives in engine/tba_loader.py). Added fastapi + uvicorn[standard] to requirements. Run: `cd strategy && uvicorn scout.api.main:app --reload --port 8000` (Swagger at /docs). VERIFIED: boots, /health correct, /predict 200, validation 422, /analyze/stream streams (tested with qwen2.5:3b for speed + used scouting note). Real numbers still gated on TBA key.
 - NO REMAINING EMPTY STUBS in engine/ or api/. Frontend (plan step 5) is the Streamlit app (scout/Home.py); a React frontend could consume this API next.
 - APP NOW WORKS LIVE (2026-07-18): user added their TBA key (is_configured True, TBA reachable). Verified live: 254 = Elite Teleop Workhorse, OPR 357, auto76/teleop281/endgame~0, 65-6-0.
 - ENV GOTCHA (caused an ImportError): user's `streamlit` on PATH is SYSTEM Python 3.12 (/Library/Frameworks/.../3.12/bin/streamlit), but deps were pip-installed into `.venv` (Python 3.13). 3.12 lacks `statbotics`/`fastapi`. FIX applied: `data_source.py` now imports providers LAZILY (only the active one) via importlib, and `statbotics_loader.py` imports `statbotics` lazily inside `_sb()` — so the app runs on TBA without needing statbotics installed. Import chain verified in BOTH 3.12 and the venv. For the FastAPI you must use the venv (fastapi only there): `.venv/bin/uvicorn ...`. Streamlit works in either now.
