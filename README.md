@@ -208,7 +208,8 @@ the UI shows live progress instead of a frozen spinner.
 
 ## Quickstart
 
-Needs Python 3.13 (see `.python-version`), Node 24, and [Ollama](https://ollama.com).
+Needs Python 3.12 or 3.13 (`.python-version` pins 3.13; CI tests both), Node 24,
+and [Ollama](https://ollama.com).
 A free [TBA read key](https://www.thebluealliance.com/account) is required for
 live data.
 
