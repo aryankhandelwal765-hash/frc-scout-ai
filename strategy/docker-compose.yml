@@ -2,8 +2,12 @@
 #
 # Bring it up:   docker compose up -d --build
 # Tail logs:     docker compose logs -f api
-# Pull models:   docker compose exec ollama ollama pull qwen3:8b
-#                docker compose exec ollama ollama pull qwen2.5:3b
+# Pull the model: docker compose exec ollama ollama pull "${OLLAMA_MODEL:-qwen3:8b}"
+#
+# The model is configurable. qwen3:8b is the default and what the project is
+# tuned for (~5-10s per read). To use something else, set OLLAMA_MODEL in .env
+# and pull that instead — e.g. the larger qwen3.6:35b-a3b, which is optional and
+# roughly 10x slower per read for a modest quality gain.
 # Wipe cache:    curl -X DELETE http://localhost:8000/cache
 
 services:
@@ -33,7 +37,10 @@ services:
       - .env
     environment:
       # Ollama service DNS lives on the compose network as "ollama".
-      OLLAMA_BASE: http://ollama:11434
+      # OLLAMA_HOST is the documented name; OLLAMA_BASE is a legacy alias.
+      OLLAMA_HOST: http://ollama:11434
+      # Overridable from .env; qwen3:8b is the default the project is tuned for.
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:8b}
       CACHE_DB_PATH: /data/cache.db
     volumes:
       - api_data:/data

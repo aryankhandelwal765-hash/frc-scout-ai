@@ -1,8 +1,23 @@
-pandas>=2.0.0
-scikit-learn>=1.3.0
-joblib>=1.3.0
-requests>=2.31.0
+# Strategy API dependencies, pinned to the versions this was developed against
+# (strategy/.venv, Python 3.13). See .python-version.
+#
+# Test-only dependencies live in the repo root's requirements-dev.txt.
+
+# ── API ───────────────────────────────────────────────────────────────────
+fastapi==0.139.2
+uvicorn[standard]==0.48.0
+
+# ── Data + model ──────────────────────────────────────────────────────────
+pandas==3.0.3
+scikit-learn==1.8.0
+joblib==1.5.3
+requests==2.34.2
+
+# Statbotics is the alternate data provider (config.DATA_PROVIDER="statbotics").
+# Imported lazily, so the app runs on TBA without it.
 statbotics==3.0.0
-fastapi>=0.110.0
-uvicorn[standard]>=0.29.0
-python-dotenv>=1.0.0
+
+# ── Config ────────────────────────────────────────────────────────────────
+# Optional at runtime: config.py falls back cleanly when it is absent, but a
+# .env is the documented way to supply TBA_AUTH_KEY.
+python-dotenv==1.2.2

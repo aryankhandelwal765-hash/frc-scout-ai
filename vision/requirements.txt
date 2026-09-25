@@ -1,28 +1,31 @@
+# Vision pipeline dependencies, pinned to the versions this was developed
+# against (vision/venv, Python 3.12).
+#
 # Core CV / numerics
-opencv-python>=5.0
-numpy>=2.0
+opencv-python==5.0.0.93
+numpy==2.5.1
 
 # Robot detection + tracking (YOLO, ByteTrack). Runs on Apple-Silicon GPU via MPS.
-ultralytics>=8.4
-torch>=2.13
-torchvision>=0.28
+ultralytics==8.4.103
+torch==2.13.0
+torchvision==0.28.0
 
 # Text reading.
 #   pytesseract -> scoreboard ball counts + the match timer (big, high-contrast
 #                  overlay digits; also needs the tesseract BINARY, see below).
 #   easyocr     -> bumper TEAM NUMBERS. Tesseract reads nothing on those (small,
 #                  angled, dim scene text -- measured 0/107); easyocr does.
-pytesseract>=0.3.13
-easyocr>=1.7
+pytesseract==0.3.13
+easyocr==1.7.2
 
 # TBA API over HTTPS. python.org framework Python ships no system CA bundle, so
 # tba.py and the easyocr model download both fall back to certifi's.
-certifi>=2026.1
+certifi==2026.6.17
 
 # Not imported directly, but easyocr/ultralytics pull these in and the pipeline
 # depends on their behaviour; pinned here so a fresh clone matches.
-pillow>=12.0
-scipy>=1.18
+pillow==12.3.0
+scipy==1.18.0
 
 # --- NON-pip prerequisites -------------------------------------------------
 # These are NOT installable with pip. Install them separately or the pipeline

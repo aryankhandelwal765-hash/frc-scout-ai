@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, repo-cleanup]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.13 is what strategy/.venv runs; 3.12 is what vision/venv runs.
+        python-version: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            strategy/requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # The strategy API plus the test-only deps. requirements-dev.txt pulls
+          # opencv-python-headless (no GUI libs on a runner) and numpy, which is
+          # all the vision modules under test need — torch, ultralytics and
+          # easyocr are deliberately not installed here.
+          pip install -r strategy/requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -v
+
+  node:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: strategy/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: strategy/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npx vite build
