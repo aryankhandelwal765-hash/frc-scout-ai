@@ -93,27 +93,35 @@ export async function streamNdjson(
   const reader = r.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? '' // keep the incomplete trailing line
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (!trimmed) continue
-      try {
-        onEvent(JSON.parse(trimmed) as StreamEvent)
-      } catch {
-        // ignore malformed partial lines
+  // Release the connection if the caller aborts mid-stream; without this the
+  // reader keeps its lock on an abandoned body.
+  const onAbort = () => { void reader.cancel() }
+  signal?.addEventListener('abort', onAbort, { once: true })
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? '' // keep the incomplete trailing line
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (!trimmed) continue
+        try {
+          onEvent(JSON.parse(trimmed) as StreamEvent)
+        } catch {
+          // ignore malformed partial lines
+        }
       }
     }
-  }
-  if (buffer.trim()) {
-    try {
-      onEvent(JSON.parse(buffer.trim()) as StreamEvent)
-    } catch {
-      /* ignore */
+    if (buffer.trim()) {
+      try {
+        onEvent(JSON.parse(buffer.trim()) as StreamEvent)
+      } catch {
+        /* ignore */
+      }
     }
+  } finally {
+    signal?.removeEventListener('abort', onAbort)
   }
 }

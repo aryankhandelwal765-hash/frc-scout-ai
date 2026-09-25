@@ -29,8 +29,7 @@ import pytesseract
 _TESSERACT_CMD = os.environ.get("TESSERACT_CMD")
 if _TESSERACT_CMD:
     pytesseract.pytesseract.tesseract_cmd = _TESSERACT_CMD
-# center match timer "M:SS" as FRACTIONS of frame size, so it holds at 720p/1080p.
-TIMER_BOX_FRAC = (0.4688, 0.0625, 0.5352, 0.1250)
+from boxes import TIMER_BOX_FRAC   # centre match timer "M:SS", as frame fractions
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PARENT = os.path.dirname(HERE)

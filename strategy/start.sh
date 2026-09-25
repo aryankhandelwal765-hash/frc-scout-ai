@@ -13,7 +13,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-UVICORN="$ROOT/.venv/bin/uvicorn"
+# Invoke uvicorn through the interpreter. The `uvicorn` console script is
+# not always generated in .venv/bin, and calling it directly fails silently.
+PYTHON="$ROOT/.venv/bin/python"
 LOGDIR="$ROOT/.logs"
 mkdir -p "$LOGDIR"
 touch "$LOGDIR/api.log" "$LOGDIR/frontend.log" "$LOGDIR/ollama.log"
@@ -40,9 +42,14 @@ cleanup() {
 trap cleanup INT TERM
 
 # ── Prerequisite checks ─────────────────────────────────────────────────────────
-[ -x "$UVICORN" ] || {
+[ -x "$PYTHON" ] || {
   echo "✗ Python venv not found at .venv/"
   echo "  Set it up:  python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"
+  exit 1
+}
+"$PYTHON" -c "import uvicorn" 2>/dev/null || {
+  echo "✗ uvicorn not installed in .venv/"
+  echo "  Install it:  .venv/bin/pip install -r requirements.txt"
   exit 1
 }
 command -v ollama >/dev/null 2>&1 || { echo "✗ ollama not installed — see https://ollama.com"; exit 1; }
@@ -68,7 +75,7 @@ if up $API_PORT /health; then
   echo "✓ API already running on :$API_PORT"
 else
   echo "▶ Starting API…"
-  nohup "$UVICORN" scout.api.main:app --port $API_PORT >"$LOGDIR/api.log" 2>&1 &
+  nohup "$PYTHON" -m uvicorn scout.api.main:app --port $API_PORT >"$LOGDIR/api.log" 2>&1 &
   PIDS+=("$!")
   for _ in $(seq 1 30); do up $API_PORT /health && break; sleep 1; done
   up $API_PORT /health && echo "✓ API up" || echo "✗ API failed — see $LOGDIR/api.log"

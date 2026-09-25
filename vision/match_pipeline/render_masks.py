@@ -27,7 +27,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, PARENT)
 VIDEOS = os.path.join(HERE, "videos")
 RESULTS = os.path.join(HERE, "results")
-CROP = (0, 100, 1280, 470)
+from boxes import CROP
 
 # ===========================================================================
 # EDIT ME. Click Run.

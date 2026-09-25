@@ -28,8 +28,7 @@ from collections import defaultdict
 import cv2
 import numpy as np
 
-# CROP must match what the detector was trained on (drops the stitched 2nd angle).
-CROP = (0, 100, 1280, 470)            # legacy 1280x720 full-broadcast default
+from boxes import CROP   # legacy 1280x720 fallback; field_crop() is the live path
 
 
 def field_crop(shape):

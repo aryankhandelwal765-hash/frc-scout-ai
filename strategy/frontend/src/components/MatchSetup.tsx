@@ -66,7 +66,8 @@ export function MatchSetup({ onAnalyze, busy, myTeam, variant = 'analysis', anal
   const setTeam = (side: 'red' | 'blue', i: number, val: number) => {
     const arr = side === 'red' ? [...red] : [...blue]
     arr[i] = val
-    side === 'red' ? setRed(arr) : setBlue(arr)
+    if (side === 'red') setRed(arr)
+    else setBlue(arr)
   }
 
   const ours = (side: 'red' | 'blue') =>

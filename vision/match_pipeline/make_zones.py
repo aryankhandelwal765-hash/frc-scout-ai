@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CROP = (0, 100, 1280, 470)
+from boxes import CROP
 CALIB = os.path.join(HERE, "calib.json")
 REF_IMG = os.path.join(HERE, "reference_frame.png")
 

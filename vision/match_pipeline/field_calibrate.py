@@ -28,7 +28,7 @@ import os
 import cv2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CROP = (0, 100, 1280, 470)     # must match trajectories.py / detector CROP
+from boxes import CROP   # shared with trajectories.py and the detector
 STATION_ORDER = ["blue1", "blue2", "blue3", "red1", "red2", "red3"]
 CALIB = os.path.join(HERE, "calib.json")
 REF_IMG = os.path.join(HERE, "reference_frame.png")

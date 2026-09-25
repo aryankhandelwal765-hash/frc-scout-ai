@@ -1,4 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+interface RenderJob {
+  match_key: string;
+  status: 'idle' | 'running' | 'done' | 'error';
+  elapsed_s?: number;
+  error?: string;
+}
 
 interface MatchInfo {
   match_key: string;
@@ -14,6 +21,17 @@ export function ScoutingVideo() {
   const [error, setError] = useState<string | null>(null);
   const [rendering, setRendering] = useState(false);
   const [renderErr, setRenderErr] = useState<string | null>(null);
+  const [renderElapsed, setRenderElapsed] = useState(0);
+  const pollRef = useRef<number | null>(null);
+
+  const stopPolling = () => {
+    if (pollRef.current !== null) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+  // Never leave an interval running past unmount.
+  useEffect(() => stopPolling, []);
 
   const loadMatches = () => {
     fetch('/api/scouting/matches')
@@ -32,23 +50,44 @@ export function ScoutingVideo() {
       });
   };
 
-  useEffect(() => loadMatches(), []);
+  useEffect(() => {
+    loadMatches();
+  }, []);
 
+  // The render runs on the API's worker pool and takes 1-5 minutes, so POST
+  // only queues it. Poll the status endpoint until it stops being 'running'.
   const triggerRender = async () => {
     if (!selected) return;
+    const key = selected;
     setRendering(true);
     setRenderErr(null);
+    setRenderElapsed(0);
     try {
-      const r = await fetch(`/api/scouting/render/${selected}`, { method: 'POST' });
+      const r = await fetch(`/api/scouting/render/${key}`, { method: 'POST' });
       if (!r.ok) {
-        const txt = await r.text();
-        setRenderErr(txt || `${r.status} ${r.statusText}`);
-      } else {
-        loadMatches(); // refresh list
+        setRenderErr((await r.text()) || `${r.status} ${r.statusText}`);
+        setRendering(false);
+        return;
       }
+      pollRef.current = window.setInterval(async () => {
+        try {
+          const s = await fetch(`/api/scouting/render/${key}`);
+          if (!s.ok) return;
+          const job = (await s.json()) as RenderJob;
+          if (job.status === 'running') {
+            setRenderElapsed(job.elapsed_s ?? 0);
+            return;
+          }
+          stopPolling();
+          setRendering(false);
+          if (job.status === 'error') setRenderErr(job.error ?? 'Render failed');
+          else loadMatches(); // refresh list
+        } catch {
+          /* transient fetch error — keep polling */
+        }
+      }, 2000);
     } catch (e) {
       setRenderErr(String(e));
-    } finally {
       setRendering(false);
     }
   };
@@ -129,7 +168,7 @@ export function ScoutingVideo() {
               }
             >
               {rendering
-                ? 'Rendering…'
+                ? `Rendering… ${Math.round(renderElapsed)}s`
                 : currentMatch.render_status === 'missing'
                 ? 'Render'
                 : 'Re-render'}
@@ -158,7 +197,7 @@ export function ScoutingVideo() {
       ) : (
         <div className="video-empty">
           {rendering
-            ? 'Rendering match — this can take a few minutes for a full-length match…'
+            ? `Rendering match (${Math.round(renderElapsed)}s) — this can take a few minutes for a full-length match. The API stays responsive; you can navigate away.`
             : currentMatch?.ready_to_render
             ? 'No render yet. Click Render to build one.'
             : 'This match has no preprocessing. Run the full pipeline first.'}

@@ -34,13 +34,16 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-# The classic-CV modules this builds on live in vision/classic.
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "classic"))
+# The classic-CV modules this builds on live in vision/classic; the shared frame
+# geometry lives in vision/match_pipeline/boxes.py.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "classic"))
+sys.path.insert(0, os.path.join(_HERE, "match_pipeline"))
 
 from scoring_estimator import (SCOREBOARD, YELLOW_LO, YELLOW_HI,
                                ocr_ball_count, moving_ball_mask)
+from boxes import CROP   # MUST match the crop the detector was trained on
 
-CROP = (0, 100, 1280, 470)     # MUST match the crop the detector was trained on
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
 ACT_MARGIN = 25                # px to expand a robot box when summing ball motion

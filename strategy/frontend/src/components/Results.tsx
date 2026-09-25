@@ -142,8 +142,8 @@ export function Results({ data }: { data: PredictResponse }) {
   const bluePct = p.blue_win_prob * 100
   const redFav = p.epa_diff > 0
 
-  const redRobots = useMemo(() => mergeAlliance(p.red_stats, data.red), [data])
-  const blueRobots = useMemo(() => mergeAlliance(p.blue_stats, data.blue), [data])
+  const redRobots = useMemo(() => mergeAlliance(p.red_stats, data.red), [p.red_stats, data.red])
+  const blueRobots = useMemo(() => mergeAlliance(p.blue_stats, data.blue), [p.blue_stats, data.blue])
 
   // AI main-job per robot — fetched once the match is known.
   const [roles, setRoles] = useState<Roles>({})

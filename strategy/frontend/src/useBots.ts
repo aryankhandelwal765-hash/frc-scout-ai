@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { streamNdjson, type MatchupBody } from './api'
 import type { StreamEvent } from './types'
 
@@ -20,6 +20,12 @@ export interface BotsState {
 export function useBots() {
   const [state, setState] = useState<BotsState>({ running: false, bots: [] })
   const abortRef = useRef<AbortController | null>(null)
+
+  // StrictMode mounts, unmounts and remounts every component once in dev.
+  // Without this, a stream started before the throwaway unmount keeps
+  // running against a dead setState while the remount starts a second one,
+  // so every token arrives twice. Aborting on unmount kills the first.
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   const reset = useCallback(() => {
     abortRef.current?.abort()

@@ -20,7 +20,7 @@ RESULTS = os.path.join(HERE, "results")
 TRUTH = os.path.join(HERE, "truth")
 CALIB = os.path.join(HERE, "calib.json")
 
-CROP = (0, 100, 1280, 470)     # detector crop (offset added back for full-frame draw)
+from boxes import CROP   # detector crop (offset added back for full-frame draw)
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
 TRAIL = 40                     # trail length (processed frames)

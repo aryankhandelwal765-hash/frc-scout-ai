@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { streamNdjson, type MatchupBody } from './api'
 import type { StreamEvent } from './types'
 
@@ -44,6 +44,18 @@ export function useReader() {
     abortRef.current = null
     setState(INITIAL)
   }, [])
+
+  // StrictMode mounts, unmounts and remounts every component once in dev. An
+  // in-flight read started before that throwaway unmount would otherwise keep
+  // consuming the response alongside the one the remount starts, doubling every
+  // token. Abort on unmount and stop the elapsed-clock interval with it.
+  useEffect(
+    () => () => {
+      abortRef.current?.abort()
+      if (timerRef.current !== null) clearInterval(timerRef.current)
+    },
+    [],
+  )
 
   const start = useCallback(async (path: string, body: MatchupBody) => {
     stopTimer()
