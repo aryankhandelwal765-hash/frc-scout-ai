@@ -1,0 +1,13 @@
+# Test-suite dependencies. Installed on top of strategy/requirements.txt.
+#
+# The tests cover both halves of the repo, and the vision modules under test
+# (stitch, topdown) import cv2 and numpy. They do NOT need torch, ultralytics or
+# easyocr, so this deliberately avoids pulling in the full vision stack — that
+# would make CI an order of magnitude slower for no extra coverage.
+#
+# opencv-python-headless rather than opencv-python: no GUI libs, which is what
+# you want on a CI runner and harmless locally.
+pytest>=8.0.0
+opencv-python-headless>=4.9
+numpy>=1.26
+httpx2>=0.28
