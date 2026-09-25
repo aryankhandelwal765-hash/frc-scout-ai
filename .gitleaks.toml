@@ -1,0 +1,24 @@
+# gitleaks configuration.
+#
+# Start from the stock rules, then allowlist one known false positive.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(?:key|api|token|secret|client|passwd|password|auth|access)(?:[0-9a-z\-_\t .]{0,20})(?:[\s|']|[\s|"]){0,3}(?:=|>|:{1,3}=|\|\|:|<=|=>|:|\?=)(?:'|\"|\s|=|\x60){0,5}([0-9a-z\-_.=]{10,150})(?:['|\"|\n|\r|\s|\x60|;]|$)'''
+entropy = 3.5
+keywords = ["key", "api", "token", "secret", "client", "passwd", "password", "auth", "access"]
+
+  [rules.allowlist]
+  description = """
+  The Blue Alliance match keys are public identifiers, not secrets. They look
+  like `"key": "2026hop_sf3m1"` in TBA's JSON, and the `key":` prefix makes the
+  generic-api-key rule fire on every one of them. They appear throughout
+  examples/2026hop/truth.json, which is committed match ground truth.
+  """
+  regexTarget = "match"
+  regexes = [
+    '''key"?\s*:\s*"?\d{4}[a-z]+_(?:qm|sf|qf|ef|f)\d+m?\d*"?''',
+  ]
