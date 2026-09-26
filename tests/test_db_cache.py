@@ -61,18 +61,60 @@ def test_purge_expired_only_removes_stale_rows(temp_cache_db):
     assert db.cache_get("stale") is None
 
 
-def test_unserializable_value_never_raises(temp_cache_db):
-    """A cache write must never take down the request that triggered it.
+def test_unserializable_value_is_skipped_not_coerced(temp_cache_db):
+    """A non-JSON value must be skipped, leaving a cache miss.
 
-    Note the actual behaviour: cache_set uses json.dumps(default=str), so a
-    non-JSON value is COERCED to its str() rather than skipped, despite the
-    docstring saying "silently skip un-serializable payloads". Caching a set
-    therefore reads back as a string. Recorded here so the mismatch is visible;
-    see HANDOFF.md.
+    It used to be coerced: json.dumps(default=str) turned a set into the string
+    "{1, 2, 3}", so the cache handed back a different type than was written.
+    A miss is recoverable; a silently wrong type is not.
     """
     db = temp_cache_db
     db.cache_set("k", {1, 2, 3}, ttl=60)  # a set is not JSON
-    assert db.cache_get("k") == "{1, 2, 3}"
+    assert db.cache_get("k") is None
+
+
+def test_unserializable_value_never_raises(temp_cache_db):
+    """A cache write must never take down the request that triggered it."""
+    class Opaque:
+        pass
+
+    db = temp_cache_db
+    db.cache_set("k", Opaque(), ttl=60)      # no exception
+    db.cache_set("nested", {"ok": 1, "bad": Opaque()}, ttl=60)
+    assert db.cache_get("k") is None
+    assert db.cache_get("nested") is None
+
+
+def test_skipping_does_not_clobber_an_existing_good_entry(temp_cache_db):
+    """A failed write must leave the previous value alone."""
+    db = temp_cache_db
+    db.cache_set("k", {"a": 1}, ttl=60)
+    db.cache_set("k", {1, 2, 3}, ttl=60)     # skipped
+    assert db.cache_get("k") == {"a": 1}
+
+
+def test_skip_is_logged_at_debug(temp_cache_db, caplog):
+    import logging
+
+    db = temp_cache_db
+    with caplog.at_level(logging.DEBUG, logger="scout.db"):
+        db.cache_set("k", {1, 2, 3}, ttl=60)
+    assert [r for r in caplog.records if r.levelno == logging.DEBUG
+            and "not JSON-serializable" in r.getMessage()]
+
+
+def test_real_payload_shapes_still_round_trip(temp_cache_db):
+    """The shapes actual callers cache: TBA stats and vision results."""
+    db = temp_cache_db
+    stats = {"team": 254, "epa": 62.5, "auto": 15.0, "teleop": 47.5,
+             "endgame": 0.0, "rank": None, "name": "The Cheesy Poofs"}
+    matches = [{"key": "2026hop_qm1", "red": [1, 2, 3], "blue": [4, 5, 6]}]
+    db.cache_set("stats", stats, ttl=60)
+    db.cache_set("matches", matches, ttl=60)
+    db.cache_set("empty", [], ttl=60)
+    assert db.cache_get("stats") == stats
+    assert db.cache_get("matches") == matches
+    assert db.cache_get("empty") == []
 
 
 def test_stats_reports_entry_count(temp_cache_db):

@@ -13,11 +13,14 @@ and short-lived connections. All reads/writes go through the helpers below.
 
 import hashlib
 import json
+import logging
 import os
 import sqlite3
 import time
 from pathlib import Path
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 # Database path (env override for containers/tests)
 CACHE_DB = Path(os.environ.get("CACHE_DB_PATH", Path(__file__).resolve().parent / "cache.db"))
@@ -77,11 +80,20 @@ def cache_get(key: str) -> Optional[Any]:
 
 
 def cache_set(key: str, value: Any, ttl: float) -> None:
-    """Persist a JSON-serializable value under key with a TTL (seconds)."""
+    """Persist a JSON-serializable value under key with a TTL (seconds).
+
+    A value that is not JSON-serializable is skipped, not coerced. This used to
+    pass default=str, which meant nothing was ever un-serializable: a set was
+    stored as the string "{1, 2, 3}" and read back as that string, so the cache
+    silently returned a different type than was written. Skipping keeps the
+    cache honest — a miss is recoverable, a wrong type is not.
+    """
     try:
-        payload = json.dumps(value, default=str)
-    except (TypeError, ValueError):
-        return  # silently skip un-serializable payloads
+        payload = json.dumps(value)
+    except (TypeError, ValueError) as exc:
+        logger.debug("cache_set(%s): value is not JSON-serializable, skipping (%s)",
+                     key, exc)
+        return
     try:
         with _conn() as c:
             c.execute(
