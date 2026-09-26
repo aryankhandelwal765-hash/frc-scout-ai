@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 CACHE_DB = Path(os.environ.get("CACHE_DB_PATH", Path(__file__).resolve().parent / "cache.db"))
 
 # TTLs (seconds)
-TTL_TBA = 24 * 3600         # TBA team stats + event matches: 24h
-TTL_PREDICTION = 3600       # quant predictions: 1h
-TTL_SYNTHESIS = 12 * 3600   # LLM synthesis output: 12h
+TTL_TBA = 24 * 3600  # TBA team stats + event matches: 24h
+TTL_PREDICTION = 3600  # quant predictions: 1h
+TTL_SYNTHESIS = 12 * 3600  # LLM synthesis output: 12h
 
 
 def _conn() -> sqlite3.Connection:
@@ -91,14 +91,12 @@ def cache_set(key: str, value: Any, ttl: float) -> None:
     try:
         payload = json.dumps(value)
     except (TypeError, ValueError) as exc:
-        logger.debug("cache_set(%s): value is not JSON-serializable, skipping (%s)",
-                     key, exc)
+        logger.debug("cache_set(%s): value is not JSON-serializable, skipping (%s)", key, exc)
         return
     try:
         with _conn() as c:
             c.execute(
-                "INSERT OR REPLACE INTO kv_cache (key, value, created_at, ttl) "
-                "VALUES (?, ?, ?, ?)",
+                "INSERT OR REPLACE INTO kv_cache (key, value, created_at, ttl) VALUES (?, ?, ?, ?)",
                 (key, payload, time.time(), ttl),
             )
     except sqlite3.Error:
@@ -141,6 +139,7 @@ def cache_stats() -> dict:
 
 # ── Domain-specific cache keys ─────────────────────────────────────────────────
 
+
 def tba_team_key(team: int, year: int) -> str:
     return f"tba:team:{team}:{year}"
 
@@ -156,7 +155,9 @@ def prediction_key(red: list[int], blue: list[int], year: int) -> str:
     return f"predict:{_hash(r, b, year)}"
 
 
-def synthesis_key(kind: str, red: list[int], blue: list[int], year: int, notes: str, model: str) -> str:
+def synthesis_key(
+    kind: str, red: list[int], blue: list[int], year: int, notes: str, model: str
+) -> str:
     """kind = 'strategy' | 'captain' | 'coach' | 'bots'. Notes are content-addressed."""
     r = sorted(red)
     b = sorted(blue)

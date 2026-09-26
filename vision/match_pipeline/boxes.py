@@ -39,6 +39,4 @@ CROP = _tuple_from_env("VISION_CROP", (0, 100, 1280, 470))
 
 # Centre match timer "M:SS", as FRACTIONS of frame width/height so it holds at
 # both 720p and 1080p.
-TIMER_BOX_FRAC = _tuple_from_env(
-    "VISION_TIMER_BOX_FRAC", (0.4688, 0.0625, 0.5352, 0.1250)
-)
+TIMER_BOX_FRAC = _tuple_from_env("VISION_TIMER_BOX_FRAC", (0.4688, 0.0625, 0.5352, 0.1250))

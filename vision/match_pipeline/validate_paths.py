@@ -72,21 +72,22 @@ def check():
             if len(p) < 5:
                 continue
             xy = mapper([(c[1], c[2]) for c in p])
-            over = ((xy[:, 0] - cx).max() if o["alliance"] == "blue"
-                    else (cx - xy[:, 0]).max())
+            over = (xy[:, 0] - cx).max() if o["alliance"] == "blue" else (cx - xy[:, 0]).max()
             pct = float(over / half * 100.0)
             src = o.get("source") or "none"
             bad = pct > THRESH_PCT
             by_src[src][1] += 1
             by_src[src][0] += bad
-            rows.append({
-                "match": match,
-                "station": o.get("station", ""),
-                "team": (o.get("team") or "").replace("frc", ""),
-                "identity_src": src,
-                "cross_pct": round(pct, 1),
-                "rule_violation": int(bad),
-            })
+            rows.append(
+                {
+                    "match": match,
+                    "station": o.get("station", ""),
+                    "team": (o.get("team") or "").replace("frc", ""),
+                    "identity_src": src,
+                    "cross_pct": round(pct, 1),
+                    "rule_violation": int(bad),
+                }
+            )
     return rows, by_src
 
 
@@ -102,8 +103,9 @@ def main():
         w.writerows(rows)
 
     print(f"{len(rows)} auto paths checked -> {a.out}")
-    print(f"\nillegal CENTER LINE crossing (> {THRESH_PCT:.0f}% of a half-field), "
-          "by identity source:")
+    print(
+        f"\nillegal CENTER LINE crossing (> {THRESH_PCT:.0f}% of a half-field), by identity source:"
+    )
     tot = [0, 0]
     for src in ("read", "elim", "rank", "none"):
         bad, n = by_src.get(src, [0, 0])

@@ -46,11 +46,13 @@ def find_robot_blobs(mask, min_area):
         if area < min_area:
             continue
         x, y, w, h = cv2.boundingRect(c)
-        blobs.append({
-            "bbox": (x, y, w, h),
-            "centroid": (x + w / 2.0, y + h / 2.0),
-            "area": area,
-        })
+        blobs.append(
+            {
+                "bbox": (x, y, w, h),
+                "centroid": (x + w / 2.0, y + h / 2.0),
+                "area": area,
+            }
+        )
     return blobs
 
 
@@ -77,10 +79,12 @@ def find_ball_blobs(mask, min_area, max_area, min_circularity):
             continue
         (cx, cy), radius = cv2.minEnclosingCircle(c)
         x, y, w, h = cv2.boundingRect(c)
-        blobs.append({
-            "bbox": (x, y, w, h),
-            "centroid": (cx, cy),
-            "radius": float(radius),
-            "area": area,
-        })
+        blobs.append(
+            {
+                "bbox": (x, y, w, h),
+                "centroid": (cx, cy),
+                "radius": float(radius),
+                "area": area,
+            }
+        )
     return blobs

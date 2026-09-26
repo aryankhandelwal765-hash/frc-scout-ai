@@ -156,18 +156,18 @@ ONLY = [
     "2026hop_qm9",
     "2026hop_qm90",
     "2026hop_qm91",
-    "2026hop_qm92"
+    "2026hop_qm92",
 ]
 REDO = ["identify", "auto"]  # stages to force re-run; [] = only fill in missing
-WORKERS = 5            # matches in flight. ~4-5 if trajectory(GPU) will run;
-                       # higher (8-10) is fine when only CPU stages (scoring/auto) redo
-STRIDE = 2             # frame stride for trajectory + scoring
-HEIGHT = 1080          # download max height (1080 = readable bumper numbers)
-SKIP_NO_VIDEO = True   # skip matches with no local video instead of re-attempting the
-                       # download. 11 of the 140 have a youtube_key that yt-dlp can no
-                       # longer fetch ("Sign in to confirm you're not a bot"), and each
-                       # retry burns a worker slot on a guaranteed failure. Set False
-                       # once you have cookies wired into download_matches.py.
+WORKERS = 5  # matches in flight. ~4-5 if trajectory(GPU) will run;
+# higher (8-10) is fine when only CPU stages (scoring/auto) redo
+STRIDE = 2  # frame stride for trajectory + scoring
+HEIGHT = 1080  # download max height (1080 = readable bumper numbers)
+SKIP_NO_VIDEO = True  # skip matches with no local video instead of re-attempting the
+# download. 11 of the 140 have a youtube_key that yt-dlp can no
+# longer fetch ("Sign in to confirm you're not a bot"), and each
+# retry burns a worker slot on a guaranteed failure. Set False
+# once you have cookies wired into download_matches.py.
 # ===========================================================================
 STAGES = ["download", "preprocess", "trajectory", "scoring", "identify", "auto"]
 
@@ -187,6 +187,7 @@ def process_match(match, redo, stride, height):
     sys.path.insert(0, PARENT)
     sys.path.insert(0, CLASSIC)
     import cv2
+
     cv2.setNumThreads(1)
 
     redo = set(redo)
@@ -198,6 +199,7 @@ def process_match(match, redo, stride, height):
         # 1. download ------------------------------------------------------
         if not os.path.exists(vid) or "download" in redo:
             import download_matches as dl
+
             t = json.load(open(os.path.join(TRUTH, f"{match}.json")))
             yt = t.get("youtube_key")
             if not yt:
@@ -207,18 +209,19 @@ def process_match(match, redo, stride, height):
 
         # 2. preprocess (trim + crop + h264) -------------------------------
         import preprocess as pp
+
         need_split = not os.path.exists(os.path.join(VIDEOS, "revL", f"{match}.mp4"))
         h = pp._height(vid) if os.path.exists(vid) else 0
         stale = (h > pp.KEEP_BOTTOM) if not pp.MULTIVIEW else need_split
         if os.path.exists(vid) and (stale or "preprocess" in redo):
-            _, st = pp.clean_one(match, pp.KEEP_BOTTOM, pp.PAD, None,
-                                 force="preprocess" in redo)
+            _, st = pp.clean_one(match, pp.KEEP_BOTTOM, pp.PAD, None, force="preprocess" in redo)
             log.append(f"preprocess:{st.split('(')[0].strip()}")
 
         # 3. trajectory (GPU) ----------------------------------------------
         traj = os.path.join(outdir, "trajectory.csv")
         if not os.path.exists(traj) or "trajectory" in redo:
             import trajectories as tj
+
             r = tj.run(vid, outdir, _weights(), stride=stride, device="mps")
             log.append(f"trajectory:{r['tracks']}trk")
 
@@ -226,8 +229,18 @@ def process_match(match, redo, stride, height):
         est = os.path.join(outdir, "estimate.json")
         if not os.path.exists(est) or "scoring" in redo:
             import scoring_estimator as se
-            s = se.run(vid, outdir, start_frame=0, max_frames=None, ocr_every=10,
-                       field_mid=None, k_slots=3, write_video=False, frame_stride=stride)
+
+            s = se.run(
+                vid,
+                outdir,
+                start_frame=0,
+                max_frames=None,
+                ocr_every=10,
+                field_mid=None,
+                k_slots=3,
+                write_video=False,
+                frame_stride=stride,
+            )
             sc = s.get("alliance_scored_from_board", {})
             log.append(f"scoring:b{sc.get('blue')}/r{sc.get('red')}")
 
@@ -239,6 +252,7 @@ def process_match(match, redo, stride, height):
         if not os.path.exists(idp) or "identify" in redo:
             try:
                 import identify
+
                 ident = identify.run(match)
                 log.append(f"identify:{len(ident or {})}read")
             except Exception as e:
@@ -248,6 +262,7 @@ def process_match(match, redo, stride, height):
         ap = os.path.join(outdir, "auto_paths.json")
         if not os.path.exists(ap) or "auto" in redo:
             import auto_paths
+
             o = auto_paths.run(match)
             log.append(f"auto:{len(o)}robots")
 
@@ -274,8 +289,11 @@ def identity_summary():
         read_tids = set()
         if os.path.exists(idp):
             try:
-                read_tids = {int(k) for k, v in
-                             json.load(open(idp)).get("tracks", {}).items() if v.get("team")}
+                read_tids = {
+                    int(k)
+                    for k, v in json.load(open(idp)).get("tracks", {}).items()
+                    if v.get("team")
+                }
             except Exception:
                 pass
         # auto_paths records "source" now; fall back to the tid<->identity.json
@@ -301,8 +319,7 @@ def identity_summary():
     print(f"  unresolved            : {tot_bots - tot_read - tot_rank}")
     print(f"  matches all 6 by read : {full}    matches 0 by read: {none}")
     worst = sorted(rows, key=lambda r: r[1])[:10]
-    print("  weakest matches (read/robots): "
-          + ", ".join(f"{m} {r}/{n}" for m, r, _, n in worst))
+    print("  weakest matches (read/robots): " + ", ".join(f"{m} {r}/{n}" for m, r, _, n in worst))
     with open(os.path.join(RESULTS, "identity_summary.csv"), "w") as f:
         f.write("match,by_read,by_rank,robots\n")
         for m, r, k, n in rows:
@@ -310,16 +327,16 @@ def identity_summary():
 
 
 def main():
-    matches = sorted(os.path.splitext(os.path.basename(p))[0]
-                     for p in glob.glob(os.path.join(TRUTH, "*.json")))
+    matches = sorted(
+        os.path.splitext(os.path.basename(p))[0] for p in glob.glob(os.path.join(TRUTH, "*.json"))
+    )
     if ONLY:
         matches = [m for m in matches if m in set(ONLY)]
     if SKIP_NO_VIDEO:
         have = [m for m in matches if os.path.exists(os.path.join(VIDEOS, f"{m}.mp4"))]
         missing = len(matches) - len(have)
         if missing:
-            print(f"skipping {missing} match(es) with no local video "
-                  f"(SKIP_NO_VIDEO=True)")
+            print(f"skipping {missing} match(es) with no local video (SKIP_NO_VIDEO=True)")
         matches = have
     print(f"{len(matches)} matches, {WORKERS} in flight, redo={REDO or 'none'}")
     ok = fail = 0
@@ -339,7 +356,7 @@ def main():
             fail += bad
             ok += not bad
             print(f"  [{i}/{len(matches)}] {m:16s} {'  '.join(log)}")
-    print(f"\nchain done: {ok} ok, {fail} failed in {time.time()-t0:.0f}s")
+    print(f"\nchain done: {ok} ok, {fail} failed in {time.time() - t0:.0f}s")
 
     # aggregations (run once, after every match) ---------------------------
     try:
@@ -348,11 +365,13 @@ def main():
         print("identity_summary:", e)
     try:
         import preferred_paths
+
         preferred_paths.run()
     except Exception as e:
         print("preferred_paths:", e)
     try:
         import compare_tba
+
         sys.argv = ["compare_tba"]
         compare_tba.main()
     except SystemExit:

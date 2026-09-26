@@ -53,10 +53,19 @@ def test_documented_routes_are_all_registered(client):
 
     paths = {getattr(r, "path", None) for r in app.routes}
     for path in (
-        "/health", "/cache/stats", "/settings", "/predict", "/roles",
-        "/analyze/stream", "/coach/stream", "/captain/stream", "/bots/stream",
-        "/scouting/matches", "/scouting/render/{match_key}",
-        "/vision/team/{team}", "/vision/match/{match_key}",
+        "/health",
+        "/cache/stats",
+        "/settings",
+        "/predict",
+        "/roles",
+        "/analyze/stream",
+        "/coach/stream",
+        "/captain/stream",
+        "/bots/stream",
+        "/scouting/matches",
+        "/scouting/render/{match_key}",
+        "/vision/team/{team}",
+        "/vision/match/{match_key}",
     ):
         assert path in paths, f"missing route {path}"
 

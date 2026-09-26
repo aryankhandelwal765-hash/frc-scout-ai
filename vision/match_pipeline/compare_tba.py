@@ -34,9 +34,9 @@ TRUTH = os.path.join(HERE, "truth")
 # Step 1: set SHOW_BREAKDOWN to a match key, Run, read the printed fields.
 # Step 2: clear SHOW_BREAKDOWN, set TBA_FIELD to the game-piece field, Run.
 # ===========================================================================
-SHOW_BREAKDOWN = ""              # set to a match key to print its TBA breakdown + exit
+SHOW_BREAKDOWN = ""  # set to a match key to print its TBA breakdown + exit
 TBA_FIELD = "hubScore.totalCount"  # AGE balls scored per alliance (verified on 2026hop_qm1)
-WITHIN = 10                      # count an estimate "correct" if within +/- this many balls
+WITHIN = 10  # count an estimate "correct" if within +/- this many balls
 # ===========================================================================
 
 
@@ -70,13 +70,24 @@ def tba_value(truth, alliance, field):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--tba-field", default=TBA_FIELD,
-                   help="per-alliance field in score_breakdown to compare vs vision "
-                        "(dotted path). Default: alliance total score.")
-    p.add_argument("--show-breakdown", metavar="MATCH_KEY", default=SHOW_BREAKDOWN or None,
-                   help="print one match's TBA score_breakdown and exit")
-    p.add_argument("--within", type=int, default=WITHIN,
-                   help="count an estimate 'correct' if within this many of truth")
+    p.add_argument(
+        "--tba-field",
+        default=TBA_FIELD,
+        help="per-alliance field in score_breakdown to compare vs vision "
+        "(dotted path). Default: alliance total score.",
+    )
+    p.add_argument(
+        "--show-breakdown",
+        metavar="MATCH_KEY",
+        default=SHOW_BREAKDOWN or None,
+        help="print one match's TBA score_breakdown and exit",
+    )
+    p.add_argument(
+        "--within",
+        type=int,
+        default=WITHIN,
+        help="count an estimate 'correct' if within this many of truth",
+    )
     args = p.parse_args()
 
     truth = load_truth()
@@ -84,11 +95,18 @@ def main():
     if args.show_breakdown:
         t = truth.get(args.show_breakdown)
         if not t:
-            raise SystemExit(f"No truth for {args.show_breakdown}. "
-                             "Run download_matches.py first.")
-        print(json.dumps({"key": t["key"], "red_score": t["red_score"],
-                          "blue_score": t["blue_score"],
-                          "score_breakdown": t["score_breakdown"]}, indent=2))
+            raise SystemExit(f"No truth for {args.show_breakdown}. Run download_matches.py first.")
+        print(
+            json.dumps(
+                {
+                    "key": t["key"],
+                    "red_score": t["red_score"],
+                    "blue_score": t["blue_score"],
+                    "score_breakdown": t["score_breakdown"],
+                },
+                indent=2,
+            )
+        )
         return
 
     rows = []
@@ -103,16 +121,24 @@ def main():
             v = vis.get(alliance)
             g = tba_value(t, alliance, args.tba_field)
             err = (v - g) if (v is not None and g is not None) else None
-            rows.append({"match": mk, "alliance": alliance,
-                         "vision": v, "tba": g,
-                         "error": err, "abs_error": abs(err) if err is not None else None})
+            rows.append(
+                {
+                    "match": mk,
+                    "alliance": alliance,
+                    "vision": v,
+                    "tba": g,
+                    "error": err,
+                    "abs_error": abs(err) if err is not None else None,
+                }
+            )
 
     if not rows:
         raise SystemExit("No results to compare. Run batch_run.py first.")
 
     with open(os.path.join(HERE, "report.csv"), "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["match", "alliance", "vision", "tba",
-                                          "error", "abs_error"])
+        w = csv.DictWriter(
+            f, fieldnames=["match", "alliance", "vision", "tba", "error", "abs_error"]
+        )
         w.writeheader()
         w.writerows(rows)
 
@@ -132,9 +158,14 @@ def main():
         vx = sum((x - mx) ** 2 for x in xs) ** 0.5
         vy = sum((y - my) ** 2 for y in ys) ** 0.5
         r = cov / (vx * vy) if vx and vy else None
-        summary.update({"MAE": round(mae, 2), "bias_vision_minus_tba": round(bias, 2),
-                        f"within_{args.within}_rate": round(within, 3),
-                        "pearson_r": round(r, 3) if r is not None else None})
+        summary.update(
+            {
+                "MAE": round(mae, 2),
+                "bias_vision_minus_tba": round(bias, 2),
+                f"within_{args.within}_rate": round(within, 3),
+                "pearson_r": round(r, 3) if r is not None else None,
+            }
+        )
     with open(os.path.join(HERE, "report.json"), "w") as f:
         json.dump({"summary": summary, "rows": rows}, f, indent=2)
 
@@ -145,7 +176,9 @@ def main():
     if n:
         print(f"  MAE:               {summary['MAE']}")
         print(f"  bias (vis - tba):  {summary['bias_vision_minus_tba']}")
-        print(f"  within +/-{args.within}:       {summary[f'within_{args.within}_rate']*100:.0f}%")
+        print(
+            f"  within +/-{args.within}:       {summary[f'within_{args.within}_rate'] * 100:.0f}%"
+        )
         print(f"  Pearson r:         {summary['pearson_r']}")
     print("  wrote report.csv + report.json")
     print("=" * 60)

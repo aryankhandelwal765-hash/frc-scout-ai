@@ -35,8 +35,8 @@ class Annotator:
         self.paths = image_paths
         self.labels_dir = labels_dir
         self.idx = 0
-        self.cls = 0                 # current label (0=blue)
-        self.boxes = []              # [(x1,y1,x2,y2,cls)]
+        self.cls = 0  # current label (0=blue)
+        self.boxes = []  # [(x1,y1,x2,y2,cls)]
         self.drawing = False
         self.p0 = None
         self.cur = None
@@ -59,8 +59,9 @@ class Annotator:
                     continue
                 c, cx, cy, bw, bh = parts
                 cx, cy, bw, bh = float(cx) * w, float(cy) * h, float(bw) * w, float(bh) * h
-                self.boxes.append((int(cx - bw / 2), int(cy - bh / 2),
-                                   int(cx + bw / 2), int(cy + bh / 2), int(c)))
+                self.boxes.append(
+                    (int(cx - bw / 2), int(cy - bh / 2), int(cx + bw / 2), int(cy + bh / 2), int(c))
+                )
 
     def save(self):
         h, w = self.img.shape[:2]
@@ -92,18 +93,28 @@ class Annotator:
         vis = self.img.copy()
         for x1, y1, x2, y2, c in self.boxes:
             cv2.rectangle(vis, (x1, y1), (x2, y2), COLORS[c], 2)
-            cv2.putText(vis, CLASSES[c][0].upper(), (min(x1, x2), min(y1, y2) - 4),
-                        FONT, 0.5, COLORS[c], 2)
+            cv2.putText(
+                vis, CLASSES[c][0].upper(), (min(x1, x2), min(y1, y2) - 4), FONT, 0.5, COLORS[c], 2
+            )
         if self.drawing and self.p0 and self.cur:
             cv2.rectangle(vis, self.p0, self.cur, COLORS[self.cls], 1)
         nblue = sum(1 for *_, c in self.boxes if c == 0)
         nred = sum(1 for *_, c in self.boxes if c == 1)
-        hud = (f"[{self.idx+1}/{len(self.paths)}] {os.path.basename(self.paths[self.idx])}"
-               f"  draw={CLASSES[self.cls]}  blue={nblue} red={nred}")
+        hud = (
+            f"[{self.idx + 1}/{len(self.paths)}] {os.path.basename(self.paths[self.idx])}"
+            f"  draw={CLASSES[self.cls]}  blue={nblue} red={nred}"
+        )
         cv2.rectangle(vis, (0, 0), (vis.shape[1], 26), (0, 0, 0), -1)
         cv2.putText(vis, hud, (8, 18), FONT, 0.5, (255, 255, 255), 1)
-        cv2.putText(vis, "b/r label  t toggle  u undo  c clear  n/SPACE next  p prev  q quit",
-                    (8, vis.shape[0] - 8), FONT, 0.45, (0, 255, 255), 1)
+        cv2.putText(
+            vis,
+            "b/r label  t toggle  u undo  c clear  n/SPACE next  p prev  q quit",
+            (8, vis.shape[0] - 8),
+            FONT,
+            0.45,
+            (0, 255, 255),
+            1,
+        )
         return vis
 
     def run(self):
@@ -115,7 +126,8 @@ class Annotator:
             cv2.imshow(win, self.render())
             k = cv2.waitKey(20) & 0xFF
             if k in (ord("q"), 27):
-                self.save(); break
+                self.save()
+                break
             elif k == ord("b"):
                 self.cls = 0
             elif k == ord("r"):
@@ -130,11 +142,13 @@ class Annotator:
             elif k in (ord("n"), ord(" ")):
                 self.save()
                 if self.idx < len(self.paths) - 1:
-                    self.idx += 1; self.load()
+                    self.idx += 1
+                    self.load()
             elif k == ord("p"):
                 self.save()
                 if self.idx > 0:
-                    self.idx -= 1; self.load()
+                    self.idx -= 1
+                    self.load()
         cv2.destroyAllWindows()
         labeled = len(glob.glob(os.path.join(self.labels_dir, "*.txt")))
         print(f"Saved labels for {labeled} frames in {self.labels_dir}/")
@@ -146,8 +160,10 @@ def main():
     p.add_argument("--images", default="dataset/images")
     p.add_argument("--labels", help="default: sibling 'labels' dir")
     args = p.parse_args()
-    paths = sorted(glob.glob(os.path.join(args.images, "*.jpg")) +
-                   glob.glob(os.path.join(args.images, "*.png")))
+    paths = sorted(
+        glob.glob(os.path.join(args.images, "*.jpg"))
+        + glob.glob(os.path.join(args.images, "*.png"))
+    )
     if not paths:
         raise SystemExit(f"No images in {args.images} -- run extract_frames.py first.")
     labels = args.labels or os.path.join(os.path.dirname(args.images.rstrip("/")), "labels")

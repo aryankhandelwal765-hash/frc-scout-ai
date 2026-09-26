@@ -7,9 +7,7 @@ import requests
 # is accepted as a legacy alias so existing compose files keep working. Read
 # from the environment rather than config so this module stays import-free.
 OLLAMA_BASE = (
-    os.environ.get("OLLAMA_HOST")
-    or os.environ.get("OLLAMA_BASE")
-    or "http://localhost:11434"
+    os.environ.get("OLLAMA_HOST") or os.environ.get("OLLAMA_BASE") or "http://localhost:11434"
 ).rstrip("/")
 
 # Default model for the strategy-captain synthesis layer. Kept in sync with
@@ -36,8 +34,13 @@ def is_running() -> bool:
         return False
 
 
-def _stream_events(messages: list[dict], model: str, timeout: int = 600,
-                   think: bool | None = None, options: dict | None = None):
+def _stream_events(
+    messages: list[dict],
+    model: str,
+    timeout: int = 600,
+    think: bool | None = None,
+    options: dict | None = None,
+):
     """Yield (kind, text) events from an Ollama chat stream.
 
     kind is "thinking" or "content". Reasoning models (e.g. qwen3.6:35b-a3b)
@@ -74,8 +77,9 @@ def _stream_events(messages: list[dict], model: str, timeout: int = 600,
                 break
 
 
-def stream_chat_verbose(model: str, system: str, user: str, think: bool | None = None,
-                        options: dict | None = None):
+def stream_chat_verbose(
+    model: str, system: str, user: str, think: bool | None = None, options: dict | None = None
+):
     """Yield (kind, text) events ("thinking"/"content") for a single-turn chat."""
     yield from _stream_events(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -97,8 +101,14 @@ def stream_chat(model: str, system: str, user: str):
             yield text
 
 
-def generate(model: str, system: str, user: str, timeout: int = 180,
-             fmt: str | None = None, think: bool | None = None) -> str:
+def generate(
+    model: str,
+    system: str,
+    user: str,
+    timeout: int = 180,
+    fmt: str | None = None,
+    think: bool | None = None,
+) -> str:
     """Non-streaming chat — return the full response as a single string.
 
     Convenience for callers (e.g. the synthesis layer, API endpoints) that want

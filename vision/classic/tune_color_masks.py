@@ -53,8 +53,10 @@ def main():
 
     # frame source
     if args.images:
-        paths = sorted(glob.glob(os.path.join(args.images, "*.jpg")) +
-                       glob.glob(os.path.join(args.images, "*.png")))
+        paths = sorted(
+            glob.glob(os.path.join(args.images, "*.jpg"))
+            + glob.glob(os.path.join(args.images, "*.png"))
+        )
         if not paths:
             raise SystemExit(f"No images in {args.images}")
         n_frames = len(paths)
@@ -62,6 +64,7 @@ def main():
     else:
         cap = cv2.VideoCapture(args.input)
         n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
         def get(i):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i)
             ok, fr = cap.read()
@@ -69,8 +72,16 @@ def main():
 
     win = "mask lab"
     cv2.namedWindow(win)
-    for name, val in (("H lo", 18), ("H hi", 45), ("S lo", 55), ("S hi", 255),
-                      ("V lo", 80), ("V hi", 255), ("open", 0), ("close", 2)):
+    for name, val in (
+        ("H lo", 18),
+        ("H hi", 45),
+        ("S lo", 55),
+        ("S hi", 255),
+        ("V lo", 80),
+        ("V hi", 255),
+        ("open", 0),
+        ("close", 2),
+    ):
         cv2.createTrackbar(name, win, val, 255, lambda _v: None)
 
     def tb(name):
@@ -99,7 +110,9 @@ def main():
             if k_open > 0:
                 mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((k_open, k_open), np.uint8))
             if k_close > 0:
-                mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((k_close, k_close), np.uint8))
+                mask = cv2.morphologyEx(
+                    mask, cv2.MORPH_CLOSE, np.ones((k_close, k_close), np.uint8)
+                )
             label = "HSV sliders"
 
         cnts, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -108,8 +121,15 @@ def main():
         overlay = frame.copy()
         overlay[mask > 0] = (0, 0, 255)
         overlay = cv2.addWeighted(frame, 0.55, overlay, 0.45, 0)
-        cv2.putText(overlay, f"frame {idx}/{n_frames-1}  {label}  blobs>={args.min_area}: {len(blobs)}",
-                    (8, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+        cv2.putText(
+            overlay,
+            f"frame {idx}/{n_frames - 1}  {label}  blobs>={args.min_area}: {len(blobs)}",
+            (8, 22),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (0, 255, 255),
+            2,
+        )
 
         stack = np.vstack([_fit(overlay), _fit(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR))])
         cv2.imshow(win, stack)
@@ -131,10 +151,12 @@ def main():
             if use_custom:
                 print(f"frame {idx}: custom_mask(), blobs>={args.min_area}: {len(blobs)}")
             else:
-                print(f"frame {idx}: HSV lo=({tb('H lo')},{tb('S lo')},{tb('V lo')}) "
-                      f"hi=({tb('H hi')},{tb('S hi')},{tb('V hi')}) "
-                      f"open={tb('open')} close={tb('close')} "
-                      f"blobs>={args.min_area}: {len(blobs)}")
+                print(
+                    f"frame {idx}: HSV lo=({tb('H lo')},{tb('S lo')},{tb('V lo')}) "
+                    f"hi=({tb('H hi')},{tb('S hi')},{tb('V hi')}) "
+                    f"open={tb('open')} close={tb('close')} "
+                    f"blobs>={args.min_area}: {len(blobs)}"
+                )
 
     cv2.destroyAllWindows()
 

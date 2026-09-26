@@ -10,9 +10,7 @@ except ImportError:  # pragma: no cover - dotenv is a convenience, not a require
 # ROOT
 # =========================================================
 
-BASE_DIR = Path(
-    __file__
-).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 
 # Repo root is strategy/scout -> strategy -> <root>.
 REPO_ROOT = BASE_DIR.parent.parent
@@ -26,61 +24,35 @@ if load_dotenv is not None:
 # DATA
 # =========================================================
 
-DATA_DIR = (
-    BASE_DIR / "data"
-)
+DATA_DIR = BASE_DIR / "data"
 
-RAW_MATCHES_DIR = (
-    DATA_DIR / "raw_matches"
-)
+RAW_MATCHES_DIR = DATA_DIR / "raw_matches"
 
-PROCESSED_DIR = (
-    DATA_DIR / "processed"
-)
+PROCESSED_DIR = DATA_DIR / "processed"
 
-SCOUTING_DIR = (
-    DATA_DIR / "scouting"
-)
+SCOUTING_DIR = DATA_DIR / "scouting"
 
-STATBOTICS_DIR = (
-    DATA_DIR / "statbotics"
-)
+STATBOTICS_DIR = DATA_DIR / "statbotics"
 
 # =========================================================
 # MODELS
 # =========================================================
 
-MODELS_DIR = (
-    BASE_DIR / "models"
-)
+MODELS_DIR = BASE_DIR / "models"
 
 # =====================================================
 # STATBOTICS
 # =====================================================
 
-STATBOTICS_FILE = (
-
-    STATBOTICS_DIR
-    /
-    "all_2026_team_data.json"
-)
+STATBOTICS_FILE = STATBOTICS_DIR / "all_2026_team_data.json"
 
 # =====================================================
 # MODEL OUTPUTS
 # =====================================================
 
-MATCHUP_MODEL_DIR = (
-    BASE_DIR
-    /
-    "models"
-)
+MATCHUP_MODEL_DIR = BASE_DIR / "models"
 
-MATCHUP_MODEL_DIR.mkdir(
-
-    parents=True,
-
-    exist_ok=True
-)
+MATCHUP_MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 # =====================================================
 # OLLAMA
@@ -90,9 +62,7 @@ MATCHUP_MODEL_DIR.mkdir(
 # OLLAMA_BASE is accepted as a legacy alias so existing compose files keep
 # working.
 OLLAMA_BASE = (
-    os.environ.get("OLLAMA_HOST")
-    or os.environ.get("OLLAMA_BASE")
-    or "http://localhost:11434"
+    os.environ.get("OLLAMA_HOST") or os.environ.get("OLLAMA_BASE") or "http://localhost:11434"
 ).rstrip("/")
 
 # Strategy-captain qualitative synthesis (the reasoning layer).

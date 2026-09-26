@@ -1,0 +1,30 @@
+# Tooling config only. The project is not packaged — the strategy API and the
+# vision pipeline are run from their source trees, not installed.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+exclude = [
+    ".venv",
+    "venv",
+    "node_modules",
+    "dist",
+    # Superseded calibration scripts, kept verbatim for reference.
+    "vision/match_pipeline/_archive",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+
+[tool.ruff.lint.isort]
+# The vision trees are flat script directories on sys.path, not packages, so
+# their sibling imports are first-party rather than third-party.
+known-first-party = ["scout", "boxes", "topdown", "topdown_paths", "zones",
+                     "stitch", "trajectories", "auto_paths", "tba"]

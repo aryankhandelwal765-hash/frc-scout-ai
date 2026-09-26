@@ -45,7 +45,7 @@ def analyze_chemistry(stats_list: list[dict], archetypes: list[dict] | None = No
     max_stack = max((dominant_phases.count(p) for p in distinct_phases), default=0)
     overlap_penalty = 0.0
     if teleop_stack == 3:
-        overlap_penalty = 2.5   # all three fighting for the same cycles
+        overlap_penalty = 2.5  # all three fighting for the same cycles
     elif max_stack == 3:
         overlap_penalty = 2.0
     elif max_stack == 2:
@@ -62,10 +62,10 @@ def analyze_chemistry(stats_list: list[dict], archetypes: list[dict] | None = No
 
     # --- Overall chemistry blend ------------------------------------------------
     raw = (
-        phase_coverage * 0.30 +
-        top_heaviness * 0.30 +
-        endgame_strength * 0.20 +
-        (10.0 - overlap_penalty) * 0.20
+        phase_coverage * 0.30
+        + top_heaviness * 0.30
+        + endgame_strength * 0.20
+        + (10.0 - overlap_penalty) * 0.20
     )
     overall = _clamp(raw)
 
@@ -73,9 +73,13 @@ def analyze_chemistry(stats_list: list[dict], archetypes: list[dict] | None = No
     if len(distinct_phases) == 3:
         notes.append("Full phase coverage — auto, teleop, and endgame all represented.")
     if teleop_stack == 3:
-        notes.append("All three teams are teleop-dominant — expect contested cycles / game-piece scarcity.")
+        notes.append(
+            "All three teams are teleop-dominant — expect contested cycles / game-piece scarcity."
+        )
     if top_share >= 0.55:
-        notes.append(f"Top-heavy: one robot is {top_share*100:.0f}% of alliance EPA — fragile if it has an off match.")
+        notes.append(
+            f"Top-heavy: one robot is {top_share * 100:.0f}% of alliance EPA — fragile if it has an off match."
+        )
     if endgame_pts < 10:
         notes.append("Thin endgame — limited climb/endgame ceiling.")
     if not notes:

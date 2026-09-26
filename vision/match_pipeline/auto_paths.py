@@ -64,11 +64,19 @@ def _load_trajectory(match):
     path = os.path.join(RESULTS, match, "trajectory.csv")
     if not os.path.exists(path):
         raise SystemExit(f"No trajectory.csv for {match} -- run trajectories.py first.")
-    tracks = defaultdict(list)   # tid -> [(frame, t, alliance, cx, cy, conf)]
+    tracks = defaultdict(list)  # tid -> [(frame, t, alliance, cx, cy, conf)]
     with open(path) as f:
         for r in csv.DictReader(f):
-            tracks[int(r["tid"])].append((int(r["frame"]), float(r["t"]), r["alliance"],
-                                          float(r["cx"]), float(r["cy"]), float(r["conf"])))
+            tracks[int(r["tid"])].append(
+                (
+                    int(r["frame"]),
+                    float(r["t"]),
+                    r["alliance"],
+                    float(r["cx"]),
+                    float(r["cy"]),
+                    float(r["conf"]),
+                )
+            )
     for tid in tracks:
         tracks[tid].sort()
     return tracks
@@ -111,7 +119,8 @@ def _greedy_assign(track_starts, anchors):
         if tid in used_t or st in used_s:
             continue
         out[tid] = st
-        used_t.add(tid); used_s.add(st)
+        used_t.add(tid)
+        used_s.add(st)
     return out
 
 
@@ -134,8 +143,6 @@ def _read_identity(match):
         return {}
     d = json.load(open(p)).get("tracks", {})
     return {int(k): v["team"] for k, v in d.items() if v.get("team")}
-
-
 
 
 def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
@@ -169,8 +176,7 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
     # 3035 from track 28 onward -- same robot). Chain the fragments, then a read
     # anywhere on a chain locks the whole chain.
     al_of = {tid: _voted_alliance(match, tid, rows) for tid, rows in tracks.items()}
-    chain_list = stitch.chains(match, tracks, al_of, fps=fps,
-                               window=(start_frame, end_frame))
+    chain_list = stitch.chains(match, tracks, al_of, fps=fps, window=(start_frame, end_frame))
     locked, _per_chain = stitch.lock_identity(chain_list, read_id)
 
     # per chain: every fragment's rows inside the auto window, and a start position
@@ -178,8 +184,9 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
     auto_rows = {}
     chain_of = {}
     for ci, ch in enumerate(chain_list):
-        win = sorted(r for tid in ch for r in tracks.get(tid, [])
-                     if start_frame <= r[0] <= end_frame)
+        win = sorted(
+            r for tid in ch for r in tracks.get(tid, []) if start_frame <= r[0] <= end_frame
+        )
         if len(win) < min_track_frames:
             continue
         al = al_of.get(ch[0])
@@ -192,8 +199,14 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
         chain_of[ci] = ch
 
     out = {}
-    dbg = {"match": match, "start_frame": start_frame, "end_frame": end_frame,
-           "fps": fps, "start_source": src, "auto_seconds": auto_seconds}
+    dbg = {
+        "match": match,
+        "start_frame": start_frame,
+        "end_frame": end_frame,
+        "fps": fps,
+        "start_source": src,
+        "auto_seconds": auto_seconds,
+    }
     for al in ("blue", "red"):
         # classify by SPATIAL ORDER along the alliance wall (no fixed anchors):
         # sort the detected robots by x, assign station 1,2,3 in that order -> team.
@@ -202,8 +215,7 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
         # take the 3 most-PERSISTENT tracks (most frames in the auto window) so a
         # flickery false track can't displace a real robot, then rank those by x
         cand = sorted(starts, key=lambda t: -len(auto_rows[t][1]))[:3]
-        order = sorted(cand, key=lambda t: starts[t][0],
-                       reverse=(ALLIANCE_ORDER.get(al) == "rtl"))
+        order = sorted(cand, key=lambda t: starts[t][0], reverse=(ALLIANCE_ORDER.get(al) == "rtl"))
         # rank-based station only holds when all three robots are tracked; with a
         # missing (or extra) one the ranks shift and every team number is wrong.
         confident = len(order) == 3
@@ -212,7 +224,7 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
         # for two different tracks (they disagree about which robot it is). Reads are
         # direct evidence, so they claim their team outright and rank order is then
         # only allowed to hand out teams nobody read.
-        assigned = {}                       # chain -> (team, source)
+        assigned = {}  # chain -> (team, source)
         # A read is only admissible if TBA says that team is on THIS alliance.
         # Bumper colour occasionally calls a track for the wrong alliance, and the
         # read then rides along -- measured 3 of 360 reads (0.8%) across 112
@@ -249,21 +261,31 @@ def run(match, start_frame=None, auto_seconds=AUTO_SECONDS, min_track_frames=5):
             # whenever a read and the rank guess landed on the same number.
             # `tids` is the whole stitched chain; `tid` stays the primary fragment so
             # anything still joining on a single id keeps working.
-            out[st] = {"station": st, "tid": chain_of[ci][0], "tids": chain_of[ci],
-                       "alliance": al, "team": team, "source": source,
-                       "path": [[round(t, 3), cx, cy] for fr, t, a, cx, cy, cf in win]}
+            out[st] = {
+                "station": st,
+                "tid": chain_of[ci][0],
+                "tids": chain_of[ci],
+                "alliance": al,
+                "team": team,
+                "source": source,
+                "path": [[round(t, 3), cx, cy] for fr, t, a, cx, cy, cf in win],
+            }
 
     outdir = os.path.join(RESULTS, match)
     with open(os.path.join(outdir, "auto_paths.json"), "w") as f:
         json.dump({"debug": dbg, "teams": out}, f, indent=2)
     _plot(match, calib, out, outdir)
-    print(f"  {match}: auto [{start_frame}-{end_frame}] ({src})  classified "
-          f"{len(out)} robots -> {[o['team'] for o in out.values()]}")
+    print(
+        f"  {match}: auto [{start_frame}-{end_frame}] ({src})  classified "
+        f"{len(out)} robots -> {[o['team'] for o in out.values()]}"
+    )
     return out
 
 
 def _team_label(team_key):
-    return team_key.replace("frc", "#") if team_key and team_key.startswith("frc") else str(team_key)
+    return (
+        team_key.replace("frc", "#") if team_key and team_key.startswith("frc") else str(team_key)
+    )
 
 
 def _plot(match, calib, teams_out, outdir):
@@ -283,10 +305,24 @@ def _plot(match, calib, teams_out, outdir):
             cv2.polylines(img, [pts], False, col, 2, cv2.LINE_AA)
             cv2.circle(img, tuple(pts[0]), 5, (255, 255, 255), -1)
             cv2.circle(img, tuple(pts[0]), 5, col, 2)
-            cv2.putText(img, _team_label(o["team"]), (pts[0][0] + 6, pts[0][1] - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2)
-    cv2.putText(img, f"{match} AUTO paths", (8, img.shape[0] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            cv2.putText(
+                img,
+                _team_label(o["team"]),
+                (pts[0][0] + 6, pts[0][1] - 6),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.55,
+                col,
+                2,
+            )
+    cv2.putText(
+        img,
+        f"{match} AUTO paths",
+        (8, img.shape[0] - 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.6,
+        (255, 255, 255),
+        2,
+    )
     cv2.imwrite(os.path.join(outdir, "auto_paths.png"), img)
 
 

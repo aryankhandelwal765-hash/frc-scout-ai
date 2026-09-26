@@ -48,7 +48,7 @@ if _TESSERACT_CMD:
 SCOREBOARD = {
     # alliance -> (x1, x2, y1, y2) box around the "<scored> / <total>" ball count
     "blue": (60, 160, 38, 86),
-    "red":  (1160, 1270, 38, 86),
+    "red": (1160, 1270, 38, 86),
 }
 # The boxes above are pixels for a 1280x720 broadcast. Source is 1080p now, so keep
 # them as FRACTIONS of frame width/height and resolve per frame -- otherwise the OCR
@@ -57,7 +57,7 @@ SCOREBOARD = {
 # on a frame whose board showed exactly that.
 SCOREBOARD_FRAC = {
     "blue": (0.0156, 0.1250, 0.0843, 0.1826),
-    "red":  (0.8750, 0.9896, 0.0843, 0.1826),
+    "red": (0.8750, 0.9896, 0.0843, 0.1826),
 }
 
 
@@ -65,6 +65,8 @@ def scoreboard_box(frame, alliance):
     h, w = frame.shape[:2]
     fx1, fx2, fy1, fy2 = SCOREBOARD_FRAC[alliance]
     return int(fx1 * w), int(fx2 * w), int(fy1 * h), int(fy2 * h)
+
+
 YELLOW_LO = np.array([18, 55, 80])
 YELLOW_HI = np.array([45, 255, 255])
 
@@ -77,13 +79,13 @@ YELLOW_HI = np.array([45, 255, 255])
 SOFT = 40
 FIRST_MAX = 80
 
-FIELD_TOP = 100             # ignore motion above this row (scoreboard/crowd strip)
-FIELD_BOTTOM = 660          # ignore motion below this row (sponsor banner)
-MOTION_THRESH = 25          # grayscale abs-diff to call a pixel "moving"
-AGENT_DILATE = 25           # px; merge nearby ball-motion into one cluster
-AGENT_MIN_ACTIVITY = 40     # min moving-ball px in a cluster to count
-SLOT_SEED_SEP = 160         # px; a cluster this far from all slots seeds a new one
-SLOT_EMA = 0.08             # how fast a slot follows its robot (0=frozen,1=jumpy)
+FIELD_TOP = 100  # ignore motion above this row (scoreboard/crowd strip)
+FIELD_BOTTOM = 660  # ignore motion below this row (sponsor banner)
+MOTION_THRESH = 25  # grayscale abs-diff to call a pixel "moving"
+AGENT_DILATE = 25  # px; merge nearby ball-motion into one cluster
+AGENT_MIN_ACTIVITY = 40  # min moving-ball px in a cluster to count
+SLOT_SEED_SEP = 160  # px; a cluster this far from all slots seeds a new one
+SLOT_EMA = 0.08  # how fast a slot follows its robot (0=frozen,1=jumpy)
 
 BLUE = (255, 120, 0)
 RED = (0, 80, 255)
@@ -101,7 +103,7 @@ class SlotTracker:
         self.k = k
         self.seed_sep = seed_sep
         self.ema = ema
-        self.slots = []   # each: {x, y, activity, hits}
+        self.slots = []  # each: {x, y, activity, hits}
 
     def _nearest(self, cx, cy):
         best, bd = None, float("inf")
@@ -139,7 +141,8 @@ def ocr_ball_count(frame, box):
     g = cv2.cvtColor(big, cv2.COLOR_BGR2GRAY)
     _, th = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     txt = pytesseract.image_to_string(
-        th, config="--psm 7 -c tessedit_char_whitelist=0123456789/").strip()
+        th, config="--psm 7 -c tessedit_char_whitelist=0123456789/"
+    ).strip()
     # The board reads "<scored> / <total>". Require the slash: a bare number is
     # almost always the TOTAL ("360") read alone with the numerator missed, and
     # since it repeats every frame it would sail past the confirmation check and
@@ -172,12 +175,12 @@ def find_clusters(mv_mask):
     n, labels, stats, cents = cv2.connectedComponentsWithStats(dil, connectivity=8)
     out = []
     for i in range(1, n):
-        activity = int(cv2.countNonZero(cv2.bitwise_and(
-            mv_mask, (labels == i).astype(np.uint8) * 255)))
+        activity = int(
+            cv2.countNonZero(cv2.bitwise_and(mv_mask, (labels == i).astype(np.uint8) * 255))
+        )
         if activity < AGENT_MIN_ACTIVITY:
             continue
-        out.append({"centroid": (float(cents[i][0]), float(cents[i][1])),
-                    "activity": activity})
+        out.append({"centroid": (float(cents[i][0]), float(cents[i][1])), "activity": activity})
     return out
 
 
@@ -192,8 +195,9 @@ def pick_crop(input_path):
         raise IOError(f"Could not read a frame from {input_path}")
     print("\nDrag a box around the part to KEEP (e.g. the top overhead field).")
     print("Press ENTER/SPACE to confirm, ESC to cancel.\n")
-    x, y, w, h = cv2.selectROI("Select region to KEEP (ENTER=ok, ESC=cancel)",
-                               frame, showCrosshair=False)
+    x, y, w, h = cv2.selectROI(
+        "Select region to KEEP (ENTER=ok, ESC=cancel)", frame, showCrosshair=False
+    )
     cv2.destroyAllWindows()
     if w == 0 or h == 0:
         raise SystemExit("No region selected.")
@@ -202,8 +206,18 @@ def pick_crop(input_path):
     return crop
 
 
-def run(input_path, outdir, start_frame, max_frames, ocr_every, field_mid,
-        k_slots, write_video, crop=None, frame_stride=1):
+def run(
+    input_path,
+    outdir,
+    start_frame,
+    max_frames,
+    ocr_every,
+    field_mid,
+    k_slots,
+    write_video,
+    crop=None,
+    frame_stride=1,
+):
     os.makedirs(outdir, exist_ok=True)
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
@@ -221,17 +235,22 @@ def run(input_path, outdir, start_frame, max_frames, ocr_every, field_mid,
         cx1, cy1, cx2, cy2 = 0, 0, W, H  # export whole frame
     else:
         roi = crop
-        cx1, cy1, cx2, cy2 = crop        # export just the cropped region
+        cx1, cy1, cx2, cy2 = crop  # export just the cropped region
 
     writer = None
     if write_video:
-        writer = cv2.VideoWriter(os.path.join(outdir, "annotated.mp4"),
-                                 cv2.VideoWriter_fourcc(*"mp4v"), fps,
-                                 (cx2 - cx1, cy2 - cy1))
+        writer = cv2.VideoWriter(
+            os.path.join(outdir, "annotated.mp4"),
+            cv2.VideoWriter_fourcc(*"mp4v"),
+            fps,
+            (cx2 - cx1, cy2 - cy1),
+        )
 
     slots = {"blue": SlotTracker(k_slots), "red": SlotTracker(k_slots)}
-    board = {"blue": {"first": None, "last": None, "max": 0, "last_good": None, "cand": None},
-             "red":  {"first": None, "last": None, "max": 0, "last_good": None, "cand": None}}
+    board = {
+        "blue": {"first": None, "last": None, "max": 0, "last_good": None, "cand": None},
+        "red": {"first": None, "last": None, "max": 0, "last_good": None, "cand": None},
+    }
     board_series = []
 
     if start_frame > 0:
@@ -281,7 +300,7 @@ def run(input_path, outdir, start_frame, max_frames, ocr_every, field_mid,
                         bd["first"] = bd["last"] = bd["last_good"] = val
                         bd["max"] = val
                 elif val < lg - 5:
-                    continue                       # backward misread -> ignore
+                    continue  # backward misread -> ignore
                 elif val <= lg + SOFT:
                     # smooth monotonic step -> trust immediately
                     bd["last"] = bd["last_good"] = val
@@ -294,7 +313,7 @@ def run(input_path, outdir, start_frame, max_frames, ocr_every, field_mid,
                     bd["max"] = max(bd["max"], nv)
                     bd["cand"] = None
                 else:
-                    bd["cand"] = val               # hold one suspect; spikes never confirm
+                    bd["cand"] = val  # hold one suspect; spikes never confirm
             board_series.append((frame_idx, b, r))
 
         if writer is not None:
@@ -324,8 +343,15 @@ def _draw_slots(frame, slots, mid, roi):
             r = int(np.clip(np.sqrt(s["activity"]) / 12, 12, 90))
             cv2.circle(frame, (x, y), r, col, 3)
             tag = "B" if alliance == "blue" else "R"
-            cv2.putText(frame, f"{tag}{i} act:{s['activity']}", (x - 40, y - r - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, col, 2)
+            cv2.putText(
+                frame,
+                f"{tag}{i} act:{s['activity']}",
+                (x - 40, y - r - 6),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                col,
+                2,
+            )
 
 
 def _draw_board_text(img, board, frame_idx):
@@ -337,19 +363,25 @@ def _draw_board_text(img, board, frame_idx):
 
 
 def _summarize(outdir, board, series, slots, processed, fps):
-    scored = {a: (board[a]["max"] - board[a]["first"]) if board[a]["first"] is not None
-              else 0 for a in ("blue", "red")}
+    scored = {
+        a: (board[a]["max"] - board[a]["first"]) if board[a]["first"] is not None else 0
+        for a in ("blue", "red")
+    }
     robots = []
     for alliance in ("blue", "red"):
         st = slots[alliance].slots
         total_act = sum(s["activity"] for s in st) or 1
         for i, s in enumerate(st):
-            robots.append({
-                "alliance": alliance, "slot": i,
-                "activity": s["activity"], "hits": s["hits"],
-                "pos": [round(s["x"], 1), round(s["y"], 1)],
-                "est_balls_scored": round(scored[alliance] * s["activity"] / total_act, 1),
-            })
+            robots.append(
+                {
+                    "alliance": alliance,
+                    "slot": i,
+                    "activity": s["activity"],
+                    "hits": s["hits"],
+                    "pos": [round(s["x"], 1), round(s["y"], 1)],
+                    "est_balls_scored": round(scored[alliance] * s["activity"] / total_act, 1),
+                }
+            )
     summary = {
         "frames_processed": processed,
         "duration_sec": round(processed / fps, 2) if fps else None,
@@ -376,21 +408,27 @@ def _print(s):
     print(f"  balls scored (scoreboard truth): BLUE {sc['blue']}  RED {sc['red']}")
     print("  estimated balls per robot slot (unnamed A/B/C):")
     for alliance in ("blue", "red"):
-        grp = sorted([r for r in s["robots"] if r["alliance"] == alliance],
-                     key=lambda r: -r["est_balls_scored"])
+        grp = sorted(
+            [r for r in s["robots"] if r["alliance"] == alliance],
+            key=lambda r: -r["est_balls_scored"],
+        )
         letters = "ABCDEF"
         print(f"    --- {alliance.upper()} ---")
         for j, r in enumerate(grp):
-            print(f"    {alliance:4s} robot {letters[j]}  ~{r['est_balls_scored']:>6} balls"
-                  f"   (activity {r['activity']}, pos {r['pos']})")
+            print(
+                f"    {alliance:4s} robot {letters[j]}  ~{r['est_balls_scored']:>6} balls"
+                f"   (activity {r['activity']}, pos {r['pos']})"
+            )
     print("=" * 56)
     print("  per-alliance totals are exact (scoreboard);")
     print("  per-robot split is an activity-weighted ESTIMATE, unnamed slots.\n")
 
 
 def main():
-    p = argparse.ArgumentParser(description="Estimate balls scored per robot via "
-                                            "K-slot release-rate apportionment + scoreboard OCR.")
+    p = argparse.ArgumentParser(
+        description="Estimate balls scored per robot via "
+        "K-slot release-rate apportionment + scoreboard OCR."
+    )
     p.add_argument("--input", required=True)
     p.add_argument("--outdir", default="out_estimate")
     p.add_argument("--start-frame", type=int, default=0)
@@ -399,20 +437,41 @@ def main():
     p.add_argument("--field-mid", type=int, help="x px splitting blue|red field halves")
     p.add_argument("--slots", type=int, default=3, help="robots per alliance (K)")
     p.add_argument("--no-video", action="store_true", help="skip annotated video (faster)")
-    p.add_argument("--crop", type=int, nargs=4, metavar=("X1", "Y1", "X2", "Y2"),
-                   help="analyze + export only this rectangle (drops the stitched 2nd angle)")
-    p.add_argument("--pick-crop", action="store_true",
-                   help="drag the keep-region on the first frame, then run with it")
-    p.add_argument("--stride", type=int, default=1,
-                   help="process every Nth frame (2 = ~2x faster on 60fps footage)")
+    p.add_argument(
+        "--crop",
+        type=int,
+        nargs=4,
+        metavar=("X1", "Y1", "X2", "Y2"),
+        help="analyze + export only this rectangle (drops the stitched 2nd angle)",
+    )
+    p.add_argument(
+        "--pick-crop",
+        action="store_true",
+        help="drag the keep-region on the first frame, then run with it",
+    )
+    p.add_argument(
+        "--stride",
+        type=int,
+        default=1,
+        help="process every Nth frame (2 = ~2x faster on 60fps footage)",
+    )
     args = p.parse_args()
 
     crop = tuple(args.crop) if args.crop else None
     if args.pick_crop:
         crop = pick_crop(args.input)
-    run(args.input, args.outdir, args.start_frame, args.max_frames, args.ocr_every,
-        args.field_mid, args.slots, write_video=not args.no_video, crop=crop,
-        frame_stride=args.stride)
+    run(
+        args.input,
+        args.outdir,
+        args.start_frame,
+        args.max_frames,
+        args.ocr_every,
+        args.field_mid,
+        args.slots,
+        write_video=not args.no_video,
+        crop=crop,
+        frame_stride=args.stride,
+    )
 
 
 if __name__ == "__main__":

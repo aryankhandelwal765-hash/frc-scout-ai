@@ -25,8 +25,7 @@ def _fixed_crop_width(monkeypatch):
 def frag(start_frame, n, x0, y0, dx=0.0, dy=0.0, alliance="red"):
     """A fragment as ByteTrack rows: (frame, t, alliance, cx, cy, conf)."""
     return [
-        (start_frame + i, (start_frame + i) / FPS, alliance,
-         x0 + dx * i, y0 + dy * i, 0.9)
+        (start_frame + i, (start_frame + i) / FPS, alliance, x0 + dx * i, y0 + dy * i, 0.9)
         for i in range(n)
     ]
 
@@ -63,7 +62,7 @@ def test_gap_beyond_max_is_not_bridged():
 def test_moving_robot_is_chained_at_its_extrapolated_position():
     """Velocity-aware gating: compare against where A was heading, not where it
     stopped. A static-position comparison would reject this real link."""
-    a = frag(0, 30, 200, 300, dx=6.0)          # ends near x=374, moving +x
+    a = frag(0, 30, 200, 300, dx=6.0)  # ends near x=374, moving +x
     end_x = a[-1][3]
     gap = 12
     b = frag(30 + gap, 30, end_x + 6.0 * gap, 300, dx=6.0)

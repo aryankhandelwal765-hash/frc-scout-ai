@@ -25,6 +25,7 @@ def _ssl_context():
     Use certifi's bundle (pulled in by `requests`, already in the venv)."""
     try:
         import certifi
+
         return ssl.create_default_context(cafile=certifi.where())
     except Exception:
         return ssl.create_default_context()
@@ -46,16 +47,20 @@ def load_key(cli_key=None):
                 return k
     raise SystemExit(
         "No TBA key. Set TBA_AUTH_KEY, pass --key, or write it to "
-        f"{_KEY_FILE}\nGet one at https://www.thebluealliance.com/account")
+        f"{_KEY_FILE}\nGet one at https://www.thebluealliance.com/account"
+    )
 
 
 def get(path, key, retries=4):
     """GET {BASE}{path} with the auth header, JSON-decoded. Retries on 429/5xx."""
     url = BASE + path
-    req = urllib.request.Request(url, headers={
-        "X-TBA-Auth-Key": key,
-        "User-Agent": "vision-tba-batch/1.0",
-    })
+    req = urllib.request.Request(
+        url,
+        headers={
+            "X-TBA-Auth-Key": key,
+            "User-Agent": "vision-tba-batch/1.0",
+        },
+    )
     for attempt in range(retries):
         try:
             with urllib.request.urlopen(req, timeout=30, context=_SSL) as r:
@@ -64,12 +69,12 @@ def get(path, key, retries=4):
             if e.code == 401:
                 raise SystemExit("TBA 401: bad/missing auth key.")
             if e.code in (429, 500, 502, 503, 504) and attempt < retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise
         except (urllib.error.URLError, TimeoutError):
             if attempt < retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise
 
@@ -84,9 +89,11 @@ _LEVEL_ORDER = {"qm": 0, "ef": 1, "qf": 2, "sf": 3, "f": 4}
 
 
 def match_sort_key(m):
-    return (_LEVEL_ORDER.get(m.get("comp_level"), 9),
-            m.get("set_number") or 0,
-            m.get("match_number") or 0)
+    return (
+        _LEVEL_ORDER.get(m.get("comp_level"), 9),
+        m.get("set_number") or 0,
+        m.get("match_number") or 0,
+    )
 
 
 def youtube_key(match):

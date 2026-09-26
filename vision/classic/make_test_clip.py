@@ -19,14 +19,14 @@ W, H, FPS, FRAMES = 960, 540, 30, 360
 
 # Goal zones (pixel rects) -- these go into test_zones.json AND are drawn as
 # neutral dark boxes in the source so they don't trip color detection.
-RED_GOAL = (20, 200, 120, 140)     # x, y, w, h  (left)
-BLUE_GOAL = (820, 200, 120, 140)   # right
+RED_GOAL = (20, 200, 120, 140)  # x, y, w, h  (left)
+BLUE_GOAL = (820, 200, 120, 140)  # right
 
-BG = (110, 110, 110)               # neutral gray field (low saturation)
-GOAL_FILL = (55, 55, 55)           # neutral dark (won't detect as robot/ball)
+BG = (110, 110, 110)  # neutral gray field (low saturation)
+GOAL_FILL = (55, 55, 55)  # neutral dark (won't detect as robot/ball)
 RED_BGR = (0, 0, 220)
 BLUE_BGR = (220, 0, 0)
-BALL_BGR = (0, 255, 255)           # pure yellow
+BALL_BGR = (0, 255, 255)  # pure yellow
 
 
 def lerp(a, b, t):
@@ -35,14 +35,18 @@ def lerp(a, b, t):
 
 
 def red_x(f):
-    if f <= 130:   return lerp(450, 150, f / 130)
-    if f <= 200:   return lerp(150, 450, (f - 130) / 70)
-    if f <= 315:   return lerp(450, 150, (f - 200) / 115)
+    if f <= 130:
+        return lerp(450, 150, f / 130)
+    if f <= 200:
+        return lerp(150, 450, (f - 130) / 70)
+    if f <= 315:
+        return lerp(450, 150, (f - 200) / 115)
     return 150
 
 
 def blue_x(f):
-    if f <= 170:   return lerp(520, 800, f / 170)
+    if f <= 170:
+        return lerp(520, 800, f / 170)
     return 800
 
 
@@ -61,7 +65,7 @@ def main():
 
     for f in range(FRAMES):
         img = np.full((H, W, 3), BG, dtype=np.uint8)
-        for (gx, gy, gw, gh) in (RED_GOAL, BLUE_GOAL):
+        for gx, gy, gw, gh in (RED_GOAL, BLUE_GOAL):
             cv2.rectangle(img, (gx, gy), (gx + gw, gy + gh), GOAL_FILL, -1)
 
         rx, by = red_x(f), 260

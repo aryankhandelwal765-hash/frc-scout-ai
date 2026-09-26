@@ -11,7 +11,7 @@ import cv2
 # BGR
 RED = (0, 0, 255)
 BLUE = (255, 0, 0)
-BALL = (0, 215, 255)     # amber
+BALL = (0, 215, 255)  # amber
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 220, 0)
@@ -94,12 +94,12 @@ def draw_scoreboard(frame, engine, frame_idx, time_sec):
     yy = y0 + 78
     for (alliance, rid), n in rows:
         tag = "R" if alliance == "red" else "B"
-        cv2.putText(frame, f"{tag}{rid}: {n}", (x0 + 10, yy), FONT, 0.5,
-                    ALLIANCE_BGR[alliance], 1)
+        cv2.putText(frame, f"{tag}{rid}: {n}", (x0 + 10, yy), FONT, 0.5, ALLIANCE_BGR[alliance], 1)
         yy += 20
 
-    cv2.putText(frame, f"t={time_sec:5.1f}s  f={frame_idx}", (x0 + 130, y0 + 78),
-                FONT, 0.45, WHITE, 1)
+    cv2.putText(
+        frame, f"t={time_sec:5.1f}s  f={frame_idx}", (x0 + 130, y0 + 78), FONT, 0.45, WHITE, 1
+    )
 
 
 def draw_score_flash(frame, event, alpha=1.0):

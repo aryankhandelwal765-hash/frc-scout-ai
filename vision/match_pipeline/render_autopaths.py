@@ -36,16 +36,20 @@ TRUTH = os.path.join(HERE, "truth")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-MATCH = "2026hop_qm100"   # single match to draw
-MATCHES = []              # or a list of match keys; [] = just MATCH
-CONTACT_SHEET = False     # True + MATCHES -> also write one combined grid image
-DOTS_EVERY = 12           # progress dot every N path samples (shows speed)
+MATCH = "2026hop_qm100"  # single match to draw
+MATCHES = []  # or a list of match keys; [] = just MATCH
+CONTACT_SHEET = False  # True + MATCHES -> also write one combined grid image
+DOTS_EVERY = 12  # progress dot every N path samples (shows speed)
 # ===========================================================================
 
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
-SRC_COL = {"read": (90, 255, 90), "elim": (255, 220, 90),
-           "rank": (0, 165, 255), "none": (150, 150, 150)}
+SRC_COL = {
+    "read": (90, 255, 90),
+    "elim": (255, 220, 90),
+    "rank": (0, 165, 255),
+    "none": (150, 150, 150),
+}
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
@@ -57,6 +61,7 @@ def _put(img, text, org, color=(255, 255, 255), scale=0.55, thick=1):
 def _background(match):
     """Empty field: median over the match, cropped to the field region."""
     import trajectories as tj
+
     vid = os.path.join(VIDEOS, f"{match}.mp4")
     if not os.path.exists(vid):
         return None
@@ -70,7 +75,7 @@ def _background(match):
     if med is None:
         x1, y1, x2, y2 = crop
         med = f0[y1:y2, x1:x2]
-    return (med * 0.55).astype(np.uint8)      # darkened so paths pop
+    return (med * 0.55).astype(np.uint8)  # darkened so paths pop
 
 
 def render(match, out=None, dots_every=DOTS_EVERY):
@@ -109,40 +114,61 @@ def render(match, out=None, dots_every=DOTS_EVERY):
         cv2.circle(canvas, pts[0], 8, (255, 255, 255), -1)
         cv2.circle(canvas, pts[0], 8, base, 2)
         if len(pts) >= 6:
-            cv2.arrowedLine(canvas, pts[-6], pts[-1], base, 3, cv2.LINE_AA,
-                            tipLength=0.5)
+            cv2.arrowedLine(canvas, pts[-6], pts[-1], base, 3, cv2.LINE_AA, tipLength=0.5)
         label = f"{str(o.get('team')).replace('frc', '#')} [{src}]"
-        _put(canvas, label, (pts[0][0] + 12, pts[0][1] - 12),
-             SRC_COL.get(src, (255, 255, 255)), 0.62, 2)
+        _put(
+            canvas,
+            label,
+            (pts[0][0] + 12, pts[0][1] - 12),
+            SRC_COL.get(src, (255, 255, 255)),
+            0.62,
+            2,
+        )
 
     # ---- side panel -------------------------------------------------------
     cv2.rectangle(canvas, (w, 0), (w + panel, canvas.shape[0]), (22, 22, 22), -1)
     y = 30
-    _put(canvas, match, (w + 14, y), (255, 255, 255), 0.66, 2); y += 26
-    _put(canvas, f"auto frames {dbg.get('start_frame')}-{dbg.get('end_frame')}",
-         (w + 14, y), (170, 170, 170), 0.46); y += 30
+    _put(canvas, match, (w + 14, y), (255, 255, 255), 0.66, 2)
+    y += 26
+    _put(
+        canvas,
+        f"auto frames {dbg.get('start_frame')}-{dbg.get('end_frame')}",
+        (w + 14, y),
+        (170, 170, 170),
+        0.46,
+    )
+    y += 30
 
     truth_p = os.path.join(TRUTH, f"{match}.json")
     if os.path.exists(truth_p):
         tr = json.load(open(truth_p))
         for al, col in (("blue", BLUE_BGR), ("red", RED_BGR)):
             roster = " ".join(t.replace("frc", "#") for t in (tr.get(f"{al}_teams") or []))
-            _put(canvas, f"TBA {al}: {roster}", (w + 14, y), col, 0.46); y += 20
+            _put(canvas, f"TBA {al}: {roster}", (w + 14, y), col, 0.46)
+            y += 20
         y += 10
 
-    _put(canvas, "ASSIGNED", (w + 14, y), (255, 255, 255), 0.52, 1); y += 22
+    _put(canvas, "ASSIGNED", (w + 14, y), (255, 255, 255), 0.52, 1)
+    y += 22
     for st in sorted(teams):
         o = teams[st]
         src = o.get("source") or "none"
         n = len(o.get("tids") or [o.get("tid")])
-        _put(canvas, f"{st:6s} {str(o.get('team')).replace('frc', '#'):8s} "
-                     f"{src:5s} ({n} frag)", (w + 14, y),
-             SRC_COL.get(src, (255, 255, 255)), 0.46); y += 19
+        _put(
+            canvas,
+            f"{st:6s} {str(o.get('team')).replace('frc', '#'):8s} {src:5s} ({n} frag)",
+            (w + 14, y),
+            SRC_COL.get(src, (255, 255, 255)),
+            0.46,
+        )
+        y += 19
     y += 14
-    _put(canvas, "HOW DETERMINED", (w + 14, y), (255, 255, 255), 0.52, 1); y += 22
+    _put(canvas, "HOW DETERMINED", (w + 14, y), (255, 255, 255), 0.52, 1)
+    y += 22
     for k in ("read", "elim", "rank", "none"):
         if counts.get(k):
-            _put(canvas, f"{k:5s} {counts[k]}", (w + 14, y), SRC_COL[k], 0.5); y += 19
+            _put(canvas, f"{k:5s} {counts[k]}", (w + 14, y), SRC_COL[k], 0.5)
+            y += 19
     y += 12
     if counts.get("rank"):
         _put(canvas, "orange = station-order guess,", (w + 14, y), (0, 165, 255), 0.42)
@@ -161,8 +187,7 @@ def main():
     if CONTACT_SHEET and len(paths) > 1:
         imgs = [cv2.imread(p) for p in paths]
         wmax = max(i.shape[1] for i in imgs)
-        scaled = [cv2.resize(i, (wmax, int(i.shape[0] * wmax / i.shape[1])))
-                  for i in imgs]
+        scaled = [cv2.resize(i, (wmax, int(i.shape[0] * wmax / i.shape[1]))) for i in imgs]
         sheet = np.vstack(scaled)
         out = os.path.join(RESULTS, "auto_view_sheet.png")
         cv2.imwrite(out, sheet)

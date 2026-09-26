@@ -26,8 +26,11 @@ def main():
     args = p.parse_args()
 
     import auto_paths as ap
-    matches = sorted(os.path.basename(os.path.dirname(x))
-                     for x in glob.glob(os.path.join(RESULTS, "*", "trajectory.csv")))
+
+    matches = sorted(
+        os.path.basename(os.path.dirname(x))
+        for x in glob.glob(os.path.join(RESULTS, "*", "trajectory.csv"))
+    )
     print(f"{len(matches)} matches with trajectories")
     ok = fail = 0
     for m in matches:
@@ -43,6 +46,7 @@ def main():
     print(f"\nauto_paths: {ok} ok, {fail} skipped/failed")
     if not args.skip_preferred:
         import preferred_paths as pp
+
         pp.run()
 
 

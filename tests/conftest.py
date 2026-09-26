@@ -13,20 +13,20 @@ ROOT = Path(__file__).resolve().parent.parent
 # TBA, Statbotics and Ollama are all HTTP. Rather than trusting every test to
 # mock its own calls, make a real socket connection fail loudly.
 
+
 @pytest.fixture(autouse=True)
 def _no_network(monkeypatch):
     import socket
 
     def _blocked(*args, **kwargs):
-        raise RuntimeError(
-            "network access attempted in a test — mock the provider instead"
-        )
+        raise RuntimeError("network access attempted in a test — mock the provider instead")
 
     monkeypatch.setattr(socket.socket, "connect", _blocked)
     monkeypatch.setattr(socket, "create_connection", _blocked)
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def temp_cache_db(tmp_path, monkeypatch):
@@ -45,6 +45,7 @@ def temp_cache_db(tmp_path, monkeypatch):
 @pytest.fixture
 def team_stats():
     """A plausible EPA stat block, shaped like what the loaders return."""
+
     def _make(epa=60.0, auto=15.0, teleop=45.0, endgame=0.0, **extra):
         stats = {
             "team": extra.pop("team", 254),
@@ -56,15 +57,21 @@ def team_stats():
             "auto": auto,
             "teleop": teleop,
             "endgame": endgame,
-            "wins": 10, "losses": 2, "ties": 0,
-            "rank": 5, "percentile": 0.9, "team_count": 60,
+            "wins": 10,
+            "losses": 2,
+            "ties": 0,
+            "rank": 5,
+            "percentile": 0.9,
+            "team_count": 60,
         }
         stats.update(extra)
         return stats
+
     return _make
 
 
 # ── Optional-asset markers ────────────────────────────────────────────────
+
 
 def _yolo_weights_present() -> bool:
     for pattern in ("weights/*.pt", "runs/detect/*/weights/best.pt", "*.pt"):

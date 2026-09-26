@@ -34,7 +34,7 @@ def profile_volatility(stats: dict) -> dict:
     consistency_score = _clamp(10.0 - (cv / 0.6) * 9.0)
 
     if cv <= 0.15:
-        rating = "Metronome"          # extremely consistent
+        rating = "Metronome"  # extremely consistent
     elif cv <= 0.30:
         rating = "Steady"
     elif cv <= 0.45:
@@ -70,8 +70,13 @@ def profile_alliance(stats_list: list[dict]) -> dict:
     """
     teams = [profile_volatility(s) for s in stats_list]
     if not teams:
-        return {"teams": [], "alliance_floor": 0.0, "alliance_ceiling": 0.0,
-                "alliance_sd": 0.0, "alliance_consistency": 0.0}
+        return {
+            "teams": [],
+            "alliance_floor": 0.0,
+            "alliance_ceiling": 0.0,
+            "alliance_sd": 0.0,
+            "alliance_consistency": 0.0,
+        }
 
     alliance_floor = sum(t["floor"] for t in teams)
     alliance_ceiling = sum(t["ceiling"] for t in teams)

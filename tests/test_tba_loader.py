@@ -12,9 +12,7 @@ def test_missing_breakdown_yields_zeros():
 
 
 def test_reads_the_2026_total_keys():
-    auto, teleop, _endgame = tba._phase_points(
-        {"totalAutoPoints": 30, "totalTeleopPoints": 90}
-    )
+    auto, teleop, _endgame = tba._phase_points({"totalAutoPoints": 30, "totalTeleopPoints": 90})
     assert auto == 30.0
     assert teleop == 90.0
 
@@ -41,9 +39,7 @@ def test_endgame_is_hard_zeroed_for_2026():
 
 def test_endgame_is_not_subtracted_out_of_teleop():
     """Those cycles still happened — they keep counting as teleop."""
-    _auto, teleop, _endgame = tba._phase_points(
-        {"totalTeleopPoints": 80, "endGameTowerPoints": 45}
-    )
+    _auto, teleop, _endgame = tba._phase_points({"totalTeleopPoints": 80, "endGameTowerPoints": 45})
     assert teleop == 80.0
 
 

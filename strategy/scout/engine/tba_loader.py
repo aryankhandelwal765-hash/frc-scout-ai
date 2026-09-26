@@ -220,6 +220,7 @@ def get_team_stats(team: int, year: int = 2026) -> dict | None:
         return hit[1]
 
     from scout.db import cache_get, cache_set, tba_team_key, TTL_TBA
+
     db_key = tba_team_key(team, year)
     db_hit = cache_get(db_key)
     if db_hit is not None:
@@ -270,6 +271,7 @@ def get_event_matches(event_key: str) -> list[dict]:
         return []
 
     from scout.db import cache_get, cache_set, tba_matches_key, TTL_TBA
+
     db_key = tba_matches_key(event_key)
     db_hit = cache_get(db_key)
     if db_hit is not None:
@@ -280,17 +282,24 @@ def get_event_matches(event_key: str) -> list[dict]:
         return []
     matches = []
     for m in data:
-        matches.append({
-            "key": m.get("key"),
-            "label": _match_label(m),
-            "comp_level": m.get("comp_level"),
-            "match_number": m.get("match_number", 0),
-            "set_number": m.get("set_number", 0),
-            "red": _match_teams(m, "red"),
-            "blue": _match_teams(m, "blue"),
-        })
-    matches.sort(key=lambda x: (_LEVEL_ORDER.get(x["comp_level"], 9),
-                                x["set_number"] or 0, x["match_number"] or 0))
+        matches.append(
+            {
+                "key": m.get("key"),
+                "label": _match_label(m),
+                "comp_level": m.get("comp_level"),
+                "match_number": m.get("match_number", 0),
+                "set_number": m.get("set_number", 0),
+                "red": _match_teams(m, "red"),
+                "blue": _match_teams(m, "blue"),
+            }
+        )
+    matches.sort(
+        key=lambda x: (
+            _LEVEL_ORDER.get(x["comp_level"], 9),
+            x["set_number"] or 0,
+            x["match_number"] or 0,
+        )
+    )
     # Only matches with a full 3v3 lineup are usable for prediction.
     result = [m for m in matches if len(m["red"]) == 3 and len(m["blue"]) == 3]
     cache_set(db_key, result, TTL_TBA)

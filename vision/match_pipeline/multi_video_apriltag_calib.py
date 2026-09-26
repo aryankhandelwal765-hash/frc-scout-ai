@@ -31,7 +31,7 @@ VIDEOS_DIR = os.path.join(HERE, "videos")
 CALIB = os.path.join(HERE, "calib.json")
 LAYOUT = os.path.join(HERE, "apriltags_2026_welded.json")
 
-IN = 0.0254                     # metres per inch
+IN = 0.0254  # metres per inch
 FIELD_LEN_IN = 651.2
 FIELD_WID_IN = 317.7
 HALF_TAG_M = (8.125 / 2) * IN  # AprilTag half-size in metres
@@ -48,23 +48,21 @@ FOCAL_LO, FOCAL_HI, FOCAL_STEP = 700, 1400, 10
 
 def _quat_R(q):
     w, x, y, z = q["W"], q["X"], q["Y"], q["Z"]
-    return np.array([
-        [1 - 2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
-        [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
-        [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]])
+    return np.array(
+        [
+            [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+        ]
+    )
 
 
 def _local_corners():
     """4 tag corners in the tag's LOCAL frame (metres). Layout: zy_ccw."""
-    return np.array([
-        [0, +1, -1],
-        [0, +1, +1],
-        [0, -1, +1],
-        [0, -1, -1]], float) * HALF_TAG_M
+    return np.array([[0, +1, -1], [0, +1, +1], [0, -1, +1], [0, -1, -1]], float) * HALF_TAG_M
 
 
-def collect_observations(videos_dir, layout_file,
-                          frames_per_video=300, frame_step=60):
+def collect_observations(videos_dir, layout_file, frames_per_video=300, frame_step=60):
     """Detect AprilTags in every .mp4 in videos_dir.
 
     frames_per_video caps one video's contribution so a long event opener
@@ -75,11 +73,11 @@ def collect_observations(videos_dir, layout_file,
     lay = {t["ID"]: t for t in json.load(open(layout_file))["tags"]}
     det_params = cv2.aruco.DetectorParameters()
     det = cv2.aruco.ArucoDetector(
-        cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36H11),
-        det_params)
+        cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36H11), det_params
+    )
     loc = _local_corners()
 
-    acc = defaultdict(list)   # tag_id -> [4×2 corner arrays]
+    acc = defaultdict(list)  # tag_id -> [4×2 corner arrays]
     frame_shape = None
     crop_off = (0, 0)
 
@@ -111,8 +109,10 @@ def collect_observations(videos_dir, layout_file,
             if seen >= frames_per_video:
                 break
         cap.release()
-        print(f"  {vid_name}: {seen} frames, "
-              f"{sum(1 for tid in acc if any(True for _ in acc[tid]))} tags seen")
+        print(
+            f"  {vid_name}: {seen} frames, "
+            f"{sum(1 for tid in acc if any(True for _ in acc[tid]))} tags seen"
+        )
 
     if frame_shape is None:
         raise SystemExit("Could not read any video frames")
@@ -134,22 +134,31 @@ def collect_observations(videos_dir, layout_file,
         used_tags.append(tag_id)
         print(f"    tag {tag_id:3d}: {len(obs)} observations")
 
-    return (np.concatenate(obj_all).astype(np.float64),
-            np.concatenate(img_all).astype(np.float64),
-            used_tags, (W_img, H_img), crop_off)
+    return (
+        np.concatenate(obj_all).astype(np.float64),
+        np.concatenate(img_all).astype(np.float64),
+        used_tags,
+        (W_img, H_img),
+        crop_off,
+    )
 
 
 def _ground_H_from_pose(rvec, tvec, K, dist, crop_off):
     """Compute H that maps crop_px -> field INCHES, via four floor corners."""
-    corners_world_m = np.array([
-        [0,                    0,                   0],
-        [FIELD_LEN_IN * IN,    0,                   0],
-        [FIELD_LEN_IN * IN,    FIELD_WID_IN * IN,   0],
-        [0,                    FIELD_WID_IN * IN,   0]], float)
+    corners_world_m = np.array(
+        [
+            [0, 0, 0],
+            [FIELD_LEN_IN * IN, 0, 0],
+            [FIELD_LEN_IN * IN, FIELD_WID_IN * IN, 0],
+            [0, FIELD_WID_IN * IN, 0],
+        ],
+        float,
+    )
     proj, _ = cv2.projectPoints(corners_world_m, rvec, tvec, K, dist)
     proj = proj.reshape(-1, 2) - np.array(crop_off, float)
-    dst = np.array([[0, 0], [FIELD_LEN_IN, 0],
-                    [FIELD_LEN_IN, FIELD_WID_IN], [0, FIELD_WID_IN]], np.float32)
+    dst = np.array(
+        [[0, 0], [FIELD_LEN_IN, 0], [FIELD_LEN_IN, FIELD_WID_IN], [0, FIELD_WID_IN]], np.float32
+    )
     if not np.isfinite(proj).all():
         return None
     return cv2.getPerspectiveTransform(proj.astype(np.float32), dst)
@@ -159,9 +168,7 @@ def _canvas_H_from_ground(H_ground):
     """Compose field-inch -> canvas-px scale onto ground_H to get crop_px -> canvas_px."""
     sx = (FX1 - FX0) / FIELD_LEN_IN
     sy = (FY1 - FY0) / FIELD_WID_IN
-    S = np.array([[sx, 0, FX0],
-                  [0, sy, FY0],
-                  [0,  0,  1.0]])
+    S = np.array([[sx, 0, FX0], [0, sy, FY0], [0, 0, 1.0]])
     return (S @ H_ground).astype(np.float32)
 
 
@@ -177,9 +184,7 @@ def solve(obj, img, W, H, crop_off):
 
     best = None
     for focal in range(FOCAL_LO, FOCAL_HI + 1, FOCAL_STEP):
-        K = np.array([[focal, 0, W / 2.0],
-                      [0, focal, H / 2.0],
-                      [0, 0, 1.0]], float)
+        K = np.array([[focal, 0, W / 2.0], [0, focal, H / 2.0], [0, 0, 1.0]], float)
         ok, rv, tv = cv2.solvePnP(obj, img, K, dist, flags=cv2.SOLVEPNP_SQPNP)
         if not ok:
             continue
@@ -188,11 +193,11 @@ def solve(obj, img, W, H, crop_off):
         # Physical bounds: broadcast camera is above the arena, beside the field.
         # camera_calib.json reference: x=8.33m, y=-3.35m, z=3.41m.
         # Allow ±5m tolerance around those known bounds.
-        if not (2.0 <= cam_xyz[2] <= 8.0):           # height: 2-8m above floor
+        if not (2.0 <= cam_xyz[2] <= 8.0):  # height: 2-8m above floor
             continue
         if not (-6.0 <= cam_xyz[1] <= FIELD_WID_IN * IN + 6.0):  # beside field
             continue
-        if not (0.0 <= cam_xyz[0] <= FIELD_LEN_IN * IN):          # along field length
+        if not (0.0 <= cam_xyz[0] <= FIELD_LEN_IN * IN):  # along field length
             continue
         proj, _ = cv2.projectPoints(obj, rv, tv, K, dist)
         reproj = float(np.mean(np.linalg.norm(proj.reshape(-1, 2) - img, axis=1)))
@@ -213,19 +218,33 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--videos", default=VIDEOS_DIR)
     p.add_argument("--layout", default=LAYOUT)
-    p.add_argument("--frame-step", type=int, default=60,
-                   help="check every Nth frame per video (60fps → 60 = 1fps)")
-    p.add_argument("--frames-per-video", type=int, default=300,
-                   help="max frames per video (caps one video from dominating)")
-    p.add_argument("--max-reproj", type=float, default=80.0,
-                   help="reject any solution with reprojection error above this (px)")
-    p.add_argument("--no-apply", action="store_true",
-                   help="print results but do not write calib.json")
+    p.add_argument(
+        "--frame-step",
+        type=int,
+        default=60,
+        help="check every Nth frame per video (60fps → 60 = 1fps)",
+    )
+    p.add_argument(
+        "--frames-per-video",
+        type=int,
+        default=300,
+        help="max frames per video (caps one video from dominating)",
+    )
+    p.add_argument(
+        "--max-reproj",
+        type=float,
+        default=80.0,
+        help="reject any solution with reprojection error above this (px)",
+    )
+    p.add_argument(
+        "--no-apply", action="store_true", help="print results but do not write calib.json"
+    )
     a = p.parse_args()
 
     print(f"Collecting AprilTag observations across all videos in {a.videos} ...")
     obj, img, used_tags, (W, H), crop_off = collect_observations(
-        a.videos, a.layout, a.frames_per_video, a.frame_step)
+        a.videos, a.layout, a.frames_per_video, a.frame_step
+    )
     print(f"\nUsed tags: {used_tags}  ({len(obj)} corner correspondences)")
 
     print(f"Sweeping focal length {FOCAL_LO}-{FOCAL_HI}px (step {FOCAL_STEP}) ...")
@@ -234,18 +253,22 @@ def main():
         raise SystemExit(
             "No physically valid camera pose found in focal sweep.\n"
             "All solutions either failed bounds or had reproj > --max-reproj.\n"
-            "Try: --max-reproj 150 to loosen, or check that AprilTags are visible.")
+            "Try: --max-reproj 150 to loosen, or check that AprilTags are visible."
+        )
 
     reproj, focal, rvec, tvec, H_ground, cam_xyz = result
     print(f"\nBest focal: {focal}px")
     print(f"Camera at  x={cam_xyz[0]:.2f}m  y={cam_xyz[1]:.2f}m  z={cam_xyz[2]:.2f}m")
-    print(f"Mean reprojection error: {reproj:.2f}px  "
-          f"({'GOOD' if reproj < 30 else 'OK' if reproj < 60 else 'POOR'})")
+    print(
+        f"Mean reprojection error: {reproj:.2f}px  "
+        f"({'GOOD' if reproj < 30 else 'OK' if reproj < 60 else 'POOR'})"
+    )
     if reproj > a.max_reproj:
         raise SystemExit(
             f"Reprojection error {reproj:.1f}px exceeds --max-reproj {a.max_reproj}px.\n"
             "Camera pose is unreliable. Not writing calib.json.\n"
-            f"Try: --max-reproj {reproj+20:.0f} to accept this solution anyway.")
+            f"Try: --max-reproj {reproj + 20:.0f} to accept this solution anyway."
+        )
 
     if a.no_apply:
         print("\n[--no-apply] nothing written")

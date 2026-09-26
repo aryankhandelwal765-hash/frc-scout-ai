@@ -41,10 +41,10 @@ RESULTS = os.path.join(HERE, "results")
 CALIB = os.path.join(HERE, "calib.json")
 
 # Kalman tuning
-PROCESS_ACCEL = 150.0       # FRC robot max accel estimate, in/s²
-MEAS_STD = 12.0             # expected position noise after Phase 1+2, inches
-MAX_GAP_FRAMES = 180        # don't fill gaps longer than this (3s at 60fps)
-MAX_SPEED = 200.0           # in/s; measurements implying faster → outlier
+PROCESS_ACCEL = 150.0  # FRC robot max accel estimate, in/s²
+MEAS_STD = 12.0  # expected position noise after Phase 1+2, inches
+MAX_GAP_FRAMES = 180  # don't fill gaps longer than this (3s at 60fps)
+MAX_SPEED = 200.0  # in/s; measurements implying faster → outlier
 
 # Canvas -> field-inch scale (matches topdown.py constants)
 _FX0, _FY0, _FX1, _FY1 = td.FX0, td.FY0, td.FX1, td.FY1
@@ -55,6 +55,7 @@ _FIELD_WID = zones.FIELD_WID
 # ---------------------------------------------------------------------------
 # Coordinate helpers
 # ---------------------------------------------------------------------------
+
 
 def _canvas_to_field(canvas_pts):
     """topdown canvas pixels -> field inches (linear scale, no correction)."""
@@ -87,7 +88,7 @@ def _apply_correction(raw_x, raw_y, corr):
     cols = [np.ones_like(cx)]
     for d in range(1, deg + 1):
         for i in range(d + 1):
-            cols.append(cx ** (d - i) * cy ** i)
+            cols.append(cx ** (d - i) * cy**i)
     A = np.column_stack(cols)
     dx = A @ np.array(corr["coef_x"])
     dy = A @ np.array(corr["coef_y"])
@@ -98,23 +99,18 @@ def _apply_correction(raw_x, raw_y, corr):
 # Kalman filter
 # ---------------------------------------------------------------------------
 
+
 class KalmanFilter:
     """2D constant-velocity Kalman. State: [x, y, vx, vy] in field inches."""
 
     def __init__(self, dt, accel_std=PROCESS_ACCEL, meas_std=MEAS_STD):
-        self.F = np.array([
-            [1, 0, dt, 0],
-            [0, 1, 0,  dt],
-            [0, 0, 1,  0],
-            [0, 0, 0,  1]], np.float64)
-        self.H = np.array([[1, 0, 0, 0],
-                           [0, 1, 0, 0]], np.float64)
+        self.F = np.array([[1, 0, dt, 0], [0, 1, 0, dt], [0, 0, 1, 0], [0, 0, 0, 1]], np.float64)
+        self.H = np.array([[1, 0, 0, 0], [0, 1, 0, 0]], np.float64)
         g = np.array([dt**2 / 2, dt**2 / 2, dt, dt], np.float64)
         self.Q = np.outer(g, g) * accel_std**2
         self.R = np.eye(2) * meas_std**2
         self.x = np.zeros(4)
-        self.P = np.diag([meas_std**2, meas_std**2, (accel_std * dt)**2,
-                          (accel_std * dt)**2])
+        self.P = np.diag([meas_std**2, meas_std**2, (accel_std * dt) ** 2, (accel_std * dt) ** 2])
 
     def init(self, x, y):
         self.x[:] = [x, y, 0.0, 0.0]
@@ -145,6 +141,7 @@ class KalmanFilter:
 # Per-match processing
 # ---------------------------------------------------------------------------
 
+
 def _load_tracks_json(match):
     path = os.path.join(RESULTS, match, "tracks.json")
     if os.path.exists(path):
@@ -170,9 +167,16 @@ def smooth_match(match, mapper, correction):
     raw = defaultdict(list)
     with open(traj_path) as f:
         for row in csv.DictReader(f):
-            raw[int(row["tid"])].append((
-                int(row["frame"]), float(row["t"]), row["alliance"],
-                float(row["cx"]), float(row["cy"]), float(row.get("conf", 0.9))))
+            raw[int(row["tid"])].append(
+                (
+                    int(row["frame"]),
+                    float(row["t"]),
+                    row["alliance"],
+                    float(row["cx"]),
+                    float(row["cy"]),
+                    float(row.get("conf", 0.9)),
+                )
+            )
     for tid in raw:
         raw[tid].sort()
 
@@ -207,8 +211,7 @@ def smooth_match(match, mapper, correction):
                         interp_t = prev_t + s * dt
                         px, py = kf.pos
                         vx, vy = kf.vel
-                        out_rows.append((interp_frame, interp_t, alliance,
-                                         px, py, vx, vy, 1, 0.0))
+                        out_rows.append((interp_frame, interp_t, alliance, px, py, vx, vy, 1, 0.0))
                 else:
                     # Long gap: re-init Kalman at this observation
                     kf.init(fx, fy)
@@ -221,7 +224,7 @@ def smooth_match(match, mapper, correction):
 
             # Speed gate: skip measurement if it implies impossible speed
             px, py = kf.pos
-            speed = ((fx - px)**2 + (fy - py)**2)**0.5 / dt
+            speed = ((fx - px) ** 2 + (fy - py) ** 2) ** 0.5 / dt
             if speed < MAX_SPEED:
                 kf.update(fx, fy)
             # else: keep Kalman prediction, don't update
@@ -238,14 +241,37 @@ def smooth_match(match, mapper, correction):
     out_path = os.path.join(RESULTS, match, "smoothed_trajectory.csv")
     with open(out_path, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["frame", "t", "tid", "alliance",
-                    "field_x", "field_y", "vx", "vy", "interpolated", "conf"])
+        w.writerow(
+            [
+                "frame",
+                "t",
+                "tid",
+                "alliance",
+                "field_x",
+                "field_y",
+                "vx",
+                "vy",
+                "interpolated",
+                "conf",
+            ]
+        )
         for tid, rows in sorted(smoothed_tracks.items()):
             al = rows[0][2]
             for frame, t, alliance, fx, fy, vx, vy, interp, conf in rows:
-                w.writerow([frame, round(t, 3), tid, alliance,
-                             round(fx, 2), round(fy, 2),
-                             round(vx, 3), round(vy, 3), interp, round(conf, 3)])
+                w.writerow(
+                    [
+                        frame,
+                        round(t, 3),
+                        tid,
+                        alliance,
+                        round(fx, 2),
+                        round(fy, 2),
+                        round(vx, 3),
+                        round(vy, 3),
+                        interp,
+                        round(conf, 3),
+                    ]
+                )
 
     return smoothed_tracks
 
@@ -341,13 +367,15 @@ def process_all(matches=None, force=False):
                 print(f"  {match}: no trajectory.csv, skipped")
                 continue
             smooth_auto_paths(match, st)
-            n_interp = sum(1 for rows in st.values()
-                           for r in rows if r[7] == 1)
-            print(f"  {match}: {sum(len(r) for r in st.values())} rows "
-                  f"({n_interp} interpolated), {len(st)} tracks")
+            n_interp = sum(1 for rows in st.values() for r in rows if r[7] == 1)
+            print(
+                f"  {match}: {sum(len(r) for r in st.values())} rows "
+                f"({n_interp} interpolated), {len(st)} tracks"
+            )
             ok += 1
         except Exception as e:
             import traceback
+
             fail += 1
             print(f"  {match}: FAILED -- {e}")
             traceback.print_exc()
@@ -360,8 +388,11 @@ def process_all(matches=None, force=False):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--only", nargs="*", help="limit to these match keys")
-    p.add_argument("--force", action="store_true",
-                   help="re-smooth even if smoothed_trajectory.csv already exists")
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="re-smooth even if smoothed_trajectory.csv already exists",
+    )
     a = p.parse_args()
     process_all(matches=a.only, force=a.force)
 

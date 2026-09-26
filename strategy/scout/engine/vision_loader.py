@@ -22,7 +22,9 @@ from typing import Optional
 from scout.db import cache_get, cache_set
 
 # vision output root — mirrors the SCOUTING_ROOT in api/main.py.
-VISION_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
+VISION_ROOT = (
+    Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
+)
 
 # Cache TTL — vision output rarely changes, but bump if user re-runs the pipeline.
 TTL_VISION = 6 * 3600  # 6 h
@@ -64,11 +66,13 @@ def _load_match(match_dir: Path) -> dict | None:
         team = _parse_team(info.get("team"))
         if team is None:
             continue
-        alliance_tracks[info.get("alliance", "?")].append({
-            "team": team,
-            "confidence": info.get("confidence", 0.0),
-            "source": info.get("source", "?"),
-        })
+        alliance_tracks[info.get("alliance", "?")].append(
+            {
+                "team": team,
+                "confidence": info.get("confidence", 0.0),
+                "source": info.get("source", "?"),
+            }
+        )
 
     # Highest-confidence tracks first — those are the "sure" identity reads.
     for alliance, tracks in alliance_tracks.items():
@@ -197,6 +201,7 @@ def get_team_auto_routes(team: int, event_prefix: str = "2026hop") -> list[dict]
         return []
 
     from collections import Counter
+
     raw_entries: list[dict] = []
     for match_dir in VISION_ROOT.iterdir():
         if not match_dir.is_dir() or not match_dir.name.startswith(event_prefix):
@@ -219,15 +224,17 @@ def get_team_auto_routes(team: int, event_prefix: str = "2026hop") -> list[dict]
                 continue
             if "name" not in info or "error" in info:
                 continue
-            raw_entries.append({
-                "match": match_dir.name,
-                "station": station,
-                "name": info.get("name", "Unknown"),
-                "description": info.get("description", ""),
-                "start_side": info.get("start_side", ""),
-                "delayed": info.get("delayed", False),
-                "zone_seq": info.get("zone_seq", []),
-            })
+            raw_entries.append(
+                {
+                    "match": match_dir.name,
+                    "station": station,
+                    "name": info.get("name", "Unknown"),
+                    "description": info.get("description", ""),
+                    "start_side": info.get("start_side", ""),
+                    "delayed": info.get("delayed", False),
+                    "zone_seq": info.get("zone_seq", []),
+                }
+            )
 
     if not raw_entries:
         cache_set(cache_key, [], TTL_VISION)
@@ -239,29 +246,31 @@ def get_team_auto_routes(team: int, event_prefix: str = "2026hop") -> list[dict]
         name_groups.setdefault(e["name"], []).append(e)
 
     result = []
-    for name, entries in sorted(name_groups.items(),
-                                key=lambda kv: len(kv[1]), reverse=True):
+    for name, entries in sorted(name_groups.items(), key=lambda kv: len(kv[1]), reverse=True):
         # Modal description
         desc_counts = Counter(e["description"] for e in entries if e["description"])
         modal_desc = desc_counts.most_common(1)[0][0] if desc_counts else ""
         zone_seqs = [e["zone_seq"] for e in entries if e["zone_seq"]]
         modal_zones = zone_seqs[0] if zone_seqs else []
-        result.append({
-            "name": name,
-            "count": len(entries),
-            "description": modal_desc,
-            "start_side": entries[0]["start_side"],
-            "delayed": entries[0]["delayed"],
-            "zone_seq": modal_zones,
-            "matches": [e["match"] for e in entries],
-        })
+        result.append(
+            {
+                "name": name,
+                "count": len(entries),
+                "description": modal_desc,
+                "start_side": entries[0]["start_side"],
+                "delayed": entries[0]["delayed"],
+                "zone_seq": modal_zones,
+                "matches": [e["match"] for e in entries],
+            }
+        )
 
     cache_set(cache_key, result, TTL_VISION)
     return result
 
 
-def build_scouting_notes(red_teams: list[int], blue_teams: list[int],
-                        event_prefix: str = "2026hop") -> str:
+def build_scouting_notes(
+    red_teams: list[int], blue_teams: list[int], event_prefix: str = "2026hop"
+) -> str:
     """Auto-generate scouting notes from vision stats for both alliances.
 
     Fed into MatchSetup's `notes` field as a starting point — user can edit/append.
@@ -293,9 +302,7 @@ def build_scouting_notes(red_teams: list[int], blue_teams: list[int],
                 route_parts = []
                 for r in routes[:3]:  # top 3 routines
                     delayed_tag = " (delayed start)" if r["delayed"] else ""
-                    route_parts.append(
-                        f"{r['name']}{delayed_tag} ×{r['count']}/{total_runs}"
-                    )
+                    route_parts.append(f"{r['name']}{delayed_tag} ×{r['count']}/{total_runs}")
                 lines.append(f"    AUTO: {' | '.join(route_parts)}")
                 # Zone sequence for primary routine
                 if routes[0]["zone_seq"]:

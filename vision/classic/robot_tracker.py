@@ -142,9 +142,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Track FRC robots by bumper color in match video.")
     parser.add_argument("--input", required=True, help="Path to input video file")
     parser.add_argument("--output", default="annotated.mp4", help="Path to annotated output video")
-    parser.add_argument("--csv", default="positions.csv", help="Path to output CSV of tracked positions")
-    parser.add_argument("--min-area", type=int, default=MIN_CONTOUR_AREA,
-                         help="Minimum contour area (px) to count as a robot blob")
+    parser.add_argument(
+        "--csv", default="positions.csv", help="Path to output CSV of tracked positions"
+    )
+    parser.add_argument(
+        "--min-area",
+        type=int,
+        default=MIN_CONTOUR_AREA,
+        help="Minimum contour area (px) to count as a robot blob",
+    )
     args = parser.parse_args()
 
     process_video(args.input, args.output, args.csv, args.min_area)

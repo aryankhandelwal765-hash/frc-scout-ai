@@ -45,42 +45,42 @@ OUT = os.path.join(HERE, "scout_table.csv")
 
 # sheet column -> where it comes from. Kept explicit so the gaps stay visible.
 SOURCES = {
-    "match":         "tba",
-    "team":          "tba",
-    "alliance":      "tba",
-    "station":       "tba",      # TBA lists team keys in driver-station order
-    "auto_climb":    "tba",      # autoTowerRobot{1,2,3}
-    "climb":         "tba",      # endGameTowerRobot{1,2,3}
-    "failed_climb":  "--",       # TBA records what was achieved, not what was tried
-    "alliance_auto_fuel":    "tba",    # hubScore.autoCount
-    "alliance_teleop_fuel":  "tba",    # hubScore.teleopCount
-    "alliance_endgame_fuel": "tba",    # hubScore.endgameCount
-    "alliance_total_fuel":   "tba",    # hubScore.totalCount
-    "auto_fuel":     "split",    # alliance autoCount x this robot's activity share
-    "teleop_fuel":   "split",
-    "endgame_fuel":  "split",
-    "total_fuel":    "split",
-    "share_covered": "split",    # how much alliance weight was attributable
-    "auto_start":    "vision",   # start position -> station
-    "identity_src":  "vision",   # read / elim / rank -- how the team was identified
-    "baseline":      "--",       # no scoring meaning in REBUILT: Table 6-4 has no
-                                 # entry for leaving the ROBOT STARTING LINE. The
-                                 # column is vestigial from an earlier game.
-    "auto_bump":     "vision",   # auto path entered a BUMP zone
-    "auto_trench":   "vision",   # auto path entered a TRENCH zone
-    "tele_bump":     "vision",   # teleop path entered a BUMP zone
-    "tele_trench":   "vision",   # teleop path entered a TRENCH zone
-    "tele_bump_visits":   "vision",   # separate entries, not just yes/no
+    "match": "tba",
+    "team": "tba",
+    "alliance": "tba",
+    "station": "tba",  # TBA lists team keys in driver-station order
+    "auto_climb": "tba",  # autoTowerRobot{1,2,3}
+    "climb": "tba",  # endGameTowerRobot{1,2,3}
+    "failed_climb": "--",  # TBA records what was achieved, not what was tried
+    "alliance_auto_fuel": "tba",  # hubScore.autoCount
+    "alliance_teleop_fuel": "tba",  # hubScore.teleopCount
+    "alliance_endgame_fuel": "tba",  # hubScore.endgameCount
+    "alliance_total_fuel": "tba",  # hubScore.totalCount
+    "auto_fuel": "split",  # alliance autoCount x this robot's activity share
+    "teleop_fuel": "split",
+    "endgame_fuel": "split",
+    "total_fuel": "split",
+    "share_covered": "split",  # how much alliance weight was attributable
+    "auto_start": "vision",  # start position -> station
+    "identity_src": "vision",  # read / elim / rank -- how the team was identified
+    "baseline": "--",  # no scoring meaning in REBUILT: Table 6-4 has no
+    # entry for leaving the ROBOT STARTING LINE. The
+    # column is vestigial from an earlier game.
+    "auto_bump": "vision",  # auto path entered a BUMP zone
+    "auto_trench": "vision",  # auto path entered a TRENCH zone
+    "tele_bump": "vision",  # teleop path entered a BUMP zone
+    "tele_trench": "vision",  # teleop path entered a TRENCH zone
+    "tele_bump_visits": "vision",  # separate entries, not just yes/no
     "tele_trench_visits": "vision",
-    "tele_hub_visits":    "vision",
-    "tele_top_zones":     "vision",   # where teleop was actually spent
-    "path_sequence": "vision",   # ordered zones the auto path visited
-    "defense":       "--",
-    "tele_passing":  "--",
-    "hp_accuracy":   "--",
-    "reliability":   "--",
-    "driver_skill":  "--",
-    "notes":         "--",
+    "tele_hub_visits": "vision",
+    "tele_top_zones": "vision",  # where teleop was actually spent
+    "path_sequence": "vision",  # ordered zones the auto path visited
+    "defense": "--",
+    "tele_passing": "--",
+    "hp_accuracy": "--",
+    "reliability": "--",
+    "driver_skill": "--",
+    "notes": "--",
 }
 
 COLUMNS = list(SOURCES.keys())
@@ -105,9 +105,11 @@ def _zone_facts(o, mapper, zones, td):
     if len(p) < 5 or mapper is None:
         return {}
     fi = zones.to_field_inches(mapper([(c[1], c[2]) for c in p]))
-    return {"auto_bump": int(zones.used(fi, "Bump")),
-            "auto_trench": int(zones.used(fi, "Trench")),
-            "path_sequence": " -> ".join(zones.zone_sequence(fi))}
+    return {
+        "auto_bump": int(zones.used(fi, "Bump")),
+        "auto_trench": int(zones.used(fi, "Trench")),
+        "path_sequence": " -> ".join(zones.zone_sequence(fi)),
+    }
 
 
 def _auto_paths(match):
@@ -124,6 +126,7 @@ def build(event=EVENT):
     try:
         import topdown as td
         import zones
+
         mapper = td.load_mapper()
     except Exception as e:
         print(f"  (zone columns unavailable: {e.__class__.__name__}: {e})")
@@ -157,33 +160,45 @@ def build(event=EVENT):
 
         for al in ("blue", "red"):
             teams = truth.get(f"{al}_teams") or []
-            hub = ((sb.get(al) or {}).get("hubScore") or {})
+            hub = (sb.get(al) or {}).get("hubScore") or {}
             d = sb.get(al) or {}
             for i, team in enumerate(teams, start=1):
                 v = by_station.get(f"{al}{i}") or {}
                 r = {c: "" for c in COLUMNS}
-                r.update({
-                    "match": match,
-                    "team": str(team).replace("frc", ""),
-                    "alliance": al,
-                    "station": i,
-                    # TBA records the tower level achieved, or None. None = no climb.
-                    "auto_climb": int(tower_level(d.get(f"autoTowerRobot{i}")) is not None),
-                    "climb": int(tower_level(d.get(f"endGameTowerRobot{i}")) is not None),
-                    "alliance_auto_fuel": hub.get("autoCount", ""),
-                    "alliance_teleop_fuel": hub.get("teleopCount", ""),
-                    "alliance_endgame_fuel": hub.get("endgameCount", ""),
-                    "alliance_total_fuel": hub.get("totalCount", ""),
-                    "identity_src": v.get("source", ""),
-                    "auto_start": v.get("station", ""),
-                })
+                r.update(
+                    {
+                        "match": match,
+                        "team": str(team).replace("frc", ""),
+                        "alliance": al,
+                        "station": i,
+                        # TBA records the tower level achieved, or None. None = no climb.
+                        "auto_climb": int(tower_level(d.get(f"autoTowerRobot{i}")) is not None),
+                        "climb": int(tower_level(d.get(f"endGameTowerRobot{i}")) is not None),
+                        "alliance_auto_fuel": hub.get("autoCount", ""),
+                        "alliance_teleop_fuel": hub.get("teleopCount", ""),
+                        "alliance_endgame_fuel": hub.get("endgameCount", ""),
+                        "alliance_total_fuel": hub.get("totalCount", ""),
+                        "identity_src": v.get("source", ""),
+                        "auto_start": v.get("station", ""),
+                    }
+                )
                 if v:
                     r.update(_zone_facts(v, mapper, zones, td))
                 fu = fuel.get((match, str(team).replace("frc", "")))
                 if fu:
-                    r.update({k: fu[k] for k in
-                              ("auto_fuel", "teleop_fuel", "endgame_fuel",
-                               "total_fuel", "share_covered") if k in fu})
+                    r.update(
+                        {
+                            k: fu[k]
+                            for k in (
+                                "auto_fuel",
+                                "teleop_fuel",
+                                "endgame_fuel",
+                                "total_fuel",
+                                "share_covered",
+                            )
+                            if k in fu
+                        }
+                    )
                     counts["with_fuel"] += 1
                 tf = (tele.get(match) or {}).get(str(team).replace("frc", ""))
                 if tf:
@@ -209,14 +224,19 @@ def main():
         w.writerows(rows)
 
     print(f"{len(rows)} team-match rows -> {a.out}")
-    print(f"  rows with vision data: {counts['with_vision']} "
-          f"({100.0 * counts['with_vision'] / max(len(rows), 1):.0f}%)")
-    print(f"  rows with fuel estimates: {counts['with_fuel']} "
-          f"({100.0 * counts['with_fuel'] / max(len(rows), 1):.0f}%)")
-    print(f"  rows with teleop paths: {counts['with_teleop']} "
-          f"({100.0 * counts['with_teleop'] / max(len(rows), 1):.0f}%)")
-    print("  identity source:", {k[3:]: v for k, v in counts.items()
-                                 if k.startswith("id_")})
+    print(
+        f"  rows with vision data: {counts['with_vision']} "
+        f"({100.0 * counts['with_vision'] / max(len(rows), 1):.0f}%)"
+    )
+    print(
+        f"  rows with fuel estimates: {counts['with_fuel']} "
+        f"({100.0 * counts['with_fuel'] / max(len(rows), 1):.0f}%)"
+    )
+    print(
+        f"  rows with teleop paths: {counts['with_teleop']} "
+        f"({100.0 * counts['with_teleop'] / max(len(rows), 1):.0f}%)"
+    )
+    print("  identity source:", {k[3:]: v for k, v in counts.items() if k.startswith("id_")})
     bysrc = defaultdict(list)
     for c, s in SOURCES.items():
         bysrc[s].append(c)

@@ -31,7 +31,11 @@ def rendered_clip(tmp_path_factory):
     workdir = tmp_path_factory.mktemp("classic_e2e")
     subprocess.run(
         [sys.executable, str(CLASSIC / "make_test_clip.py")],
-        cwd=workdir, check=True, capture_output=True, text=True, timeout=300,
+        cwd=workdir,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
     clip = workdir / "test_clip.mp4"
     zones = workdir / "test_zones.json"
@@ -45,9 +49,21 @@ def test_pipeline_recovers_the_known_score(rendered_clip):
     workdir, clip, zones = rendered_clip
     outdir = workdir / "out"
     proc = subprocess.run(
-        [sys.executable, str(CLASSIC / "track_match.py"),
-         "--input", str(clip), "--zones", str(zones), "--outdir", str(outdir)],
-        cwd=workdir, check=True, capture_output=True, text=True, timeout=600,
+        [
+            sys.executable,
+            str(CLASSIC / "track_match.py"),
+            "--input",
+            str(clip),
+            "--zones",
+            str(zones),
+            "--outdir",
+            str(outdir),
+        ],
+        cwd=workdir,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=600,
     )
 
     summary_path = outdir / "summary.json"
@@ -75,12 +91,23 @@ def test_pipeline_writes_its_documented_outputs(rendered_clip):
     workdir, clip, zones = rendered_clip
     outdir = workdir / "out2"
     subprocess.run(
-        [sys.executable, str(CLASSIC / "track_match.py"),
-         "--input", str(clip), "--zones", str(zones), "--outdir", str(outdir)],
-        cwd=workdir, check=True, capture_output=True, text=True, timeout=600,
+        [
+            sys.executable,
+            str(CLASSIC / "track_match.py"),
+            "--input",
+            str(clip),
+            "--zones",
+            str(zones),
+            "--outdir",
+            str(outdir),
+        ],
+        cwd=workdir,
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=600,
     )
-    for name in ("summary.json", "robot_positions.csv",
-                 "ball_positions.csv", "scoring_events.csv"):
+    for name in ("summary.json", "robot_positions.csv", "ball_positions.csv", "scoring_events.csv"):
         assert (outdir / name).exists(), f"missing {name}"
 
 

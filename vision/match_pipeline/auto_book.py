@@ -47,11 +47,12 @@ _TEAM_NAMES = {}
 def _load_generate():
     try:
         from scout.engine.ollama_client import generate
+
         return generate
     except ImportError:
         raise SystemExit(
-            f"Cannot import ollama_client from {STRATEGY_DIR}\n"
-            "Ensure 'ollama serve' is running.")
+            f"Cannot import ollama_client from {STRATEGY_DIR}\nEnsure 'ollama serve' is running."
+        )
 
 
 def _load_team_name(team):
@@ -103,15 +104,21 @@ def _build_synthesis_prompt(team, team_name, clusters, match_interps):
 
     lines = [header, ""]
     n_total = sum(c["n_runs"] for c in clusters)
-    lines.append(f"Ran {n_total} autonomous periods. Cluster analysis found "
-                 f"{len(clusters)} distinct routine{'s' if len(clusters) != 1 else ''}.\n")
+    lines.append(
+        f"Ran {n_total} autonomous periods. Cluster analysis found "
+        f"{len(clusters)} distinct routine{'s' if len(clusters) != 1 else ''}.\n"
+    )
 
     # Sort clusters biggest-first
     for ci, cluster in enumerate(sorted(clusters, key=lambda c: c["n_runs"], reverse=True)):
         letter = chr(65 + ci)
         n = cluster["n_runs"]
-        zone_str = " → ".join(cluster["zone_sequence"]) if cluster["zone_sequence"] else "(no zones)"
-        delay_note = f" (DELAYED start, ~{cluster['mean_delay_s']:.1f}s wait)" if cluster["delayed"] else ""
+        zone_str = (
+            " → ".join(cluster["zone_sequence"]) if cluster["zone_sequence"] else "(no zones)"
+        )
+        delay_note = (
+            f" (DELAYED start, ~{cluster['mean_delay_s']:.1f}s wait)" if cluster["delayed"] else ""
+        )
         lines.append(f"Routine {letter} ({n}/{n_total} matches){delay_note}:")
         lines.append(f"  Matches: {', '.join(cluster['matches'])}")
         lines.append(f"  Zone sequence: {zone_str}")
@@ -151,8 +158,13 @@ def _generate_entry(team, team_name, clusters, match_interps, generate, model):
     user_msg = _build_synthesis_prompt(team, team_name, clusters, match_interps)
     for attempt_model in [model, FALLBACK_MODEL]:
         try:
-            result = generate(model=attempt_model, system=SYSTEM_PROMPT,
-                              user=user_msg, timeout=TIMEOUT, think=False)
+            result = generate(
+                model=attempt_model,
+                system=SYSTEM_PROMPT,
+                user=user_msg,
+                timeout=TIMEOUT,
+                think=False,
+            )
             if result and len(result.strip()) > 50:
                 return result.strip(), attempt_model
         except Exception:
@@ -162,7 +174,7 @@ def _generate_entry(team, team_name, clusters, match_interps, generate, model):
     for ci, c in enumerate(sorted(clusters, key=lambda x: x["n_runs"], reverse=True)):
         zs = " → ".join(c["zone_sequence"]) or "unknown"
         delay = f" (DELAYED ~{c['mean_delay_s']:.1f}s)" if c["delayed"] else ""
-        lines.append(f"**Routine {chr(65+ci)} ({c['n_runs']} runs){delay}:** {zs}")
+        lines.append(f"**Routine {chr(65 + ci)} ({c['n_runs']} runs){delay}:** {zs}")
     return "\n".join(lines), "heuristic"
 
 
@@ -186,17 +198,19 @@ def _write_team_md(team, team_name, clusters, match_interps, generate, model, fo
     if team_name:
         header += f" — {team_name}"
 
-    md = "\n".join([
-        header,
-        "",
-        entry,
-        "",
-        f"*{n_total} matches | {len(clusters)} routine{'s' if len(clusters) != 1 else ''}"
-        f" | Identity: {conf_str} | Model: {used_model}*",
-        "",
-        "---",
-        "",
-    ])
+    md = "\n".join(
+        [
+            header,
+            "",
+            entry,
+            "",
+            f"*{n_total} matches | {len(clusters)} routine{'s' if len(clusters) != 1 else ''}"
+            f" | Identity: {conf_str} | Model: {used_model}*",
+            "",
+            "---",
+            "",
+        ]
+    )
     with open(out_path, "w") as f:
         f.write(md)
     return out_path, "ok"
@@ -205,9 +219,18 @@ def _write_team_md(team, team_name, clusters, match_interps, generate, model, fo
 def _try_pandoc(md_path, pdf_path):
     try:
         r = subprocess.run(
-            ["pandoc", md_path, "-o", pdf_path,
-             "--pdf-engine=xelatex", "-V", "geometry:margin=1in"],
-            capture_output=True, timeout=60)
+            [
+                "pandoc",
+                md_path,
+                "-o",
+                pdf_path,
+                "--pdf-engine=xelatex",
+                "-V",
+                "geometry:margin=1in",
+            ],
+            capture_output=True,
+            timeout=60,
+        )
         return r.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
@@ -222,9 +245,7 @@ def main():
     a = p.parse_args()
 
     if not os.path.exists(ROUTES_JSON):
-        raise SystemExit(
-            f"{ROUTES_JSON} not found.\n"
-            "Run: python team_routes.py --json-only")
+        raise SystemExit(f"{ROUTES_JSON} not found.\nRun: python team_routes.py --json-only")
 
     routes = json.load(open(ROUTES_JSON))
     interps = _load_per_match_interps()
@@ -238,8 +259,10 @@ def main():
         if not teams:
             raise SystemExit(f"Team {team_key} not found in team_routes.json")
     else:
-        teams = sorted(routes.keys(),
-                       key=lambda t: int(t.replace("frc", "")) if t.replace("frc", "").isdigit() else 0)
+        teams = sorted(
+            routes.keys(),
+            key=lambda t: int(t.replace("frc", "")) if t.replace("frc", "").isdigit() else 0,
+        )
 
     ok = skip = fail = 0
     all_entries = []
@@ -254,7 +277,8 @@ def main():
 
         try:
             path, status = _write_team_md(
-                team, team_name, clusters, match_interps, generate, a.model, a.force)
+                team, team_name, clusters, match_interps, generate, a.model, a.force
+            )
             if status == "ok":
                 ok += 1
                 all_entries.append(open(path).read())
@@ -268,6 +292,7 @@ def main():
         except Exception as e:
             fail += 1
             import traceback
+
             print(f"  {_label(team)}: FAILED — {e}")
             traceback.print_exc()
 

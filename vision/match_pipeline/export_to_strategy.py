@@ -39,8 +39,8 @@ sys.path.insert(0, HERE)
 # same as interpret_auto.py and auto_book.py. Override with --strategy.
 STRATEGY_DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "strategy")
 TABLE = os.path.join(HERE, "scout_table.csv")
-OUT_NAME = "vision_2026hop.csv"   # lands in strategy/scout/data/scouting/
-WRITE = True                          # False = report only, touch nothing
+OUT_NAME = "vision_2026hop.csv"  # lands in strategy/scout/data/scouting/
+WRITE = True  # False = report only, touch nothing
 # ===========================================================================
 
 # MEASURED RELIABILITY GATE.
@@ -76,33 +76,43 @@ WRITE = True                          # False = report only, touch nothing
 MIN_RELIABILITY = 0.55
 
 RELIABILITY = {
-    "climb": 0.92, "auto_climb": 0.92, "steal_success": 0.68, "total_fuel": 0.67,
-    "tele_bump_visits": 0.61, "steals": 0.60, "teleop_fuel": 0.59,
-    "tele_trench_visits": 0.29, "share_covered": 0.27, "auto_fuel": 0.22,
-    "tele_bump": -0.35, "tele_trench": 0.30, "auto_bump": -0.38, "auto_trench": 0.29,
+    "climb": 0.92,
+    "auto_climb": 0.92,
+    "steal_success": 0.68,
+    "total_fuel": 0.67,
+    "tele_bump_visits": 0.61,
+    "steals": 0.60,
+    "teleop_fuel": 0.59,
+    "tele_trench_visits": 0.29,
+    "share_covered": 0.27,
+    "auto_fuel": 0.22,
+    "tele_bump": -0.35,
+    "tele_trench": 0.30,
+    "auto_bump": -0.38,
+    "auto_trench": 0.29,
 }
 
 # strategy column -> how vision fills it. None = we cannot measure it honestly.
 MAPPING = {
-    "team":          ("team", "tba"),
-    "climb":         ("climb", "tba"),
-    "auto_climb":    ("auto_climb", "tba"),
-    "auto_fuel":     ("auto_fuel", "split"),
-    "tele_bump":     ("tele_bump", "vision"),
-    "tele_trench":   ("tele_trench", "vision"),
-    "failed_climb":  (None, "not-measurable"),
-    "defense":       (None, "not-measurable"),
-    "tele_passing":  (None, "not-measurable"),
-    "hp_accuracy":   (None, "not-measurable"),
-    "reliability":   (None, "not-measurable"),
-    "driver_skill":  (None, "not-measurable"),
+    "team": ("team", "tba"),
+    "climb": ("climb", "tba"),
+    "auto_climb": ("auto_climb", "tba"),
+    "auto_fuel": ("auto_fuel", "split"),
+    "tele_bump": ("tele_bump", "vision"),
+    "tele_trench": ("tele_trench", "vision"),
+    "failed_climb": (None, "not-measurable"),
+    "defense": (None, "not-measurable"),
+    "tele_passing": (None, "not-measurable"),
+    "hp_accuracy": (None, "not-measurable"),
+    "reliability": (None, "not-measurable"),
+    "driver_skill": (None, "not-measurable"),
     # extras strategy does not ask for but its trait engine can use
-    "teleop_fuel":        ("teleop_fuel", "split"),
-    "total_fuel":         ("total_fuel", "split"),
-    "share_covered":      ("share_covered", "split"),
-    "auto_bump":          ("auto_bump", "vision"),
-    "auto_trench":        ("auto_trench", "vision"),
-    "tele_bump_visits":   ("tele_bump_visits", "vision"),
+    "teleop_fuel": ("teleop_fuel", "split"),
+    "total_fuel": ("total_fuel", "split"),
+    "share_covered": ("share_covered", "split"),
+    "auto_bump": ("auto_bump", "vision"),
+    "auto_trench": ("auto_trench", "vision"),
+    "tele_bump_visits": ("tele_bump_visits", "vision"),
     "tele_trench_visits": ("tele_trench_visits", "vision"),
 }
 
@@ -116,8 +126,9 @@ def load(path=TABLE):
 
 def build(rows):
     """Only columns that are measured AND reliable enough to describe a team."""
-    cols = [c for c, (src, _) in MAPPING.items()
-            if src and RELIABILITY.get(c, 1.0) >= MIN_RELIABILITY]
+    cols = [
+        c for c, (src, _) in MAPPING.items() if src and RELIABILITY.get(c, 1.0) >= MIN_RELIABILITY
+    ]
     out = []
     for r in rows:
         # a row identified only by the unverified station-order guess may describe
@@ -145,10 +156,15 @@ def main():
     print(f"\nEXPORTED ({len(cols)} columns): {', '.join(cols)}")
 
     missing = {c: why for c, (src, why) in MAPPING.items() if not src}
-    unreliable = {c: RELIABILITY[c] for c, (src, _) in MAPPING.items()
-                  if src and RELIABILITY.get(c, 1.0) < MIN_RELIABILITY}
-    print(f"\nWITHHELD as unreliable ({len(unreliable)}) -- split-half reliability "
-          f"below {MIN_RELIABILITY}:")
+    unreliable = {
+        c: RELIABILITY[c]
+        for c, (src, _) in MAPPING.items()
+        if src and RELIABILITY.get(c, 1.0) < MIN_RELIABILITY
+    }
+    print(
+        f"\nWITHHELD as unreliable ({len(unreliable)}) -- split-half reliability "
+        f"below {MIN_RELIABILITY}:"
+    )
     for c, v in sorted(unreliable.items(), key=lambda kv: kv[1]):
         print(f"   {c:20s} reliability {v:+.2f}  (measures the match, not the team)")
     print(f"\nNOT MEASURABLE ({len(missing)}):")

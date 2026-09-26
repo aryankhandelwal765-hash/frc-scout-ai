@@ -42,20 +42,21 @@ RESULTS = os.path.join(HERE, "results")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-ONLY_AFTER = "17:00"   # only use trajectory.csv written after this time TODAY, so a
-                       # stale 720p-geometry file can never poison the fit.
-                       # "" = use every trajectory.csv regardless of age.
-DEGREE = 2             # polynomial degree; 2 absorbs the barrel distortion
-X_LO, X_HI = 0.3, 99.7    # percentiles defining the left/right field edges
-Y_LO, Y_HI = 1.0, 99.0    # percentiles defining the far/near sidelines
+ONLY_AFTER = "17:00"  # only use trajectory.csv written after this time TODAY, so a
+# stale 720p-geometry file can never poison the fit.
+# "" = use every trajectory.csv regardless of age.
+DEGREE = 2  # polynomial degree; 2 absorbs the barrel distortion
+X_LO, X_HI = 0.3, 99.7  # percentiles defining the left/right field edges
+Y_LO, Y_HI = 1.0, 99.0  # percentiles defining the far/near sidelines
 # ===========================================================================
 
 
 def load_cloud(only_after=ONLY_AFTER):
     cut = 0
     if only_after:
-        cut = time.mktime(time.strptime(
-            time.strftime("%Y-%m-%d") + " " + only_after, "%Y-%m-%d %H:%M"))
+        cut = time.mktime(
+            time.strptime(time.strftime("%Y-%m-%d") + " " + only_after, "%Y-%m-%d %H:%M")
+        )
     xs, ys, used, skipped = [], [], 0, 0
     for p in sorted(glob.glob(os.path.join(RESULTS, "*", "trajectory.csv"))):
         if os.path.getmtime(p) < cut:
@@ -67,8 +68,7 @@ def load_cloud(only_after=ONLY_AFTER):
                 xs.append(float(r["cx"]))
                 ys.append(float(r["cy"]))
     if skipped:
-        print(f"  skipped {skipped} trajectory.csv older than {only_after} "
-              "(stale geometry)")
+        print(f"  skipped {skipped} trajectory.csv older than {only_after} (stale geometry)")
     return np.asarray(xs), np.asarray(ys), used
 
 
@@ -96,9 +96,17 @@ def fit(xs, ys):
     xL, xR = min(xL, xLl), max(xR, xRr)
     yTl, yBl = _y_edges(xs, ys, xL + 60)
     yTr, yBr = _y_edges(xs, ys, xR - 60)
-    return [(xL, yTl), (xm, yT), (xR, yTr),
-            (xL, (yTl + yBl) / 2), (xm, ym), (xR, (yTr + yBr) / 2),
-            (xL, yBl), (xm, yB), (xR, yBr)]
+    return [
+        (xL, yTl),
+        (xm, yT),
+        (xR, yTr),
+        (xL, (yTl + yBl) / 2),
+        (xm, ym),
+        (xR, (yTr + yBr) / 2),
+        (xL, yBl),
+        (xm, yB),
+        (xR, yBr),
+    ]
 
 
 def main():
@@ -114,18 +122,19 @@ def main():
         bak = td.CALIB + ".bak"
         if not os.path.exists(bak):
             import shutil
+
             shutil.copy(td.CALIB, bak)
             print(f"  backed up previous calibration -> {bak}")
     td.save_fieldmap([(float(a), float(b)) for a, b in pts], DEGREE)
 
     fm = td.load_mapper()
     m = fm(np.stack([xs, ys], 1))
-    inside = ((m[:, 0] >= td.FX0) & (m[:, 0] <= td.FX1) &
-              (m[:, 1] >= td.FY0) & (m[:, 1] <= td.FY1))
-    print(f"\n  saved. {inside.mean() * 100:.1f}% of robot points land inside the "
-          "field rectangle.")
-    print("  Sanity: this should be >90%. Much lower means the cloud is polluted by "
-          "stale-geometry trajectories -- check ONLY_AFTER.")
+    inside = (m[:, 0] >= td.FX0) & (m[:, 0] <= td.FX1) & (m[:, 1] >= td.FY0) & (m[:, 1] <= td.FY1)
+    print(f"\n  saved. {inside.mean() * 100:.1f}% of robot points land inside the field rectangle.")
+    print(
+        "  Sanity: this should be >90%. Much lower means the cloud is polluted by "
+        "stale-geometry trajectories -- check ONLY_AFTER."
+    )
 
 
 if __name__ == "__main__":

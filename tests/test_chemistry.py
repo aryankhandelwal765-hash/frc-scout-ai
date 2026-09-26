@@ -20,16 +20,12 @@ def test_scores_stay_on_the_documented_1_to_10_scale(team_stats):
 def test_even_alliance_beats_top_heavy_one(team_stats):
     """Top-heaviness is the fragility axis: one robot carrying scores worse."""
     even = analyze_chemistry([team_stats(epa=50.0) for _ in range(3)])
-    carried = analyze_chemistry(
-        [team_stats(epa=150.0), team_stats(epa=10.0), team_stats(epa=10.0)]
-    )
+    carried = analyze_chemistry([team_stats(epa=150.0), team_stats(epa=10.0), team_stats(epa=10.0)])
     assert even["top_heaviness"] > carried["top_heaviness"]
 
 
 def test_top_share_is_a_fraction(team_stats):
-    result = analyze_chemistry(
-        [team_stats(epa=150.0), team_stats(epa=25.0), team_stats(epa=25.0)]
-    )
+    result = analyze_chemistry([team_stats(epa=150.0), team_stats(epa=25.0), team_stats(epa=25.0)])
     assert result["top_share"] == pytest.approx(150 / 200, abs=1e-3)
 
 

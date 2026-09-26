@@ -30,7 +30,7 @@ CALIB = os.path.join(HERE, "calib.json")
 OUTDIR = os.path.join(HERE, "preferred_paths")
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
-N = 40                      # resample every path to N points
+N = 40  # resample every path to N points
 
 
 def _resample(path_xy, n=N):
@@ -58,7 +58,7 @@ def _load_all():
             # the old key-is-the-team read silently collided (see auto_paths.run).
             team_key = o.get("team")
             if not (team_key and str(team_key).startswith("frc")):
-                continue                       # skip unclassified robots
+                continue  # skip unclassified robots
             rs = _resample([(cx, cy) for t, cx, cy in o["path"]])
             if rs is not None:
                 per_team[team_key].append((o["alliance"], rs))
@@ -98,24 +98,41 @@ def run(min_matches=2):
         kept += 1
         alliance = max(("blue", "red"), key=lambda a: sum(1 for al, _ in runs if al == a))
         col = BLUE_BGR if alliance == "blue" else RED_BGR
-        stack = np.stack([r for _, r in runs], 0)     # (M, N, 2)
+        stack = np.stack([r for _, r in runs], 0)  # (M, N, 2)
         mean = stack.mean(0)
 
         img = _ref_image(calib)
-        for _, r in runs:                              # faint individual runs
+        for _, r in runs:  # faint individual runs
             cv2.polylines(img, [r.astype(np.int32)], False, col, 1, cv2.LINE_AA)
         cv2.polylines(img, [mean.astype(np.int32)], False, (255, 255, 255), 4, cv2.LINE_AA)
         cv2.polylines(img, [mean.astype(np.int32)], False, col, 2, cv2.LINE_AA)
         cv2.circle(img, tuple(mean[0].astype(int)), 6, (255, 255, 255), -1)
-        cv2.putText(img, f"{_team_label(team_key)}  ({len(runs)} autos)",
-                    (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2)
+        cv2.putText(
+            img,
+            f"{_team_label(team_key)}  ({len(runs)} autos)",
+            (10, 24),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            col,
+            2,
+        )
         cv2.imwrite(os.path.join(OUTDIR, f"{_team_label(team_key).strip('#')}.png"), img)
 
         cv2.polylines(means_img, [mean.astype(np.int32)], False, col, 2, cv2.LINE_AA)
-        cv2.putText(means_img, _team_label(team_key), tuple(mean[0].astype(int)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, col, 1)
-        out[team_key] = {"matches": len(runs), "alliance": alliance,
-                         "mean_path": mean.round(1).tolist()}
+        cv2.putText(
+            means_img,
+            _team_label(team_key),
+            tuple(mean[0].astype(int)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            col,
+            1,
+        )
+        out[team_key] = {
+            "matches": len(runs),
+            "alliance": alliance,
+            "mean_path": mean.round(1).tolist(),
+        }
 
     cv2.imwrite(os.path.join(OUTDIR, "_all_means.png"), means_img)
     with open(os.path.join(OUTDIR, "preferred.json"), "w") as f:

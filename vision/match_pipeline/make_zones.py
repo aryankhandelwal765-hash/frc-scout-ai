@@ -18,6 +18,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 from boxes import CROP
+
 CALIB = os.path.join(HERE, "calib.json")
 REF_IMG = os.path.join(HERE, "reference_frame.png")
 
@@ -25,7 +26,7 @@ REF_IMG = os.path.join(HERE, "reference_frame.png")
 # EDIT ME. Click Run. Uses reference_frame.png if it exists, else grabs from INPUT.
 # ===========================================================================
 INPUT = os.path.join(HERE, "videos", "2026hop_qm1.mp4")
-AT = 8.0               # seconds to grab a frame from (only if no reference_frame.png)
+AT = 8.0  # seconds to grab a frame from (only if no reference_frame.png)
 # non-interactive fallback: "blue=x1,y1,x2,y2,x3,y3,x4,y4" (4 corners), else [] = click
 ZONES = []
 # ===========================================================================
@@ -62,9 +63,16 @@ def click_quad(img, title, col):
             cv2.polylines(d, [np.array(pts, np.int32)], len(pts) == 4, col, 2)
         cv2.rectangle(d, (0, 0), (d.shape[1], 26), (0, 0, 0), -1)
         left = 4 - len(pts)
-        msg = f"click corner {len(pts)+1}/4" if left else "4 set - ENTER"
-        cv2.putText(d, f"{title} | {msg} | u=undo ENTER=done ESC=skip",
-                    (6, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        msg = f"click corner {len(pts) + 1}/4" if left else "4 set - ENTER"
+        cv2.putText(
+            d,
+            f"{title} | {msg} | u=undo ENTER=done ESC=skip",
+            (6, 18),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 255, 255),
+            1,
+        )
         return d
 
     def on_mouse(event, x, y, flags, param):
@@ -104,9 +112,17 @@ def main():
             if poly:
                 zones.append({"alliance": al, "poly": poly})
 
-    calib = json.load(open(CALIB)) if os.path.exists(CALIB) else {
-        "crop": list(CROP), "reference_frame": REF_IMG, "stations": {},
-        "homography": None, "field_points": None}
+    calib = (
+        json.load(open(CALIB))
+        if os.path.exists(CALIB)
+        else {
+            "crop": list(CROP),
+            "reference_frame": REF_IMG,
+            "stations": {},
+            "homography": None,
+            "field_points": None,
+        }
+    )
     calib["scoring_zones"] = zones
     with open(CALIB, "w") as f:
         json.dump(calib, f, indent=2)

@@ -44,11 +44,13 @@ TIMEOUT = 90
 def _load_generate():
     try:
         from scout.engine.ollama_client import generate
+
         return generate
     except ImportError:
         raise SystemExit(
             f"Cannot import ollama_client from {STRATEGY_DIR}\n"
-            "Ensure strategy/ directory exists and 'ollama serve' is running.")
+            "Ensure strategy/ directory exists and 'ollama serve' is running."
+        )
 
 
 def _load_few_shot(n=5):
@@ -103,7 +105,7 @@ def _build_system(few_shot):
             }
             lines.append(
                 f'\nInput: zones="{zs}" | delay={ex["start_delay_s"]}s'
-                f' | alliance={ex.get("alliance", "blue")}'
+                f" | alliance={ex.get('alliance', 'blue')}"
             )
             lines.append(f"Output: {json.dumps(ex_out)}")
     return "\n".join(lines)
@@ -180,13 +182,17 @@ def _interpret_robot(match, station, o, mapper, generate, system_prompt, model):
         "duration_s": duration,
     }
 
-    user_msg = _build_user(match, station, team, o.get("alliance", ""),
-                           zone_seq, delay, duration)
+    user_msg = _build_user(match, station, team, o.get("alliance", ""), zone_seq, delay, duration)
 
     for attempt_model in [model, FALLBACK_MODEL]:
         try:
-            raw = generate(model=attempt_model, system=system_prompt,
-                           user=user_msg, timeout=TIMEOUT, think=False)
+            raw = generate(
+                model=attempt_model,
+                system=system_prompt,
+                user=user_msg,
+                timeout=TIMEOUT,
+                think=False,
+            )
             parsed = _parse_llm_json(raw)
             if parsed and "name" in parsed:
                 # Normalize start_side spelling
@@ -201,8 +207,9 @@ def _interpret_robot(match, station, o, mapper, generate, system_prompt, model):
     return {
         **base,
         "name": f"{'Delayed ' if delay > 1.5 else ''}{start_side.capitalize()} Auto",
-        "description": ("Zone sequence: " + " → ".join(zone_seq)) if zone_seq
-                       else "No zones detected — robot may have stayed still or tracking lost.",
+        "description": ("Zone sequence: " + " → ".join(zone_seq))
+        if zone_seq
+        else "No zones detected — robot may have stayed still or tracking lost.",
         "start_side": start_side,
         "delayed": delay > 1.5,
         "key_zones": zone_seq,
@@ -244,7 +251,8 @@ def interpret_match(match, mapper, generate, system_prompt, model, force=False):
             continue
         try:
             result[station] = _interpret_robot(
-                match, station, o, mapper, generate, system_prompt, model)
+                match, station, o, mapper, generate, system_prompt, model
+            )
         except Exception as e:
             result[station] = {"team": team, "error": str(e)}
 

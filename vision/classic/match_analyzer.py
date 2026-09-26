@@ -77,7 +77,7 @@ def find_ball_blobs(hsv, lower, upper, min_area, max_area, min_circularity):
         perimeter = cv2.arcLength(c, True)
         if perimeter == 0:
             continue
-        circularity = 4 * np.pi * area / (perimeter ** 2)
+        circularity = 4 * np.pi * area / (perimeter**2)
         if circularity < min_circularity:
             continue
         x, y, w, h = cv2.boundingRect(c)
@@ -136,7 +136,9 @@ def process_video(input_path, config_path, output_path, events_path, min_robot_a
 
     events_file = open(events_path, "w", newline="")
     events_writer = csv.writer(events_file)
-    events_writer.writerow(["frame", "time_sec", "zone", "attributed_alliance", "attributed_robot_id"])
+    events_writer.writerow(
+        ["frame", "time_sec", "zone", "attributed_alliance", "attributed_robot_id"]
+    )
 
     kernel = np.ones((5, 5), np.uint8)
     frame_idx = 0
@@ -166,7 +168,9 @@ def process_video(input_path, config_path, output_path, events_path, min_robot_a
             cv2.putText(frame, f"B{tid}", (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
         # --- game pieces ---
-        ball_blobs = find_ball_blobs(hsv, ball_lower, ball_upper, ball_min_area, ball_max_area, ball_min_circularity)
+        ball_blobs = find_ball_blobs(
+            hsv, ball_lower, ball_upper, ball_min_area, ball_max_area, ball_min_circularity
+        )
         ball_tracks = ball_tracker.update(ball_blobs, frame_idx)
 
         for tid, det in ball_tracks.items():
@@ -184,11 +188,22 @@ def process_video(input_path, config_path, output_path, events_path, min_robot_a
                     if attribution:
                         alliance, robot_id = attribution
                         score_summary[(alliance, robot_id)] += 1
-                        events_writer.writerow([frame_idx, round(time_sec, 3), zone_name, alliance, robot_id])
-                        cv2.putText(frame, f"SCORE: {alliance.upper()}{robot_id} -> {zone_name}",
-                                    (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                        events_writer.writerow(
+                            [frame_idx, round(time_sec, 3), zone_name, alliance, robot_id]
+                        )
+                        cv2.putText(
+                            frame,
+                            f"SCORE: {alliance.upper()}{robot_id} -> {zone_name}",
+                            (10, 55),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6,
+                            (0, 255, 0),
+                            2,
+                        )
                     else:
-                        events_writer.writerow([frame_idx, round(time_sec, 3), zone_name, "unknown", ""])
+                        events_writer.writerow(
+                            [frame_idx, round(time_sec, 3), zone_name, "unknown", ""]
+                        )
                     break
 
         # draw goal zones for reference
@@ -210,11 +225,15 @@ def process_video(input_path, config_path, output_path, events_path, min_robot_a
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Track robots + game pieces and attribute scores in FRC match video.")
+    parser = argparse.ArgumentParser(
+        description="Track robots + game pieces and attribute scores in FRC match video."
+    )
     parser.add_argument("--input", required=True, help="Path to input video file")
     parser.add_argument("--config", required=True, help="Path to config.json from calibrate.py")
     parser.add_argument("--output", default="annotated.mp4", help="Path to annotated output video")
-    parser.add_argument("--events", default="scoring_events.csv", help="Path to output CSV of scoring events")
+    parser.add_argument(
+        "--events", default="scoring_events.csv", help="Path to output CSV of scoring events"
+    )
     parser.add_argument("--min-robot-area", type=int, default=MIN_CONTOUR_AREA)
     args = parser.parse_args()
 

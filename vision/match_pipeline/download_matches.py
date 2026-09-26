@@ -24,7 +24,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, HERE)          # so `import tba` works from PyCharm's Run button
+sys.path.insert(0, HERE)  # so `import tba` works from PyCharm's Run button
 import tba
 
 VIDEOS = os.path.join(HERE, "videos")
@@ -34,13 +34,13 @@ TRUTH = os.path.join(HERE, "truth")
 # EDIT ME (PyCharm: just click Run — no terminal args needed). CLI args, if
 # given, override these. Defaults = the small test.
 # ===========================================================================
-EVENT = "2026hop"      # TBA event key
-LIMIT = None           # None = ALL matches; set N for a small test
-QUALS_ONLY = False     # True = skip playoff matches
-HEIGHT = 1080          # max video height (p). 1080 makes bumper NUMBERS
-                       # readable (720 does not) -- that's what identity relies on.
-PARALLEL = 9           # concurrent downloads
-LIST_ONLY = False      # True = save truth + print list, download nothing
+EVENT = "2026hop"  # TBA event key
+LIMIT = None  # None = ALL matches; set N for a small test
+QUALS_ONLY = False  # True = skip playoff matches
+HEIGHT = 1080  # max video height (p). 1080 makes bumper NUMBERS
+# readable (720 does not) -- that's what identity relies on.
+PARALLEL = 9  # concurrent downloads
+LIST_ONLY = False  # True = save truth + print list, download nothing
 # ===========================================================================
 
 
@@ -72,11 +72,19 @@ def ytdlp_download(match_key, yt_key, height):
         return match_key, "skip (exists)"
     cmd = [
         "yt-dlp",
-        "-f", f"bv*[height<={height}]+ba/b[height<={height}]/b",
-        "--merge-output-format", "mp4",
-        "-o", out_tmpl,
-        "--no-playlist", "--no-progress", "--quiet",
-        "--retries", "5", "--fragment-retries", "5",
+        "-f",
+        f"bv*[height<={height}]+ba/b[height<={height}]/b",
+        "--merge-output-format",
+        "mp4",
+        "-o",
+        out_tmpl,
+        "--no-playlist",
+        "--no-progress",
+        "--quiet",
+        "--retries",
+        "5",
+        "--fragment-retries",
+        "5",
         f"https://www.youtube.com/watch?v={yt_key}",
     ]
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -84,7 +92,7 @@ def ytdlp_download(match_key, yt_key, height):
         tail = (r.stderr or r.stdout or "").strip().splitlines()
         return match_key, "FAIL: " + (tail[-1] if tail else "unknown")
     size = os.path.getsize(final_mp4) if os.path.exists(final_mp4) else 0
-    return match_key, f"ok ({size // (1024*1024)} MB)"
+    return match_key, f"ok ({size // (1024 * 1024)} MB)"
 
 
 def main():
@@ -94,10 +102,12 @@ def main():
     p.add_argument("--height", type=int, default=HEIGHT, help="max video height")
     p.add_argument("--parallel", type=int, default=PARALLEL, help="concurrent downloads")
     p.add_argument("--limit", type=int, default=LIMIT, help="only download first N videos")
-    p.add_argument("--quals-only", action="store_true", default=QUALS_ONLY,
-                   help="skip playoff matches")
-    p.add_argument("--list-only", action="store_true", default=LIST_ONLY,
-                   help="fetch+save truth, no downloads")
+    p.add_argument(
+        "--quals-only", action="store_true", default=QUALS_ONLY, help="skip playoff matches"
+    )
+    p.add_argument(
+        "--list-only", action="store_true", default=LIST_ONLY, help="fetch+save truth, no downloads"
+    )
     args = p.parse_args()
 
     os.makedirs(VIDEOS, exist_ok=True)
@@ -119,22 +129,25 @@ def main():
     with_video = [t for t in truths if t["youtube_key"]]
     if args.quals_only:
         with_video = [t for t in with_video if t["comp_level"] == "qm"]
-    print(f"  {len(with_video)} matches have a YouTube video"
-          + (" (quals only)" if args.quals_only else ""))
+    print(
+        f"  {len(with_video)} matches have a YouTube video"
+        + (" (quals only)" if args.quals_only else "")
+    )
     if args.limit:
-        with_video = with_video[:args.limit]
+        with_video = with_video[: args.limit]
         print(f"  limiting to first {len(with_video)} (--limit)")
     if args.list_only:
         for t in with_video:
             print(f"    {t['key']:16s} yt={t['youtube_key']}")
         return
 
-    print(f"Downloading {len(with_video)} videos (<= {args.height}p, "
-          f"{args.parallel} parallel) ...")
+    print(f"Downloading {len(with_video)} videos (<= {args.height}p, {args.parallel} parallel) ...")
     ok = fail = skip = 0
     with ThreadPoolExecutor(max_workers=args.parallel) as ex:
-        futs = {ex.submit(ytdlp_download, t["key"], t["youtube_key"], args.height): t
-                for t in with_video}
+        futs = {
+            ex.submit(ytdlp_download, t["key"], t["youtube_key"], args.height): t
+            for t in with_video
+        }
         for fut in as_completed(futs):
             mk, status = fut.result()
             print(f"    {mk:16s} {status}")
@@ -144,8 +157,7 @@ def main():
                 skip += 1
             else:
                 fail += 1
-    print(f"\nDone: {ok} downloaded, {skip} skipped, {fail} failed. "
-          f"Videos in {VIDEOS}")
+    print(f"\nDone: {ok} downloaded, {skip} skipped, {fail} failed. Videos in {VIDEOS}")
 
 
 if __name__ == "__main__":

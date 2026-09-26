@@ -24,8 +24,8 @@ VIDEOS = os.path.join(HERE, "videos")
 RESULTS = os.path.join(HERE, "results")
 
 # EDIT ME (PyCharm one-click). CLI args override.
-WORKERS = 5         # GPU jobs in parallel (MPS shared); 3-4 is a good start
-STRIDE = 2             # process every Nth frame (60fps footage)
+WORKERS = 5  # GPU jobs in parallel (MPS shared); 3-4 is a good start
+STRIDE = 2  # process every Nth frame (60fps footage)
 CONF = 0.25
 IMGSZ = 960
 ONLY = []
@@ -33,8 +33,9 @@ FORCE = False
 
 
 def _weights():
-    cands = glob.glob(os.path.join(os.path.dirname(HERE), "runs", "detect", "*",
-                                   "weights", "best.pt"))
+    cands = glob.glob(
+        os.path.join(os.path.dirname(HERE), "runs", "detect", "*", "weights", "best.pt")
+    )
     if not cands:
         raise SystemExit("No trained weights under runs/detect/*/weights/best.pt")
     return max(cands, key=os.path.getmtime)
@@ -46,15 +47,21 @@ def _run_one(args):
         os.environ.setdefault(v, "1")
     sys.path.insert(0, HERE)
     import trajectories as tj
+
     t0 = time.time()
     try:
-        r = tj.run(video, outdir, weights, conf=conf, imgsz=imgsz, stride=stride,
-                   device="mps")
-        return (os.path.basename(video), "ok",
-                f"{r['points']} pts, {r['tracks']} tracks ({time.time()-t0:.0f}s)")
+        r = tj.run(video, outdir, weights, conf=conf, imgsz=imgsz, stride=stride, device="mps")
+        return (
+            os.path.basename(video),
+            "ok",
+            f"{r['points']} pts, {r['tracks']} tracks ({time.time() - t0:.0f}s)",
+        )
     except Exception as e:
-        return (os.path.basename(video), "FAIL",
-                f"{e.__class__.__name__}: {e}\n{traceback.format_exc(limit=2)}")
+        return (
+            os.path.basename(video),
+            "FAIL",
+            f"{e.__class__.__name__}: {e}\n{traceback.format_exc(limit=2)}",
+        )
 
 
 def main():
@@ -80,8 +87,10 @@ def main():
             continue
         jobs.append((v, outdir, weights, args.conf, args.imgsz, args.stride))
 
-    print(f"{len(vids)} videos, {len(jobs)} to run, {args.workers} GPU workers, "
-          f"weights={os.path.relpath(weights, HERE)}")
+    print(
+        f"{len(vids)} videos, {len(jobs)} to run, {args.workers} GPU workers, "
+        f"weights={os.path.relpath(weights, HERE)}"
+    )
     if not jobs:
         return
     ok = fail = 0
@@ -93,7 +102,7 @@ def main():
             print(f"  [{i}/{len(jobs)}] {name:22s} {status}: {info}")
             ok += status == "ok"
             fail += status != "ok"
-    print(f"\nDone: {ok} ok, {fail} failed in {time.time()-t0:.0f}s.")
+    print(f"\nDone: {ok} ok, {fail} failed in {time.time() - t0:.0f}s.")
     print("Next: calibrate once (field_calibrate.py), then batch_auto.py")
 
 

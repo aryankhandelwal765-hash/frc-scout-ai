@@ -62,22 +62,22 @@ TRUTH = os.path.join(HERE, "truth")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-WEIGHT = "blend"         # "dwell" | "entries" | "blend"
-MIN_COVER = 0.5          # warn when identified robots hold less than this share
+WEIGHT = "blend"  # "dwell" | "entries" | "blend"
+MIN_COVER = 0.5  # warn when identified robots hold less than this share
 OUT = os.path.join(HERE, "fuel_split.csv")
-ONLY = []                # match keys; [] = every current-geometry match
+ONLY = []  # match keys; [] = every current-geometry match
 # ===========================================================================
 
 # (TBA hubScore key, seconds from AUTO start). Manual timing: AUTO 20s, then
 # TRANSITION 10s, SHIFT 1-4 at 25s each, END GAME 30s.
 PHASES = [
-    ("autoCount",       0.0,   20.0),
-    ("transitionCount", 20.0,  30.0),
-    ("shift1Count",     30.0,  55.0),
-    ("shift2Count",     55.0,  80.0),
-    ("shift3Count",     80.0,  105.0),
-    ("shift4Count",     105.0, 130.0),
-    ("endgameCount",    130.0, 160.0),
+    ("autoCount", 0.0, 20.0),
+    ("transitionCount", 20.0, 30.0),
+    ("shift1Count", 30.0, 55.0),
+    ("shift2Count", 55.0, 80.0),
+    ("shift3Count", 80.0, 105.0),
+    ("shift4Count", 105.0, 130.0),
+    ("endgameCount", 130.0, 160.0),
 ]
 
 
@@ -146,15 +146,16 @@ def run_match(match, mapper):
         return []
     truth = json.load(open(truth_p))
     sb = truth.get("score_breakdown") or {}
-    rosters = {a: {t.replace("frc", "") for t in (truth.get(f"{a}_teams") or [])}
-               for a in ("blue", "red")}
+    rosters = {
+        a: {t.replace("frc", "") for t in (truth.get(f"{a}_teams") or [])} for a in ("blue", "red")
+    }
     w, _fps = _weights(match, mapper, rosters)
     if not w:
         return []
 
     rows = []
     for al in ("blue", "red"):
-        hub = ((sb.get(al) or {}).get("hubScore") or {})
+        hub = (sb.get(al) or {}).get("hubScore") or {}
         if not hub:
             continue
         members = {k[1]: v for k, v in w.items() if k[0] == al}
@@ -176,29 +177,41 @@ def run_match(match, mapper):
             cover[key] = known
             for t in members:
                 if not t:
-                    continue          # unidentified: weight counts, but no row
+                    continue  # unidentified: weight counts, but no row
                 wd = d.get(t, 0) / sd if sd else 0.0
                 we = e.get(t, 0) / se if se else 0.0
-                share = {"dwell": wd, "entries": we,
-                         "blend": (wd + we) / 2.0}[WEIGHT]
+                share = {"dwell": wd, "entries": we, "blend": (wd + we) / 2.0}[WEIGHT]
                 per_team[t][key] = share * float(tot)
         for t, ph in per_team.items():
             auto = ph.get("autoCount", 0.0)
-            tele = sum(ph.get(k, 0.0) for k in
-                       ("transitionCount", "shift1Count", "shift2Count",
-                        "shift3Count", "shift4Count"))
+            tele = sum(
+                ph.get(k, 0.0)
+                for k in (
+                    "transitionCount",
+                    "shift1Count",
+                    "shift2Count",
+                    "shift3Count",
+                    "shift4Count",
+                )
+            )
             end = ph.get("endgameCount", 0.0)
-            rows.append({
-                "match": match, "team": t, "alliance": al,
-                "auto_fuel": round(auto, 1),
-                "teleop_fuel": round(tele, 1),
-                "endgame_fuel": round(end, 1),
-                "total_fuel": round(auto + tele + end, 1),
-                **{k.replace("Count", "_fuel"): round(ph.get(k, 0.0), 1)
-                   for k, _a, _b in PHASES},
-                "share_covered": round(float(np.mean(list(cover.values()) or [0])), 2),
-                "weight_mode": WEIGHT,
-            })
+            rows.append(
+                {
+                    "match": match,
+                    "team": t,
+                    "alliance": al,
+                    "auto_fuel": round(auto, 1),
+                    "teleop_fuel": round(tele, 1),
+                    "endgame_fuel": round(end, 1),
+                    "total_fuel": round(auto + tele + end, 1),
+                    **{
+                        k.replace("Count", "_fuel"): round(ph.get(k, 0.0), 1)
+                        for k, _a, _b in PHASES
+                    },
+                    "share_covered": round(float(np.mean(list(cover.values()) or [0])), 2),
+                    "weight_mode": WEIGHT,
+                }
+            )
     return rows
 
 
@@ -212,7 +225,8 @@ def main():
 
     matches = ONLY or sorted(
         os.path.basename(os.path.dirname(x))
-        for x in glob.glob(os.path.join(RESULTS, "*", "auto_paths.json")))
+        for x in glob.glob(os.path.join(RESULTS, "*", "auto_paths.json"))
+    )
     allrows = []
     for i, m in enumerate(matches, 1):
         try:
@@ -234,11 +248,15 @@ def main():
     tf = np.array([r["total_fuel"] for r in allrows])
     print(f"\n{len(allrows)} team-match fuel estimates -> {a.out}")
     print(f"  weight mode: {WEIGHT}")
-    print(f"  total_fuel per robot: median {np.median(tf):.0f}  "
-          f"p10 {np.percentile(tf, 10):.0f}  p90 {np.percentile(tf, 90):.0f}")
-    print(f"  share_covered: median {np.median(cov):.2f}  "
-          f"below {MIN_COVER}: {(cov < MIN_COVER).sum()} rows "
-          f"({100.0 * (cov < MIN_COVER).mean():.0f}%)")
+    print(
+        f"  total_fuel per robot: median {np.median(tf):.0f}  "
+        f"p10 {np.percentile(tf, 10):.0f}  p90 {np.percentile(tf, 90):.0f}"
+    )
+    print(
+        f"  share_covered: median {np.median(cov):.2f}  "
+        f"below {MIN_COVER}: {(cov < MIN_COVER).sum()} rows "
+        f"({100.0 * (cov < MIN_COVER).mean():.0f}%)"
+    )
     print("\n  The alliance TOTAL is TBA's and exact. The per-robot split has no ground")
     print("  truth -- TBA publishes no per-robot ball count.")
     print("  Named rows sum to LESS than the alliance total ON PURPOSE: each robot's")

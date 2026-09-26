@@ -61,9 +61,9 @@ def _elapsed(t0):
 def _run(script, *args, label=""):
     cmd = [PYTHON, os.path.join(HERE, script)] + list(args)
     label = label or script
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {label}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     t0 = time.time()
     result = subprocess.run(cmd, cwd=HERE)
     elapsed = _elapsed(t0)
@@ -90,6 +90,7 @@ def phase2_done():
 
 def phase3_done():
     import glob
+
     smoothed = glob.glob(os.path.join(RESULTS, "*", "smoothed_trajectory.csv"))
     raw = glob.glob(os.path.join(RESULTS, "*", "trajectory.csv"))
     return len(smoothed) >= len(raw) * 0.9  # 90% smoothed = "done"
@@ -137,6 +138,7 @@ def phase5_done():
         return False
     # Done if _all.md is newer than the newest auto_interp.json
     import glob
+
     interps = glob.glob(os.path.join(RESULTS, "*", "auto_interp.json"))
     if not interps:
         return False
@@ -146,12 +148,13 @@ def phase5_done():
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--skip", nargs="*", type=int, default=[],
-                   help="phase numbers to skip, e.g. --skip 1 2")
-    p.add_argument("--only", nargs="*", type=int, default=[],
-                   help="run ONLY these phase numbers")
-    p.add_argument("--force", action="store_true",
-                   help="redo all phases even if outputs already exist")
+    p.add_argument(
+        "--skip", nargs="*", type=int, default=[], help="phase numbers to skip, e.g. --skip 1 2"
+    )
+    p.add_argument("--only", nargs="*", type=int, default=[], help="run ONLY these phase numbers")
+    p.add_argument(
+        "--force", action="store_true", help="redo all phases even if outputs already exist"
+    )
     a = p.parse_args()
 
     def should_run(n):
@@ -169,8 +172,9 @@ def main():
         if not a.force and phase1_done():
             print("\n[Phase 1] Already done (ground_homography exists). --force to redo.")
         else:
-            ok = _run("multi_video_apriltag_calib.py",
-                      label="Phase 1: Multi-video AprilTag camera pose")
+            ok = _run(
+                "multi_video_apriltag_calib.py", label="Phase 1: Multi-video AprilTag camera pose"
+            )
             if not ok:
                 print("Phase 1 failed -- phases 2-4 may produce worse results")
     else:
@@ -181,8 +185,7 @@ def main():
         if not a.force and phase2_done():
             print("\n[Phase 2] Already done (correction_2d exists). --force to redo.")
         else:
-            ok = _run("fit_2d_correction.py",
-                      label="Phase 2: 2D residual correction polynomial")
+            ok = _run("fit_2d_correction.py", label="Phase 2: 2D residual correction polynomial")
             if not ok:
                 print("Phase 2 failed -- continuing without 2D correction")
     else:
@@ -192,11 +195,14 @@ def main():
     if should_run(3):
         force_arg = ["--force"] if a.force else []
         if not a.force and phase3_done():
-            print("\n[Phase 3] Already done (smoothed_trajectory.csv exists for all matches). "
-                  "--force to redo.")
+            print(
+                "\n[Phase 3] Already done (smoothed_trajectory.csv exists for all matches). "
+                "--force to redo."
+            )
         else:
-            ok = _run("smooth_trajectories.py", *force_arg,
-                      label="Phase 3: Kalman smoothing + gap fill")
+            ok = _run(
+                "smooth_trajectories.py", *force_arg, label="Phase 3: Kalman smoothing + gap fill"
+            )
             if not ok:
                 print("Phase 3 failed -- topdown renders will use raw paths")
     else:
@@ -204,9 +210,9 @@ def main():
 
     # --- Phase 4 ---
     if should_run(4):
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("  Phase 4: Re-render topdown paths + validate")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         t0 = time.time()
         phase4_render(force=a.force)
         phase4_validate()
@@ -219,33 +225,43 @@ def main():
         if not a.force and phase5_done():
             print("\n[Phase 5] Already done (auto_book/_all.md is current). --force to redo.")
         else:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print("  Phase 5: LLM auto interpretation + written scouting book")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             t0 = time.time()
             force_arg = ["--force"] if a.force else []
-            ok5a = _run("interpret_auto.py", *force_arg,
-                        label="Phase 5a: LLM zone-sequence interpretation per match")
+            ok5a = _run(
+                "interpret_auto.py",
+                *force_arg,
+                label="Phase 5a: LLM zone-sequence interpretation per match",
+            )
             if not ok5a:
                 print("Phase 5a failed -- auto_book will use heuristic fallback")
-            ok5b = _run("team_routes.py", "--json-only",
-                        label="Phase 5b: Cluster routes + export team_routes.json")
+            ok5b = _run(
+                "team_routes.py",
+                "--json-only",
+                label="Phase 5b: Cluster routes + export team_routes.json",
+            )
             if not ok5b:
                 print("Phase 5b failed -- auto_book cannot run without team_routes.json")
             else:
-                ok5c = _run("auto_book.py", *force_arg,
-                            label="Phase 5c: Written auto scouting book")
+                ok5c = _run(
+                    "auto_book.py", *force_arg, label="Phase 5c: Written auto scouting book"
+                )
                 if not ok5c:
                     print("Phase 5c failed")
-                _run("render_zone_paths.py", *force_arg,
-                     label="Phase 5d: Zone sequence PNGs per robot")
+                _run(
+                    "render_zone_paths.py",
+                    *force_arg,
+                    label="Phase 5d: Zone sequence PNGs per robot",
+                )
             print(f"\n[OK] Phase 5 finished in {_elapsed(t0)}")
     else:
         print("\n[Phase 5] Skipped")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  PIPELINE COMPLETE in {_elapsed(wall_t0)}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print("\nResults in:")
     print(f"  {RESULTS}/*/smoothed_auto_paths.json  -- smoothed paths (field inches)")
     print(f"  {RESULTS}/*/topdown_auto.png          -- re-rendered match renders")

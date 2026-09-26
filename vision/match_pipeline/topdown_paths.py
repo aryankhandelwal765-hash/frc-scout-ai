@@ -30,6 +30,7 @@ import zones
 try:
     from scipy.spatial.distance import squareform
     from scipy.cluster.hierarchy import linkage, fcluster
+
     _SCIPY = True
 except ImportError:
     _SCIPY = False
@@ -41,17 +42,21 @@ OUTDIR = os.path.join(HERE, "topdown_paths")
 # ===========================================================================
 # EDIT ME (PyCharm one-click). CLI args override.
 # ===========================================================================
-MATCH = "2026hop_qm32"   # one match; "" = every match + per-team aggregates
-MIN_MATCHES = 2           # a team needs this many autos to get an aggregate page
-STALE_MAX_X = 1300        # a file whose widest path point is below this is in the old
-                          # 1280-wide crop, so the 1080p field map turns it to
-                          # nonsense. The per-team aggregate POOLS matches, so one
-                          # stale file corrupts that whole team's page. 0 = no filter.
+MATCH = "2026hop_qm32"  # one match; "" = every match + per-team aggregates
+MIN_MATCHES = 2  # a team needs this many autos to get an aggregate page
+STALE_MAX_X = 1300  # a file whose widest path point is below this is in the old
+# 1280-wide crop, so the 1080p field map turns it to
+# nonsense. The per-team aggregate POOLS matches, so one
+# stale file corrupts that whole team's page. 0 = no filter.
 # ===========================================================================
 
 # how the team number was determined -- same colour language as render_autopaths.py
-SRC_COL = {"read": (60, 200, 60), "elim": (190, 160, 40),
-           "rank": (0, 140, 235), "none": (150, 150, 150)}
+SRC_COL = {
+    "read": (60, 200, 60),
+    "elim": (190, 160, 40),
+    "rank": (0, 140, 235),
+    "none": (150, 150, 150),
+}
 
 
 def to_canonical(xy, alliance):
@@ -101,8 +106,7 @@ def _resample(pts, n=40):
     pts = np.asarray(pts, float)
     if len(pts) < 2:
         return np.tile(pts[0] if len(pts) else [0.0, 0.0], (n, 1))
-    dists = np.concatenate([[0.0],
-                            np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))])
+    dists = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))])
     total = dists[-1]
     if total < 1e-6:
         return np.tile(pts[0], (n, 1))
@@ -159,8 +163,11 @@ def _fresh(path, data=None):
 
 
 def _label(team_key):
-    return team_key.replace("frc", "#") if team_key and str(team_key).startswith("frc") \
+    return (
+        team_key.replace("frc", "#")
+        if team_key and str(team_key).startswith("frc")
         else str(team_key)
+    )
 
 
 def _draw_path(img, xy, col, label=None, thick=2):
@@ -169,11 +176,12 @@ def _draw_path(img, xy, col, label=None, thick=2):
         cv2.polylines(img, [pts], False, col, thick, cv2.LINE_AA)
     if len(pts):
         cv2.circle(img, tuple(pts[0]), 6, (255, 255, 255), -1)
-        cv2.circle(img, tuple(pts[0]), 6, col, 2)              # start = dot
-        cv2.circle(img, tuple(pts[-1]), 5, col, -1)            # end = filled
+        cv2.circle(img, tuple(pts[0]), 6, col, 2)  # start = dot
+        cv2.circle(img, tuple(pts[-1]), 5, col, -1)  # end = filled
         if label:
-            cv2.putText(img, label, (pts[0][0] + 8, pts[0][1] - 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2)
+            cv2.putText(
+                img, label, (pts[0][0] + 8, pts[0][1] - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2
+            )
 
 
 def _match_blue_left(teams):
@@ -208,8 +216,9 @@ def render_match(match, mapper):
     if not teams:
         return None
     img = td.draw_field(blue_left=_match_blue_left(teams))
-    cv2.putText(img, f"{match}  AUTO", (16, td.CH - 16),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (30, 30, 30), 2)
+    cv2.putText(
+        img, f"{match}  AUTO", (16, td.CH - 16), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (30, 30, 30), 2
+    )
     counts = {}
     for key, o in sorted(teams.items()):
         col = td.BLUE_BGR if o["alliance"] == "blue" else td.RED_BGR
@@ -227,27 +236,42 @@ def render_match(match, mapper):
         _draw_path(img, xy, col, None)
         p0 = xy.astype(np.int32)[0]
         txt = f"{_label(o.get('team') or key)} [{src}]"
-        cv2.putText(img, txt, (p0[0] + 9, p0[1] - 8), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.58, (255, 255, 255), 4, cv2.LINE_AA)
-        cv2.putText(img, txt, (p0[0] + 9, p0[1] - 8), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.58, SRC_COL.get(src, col), 2, cv2.LINE_AA)
+        cv2.putText(
+            img,
+            txt,
+            (p0[0] + 9, p0[1] - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.58,
+            (255, 255, 255),
+            4,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            txt,
+            (p0[0] + 9, p0[1] - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.58,
+            SRC_COL.get(src, col),
+            2,
+            cv2.LINE_AA,
+        )
     legend = "  ".join(f"{k}:{v}" for k, v in counts.items())
-    cv2.putText(img, legend, (16, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
-                (30, 30, 30), 2)
+    cv2.putText(img, legend, (16, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (30, 30, 30), 2)
     out = os.path.join(RESULTS, match, "topdown_auto.png")
     cv2.imwrite(out, img)
     return out
 
 
 _CLUSTER_COLORS = [
-    (50, 205,  50),    # lime
-    (0,  140, 235),    # blue
-    (0,  210, 210),    # cyan
-    (200, 180,   0),   # gold
-    (200,   0, 200),   # magenta
-    (0,  180, 100),    # teal
-    (220,  80,   0),   # orange
-    (130, 100, 255),   # lavender
+    (50, 205, 50),  # lime
+    (0, 140, 235),  # blue
+    (0, 210, 210),  # cyan
+    (200, 180, 0),  # gold
+    (200, 0, 200),  # magenta
+    (0, 180, 100),  # teal
+    (220, 80, 0),  # orange
+    (130, 100, 255),  # lavender
 ]
 
 
@@ -259,7 +283,7 @@ def render_team_aggregate(mapper, min_matches=2):
     of the blue-side version. Distinct routines are drawn in different colours
     with ×N count labels.
     """
-    per_team = defaultdict(list)   # team -> [(alliance, fi_array (N,2))]
+    per_team = defaultdict(list)  # team -> [(alliance, fi_array (N,2))]
     stale = 0
 
     for match_dir in sorted(glob.glob(os.path.join(RESULTS, "*"))):
@@ -272,8 +296,7 @@ def render_team_aggregate(mapper, min_matches=2):
             data = json.load(open(smooth_ap))
             for _st, o in data.get("teams", {}).items():
                 team = o.get("team")
-                if not (team and str(team).startswith("frc")
-                        and len(o.get("path", [])) >= 2):
+                if not (team and str(team).startswith("frc") and len(o.get("path", [])) >= 2):
                     continue
                 if o.get("coords") == "field_in":
                     fi = np.array([[fx, fy] for _t, fx, fy in o["path"]], float)
@@ -284,8 +307,7 @@ def render_team_aggregate(mapper, min_matches=2):
         elif os.path.exists(raw_ap) and _fresh(raw_ap):
             for _st, o in json.load(open(raw_ap)).get("teams", {}).items():
                 team = o.get("team")
-                if not (team and str(team).startswith("frc")
-                        and len(o.get("path", [])) >= 2):
+                if not (team and str(team).startswith("frc") and len(o.get("path", [])) >= 2):
                     continue
                 cam = [(cx, cy) for _t, cx, cy in o["path"]]
                 fi = zones.to_field_inches(np.asarray(mapper(cam)))
@@ -325,18 +347,39 @@ def render_team_aggregate(mapper, min_matches=2):
             # Count label at the start of the first path in this cluster
             p0 = _fi_array_to_canvas(canonical[idxs[0]][:1]).astype(np.int32)[0]
             label_txt = f"×{count}"
-            cv2.putText(img, label_txt, (p0[0] + 9, p0[1] - 8),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 4, cv2.LINE_AA)
-            cv2.putText(img, label_txt, (p0[0] + 9, p0[1] - 8),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, col, 2, cv2.LINE_AA)
+            cv2.putText(
+                img,
+                label_txt,
+                (p0[0] + 9, p0[1] - 8),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (255, 255, 255),
+                4,
+                cv2.LINE_AA,
+            )
+            cv2.putText(
+                img,
+                label_txt,
+                (p0[0] + 9, p0[1] - 8),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                col,
+                2,
+                cv2.LINE_AA,
+            )
 
         nblue = sum(1 for al, _ in runs if al == "blue")
         nred = len(runs) - nblue
         routine_str = f"{n_clusters} routine{'s' if n_clusters != 1 else ''}"
-        cv2.putText(img,
-                    f"{_label(team)}  ({len(runs)} autos, {routine_str}: "
-                    f"{nblue}B+{nred}R → blue frame)",
-                    (16, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.66, (30, 30, 30), 2)
+        cv2.putText(
+            img,
+            f"{_label(team)}  ({len(runs)} autos, {routine_str}: {nblue}B+{nred}R → blue frame)",
+            (16, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.66,
+            (30, 30, 30),
+            2,
+        )
         cv2.imwrite(os.path.join(OUTDIR, f"{_label(team).strip('#')}.png"), img)
 
     return kept
@@ -344,8 +387,9 @@ def render_team_aggregate(mapper, min_matches=2):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--match", default=MATCH,
-                   help="one match key; empty for all + per-team aggregate")
+    p.add_argument(
+        "--match", default=MATCH, help="one match key; empty for all + per-team aggregate"
+    )
     p.add_argument("--min-matches", type=int, default=MIN_MATCHES)
     args = p.parse_args()
 

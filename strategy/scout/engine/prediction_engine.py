@@ -47,7 +47,9 @@ def predict_match(
     # ML model score differential (supplementary — can be noisy without scouting data)
     try:
         features = build_matchup_features(red_stats, blue_stats)
-        df = pd.DataFrame([features])[MODEL_FEATURES].values  # pass as array to avoid feature-name warning
+        df = pd.DataFrame([features])[
+            MODEL_FEATURES
+        ].values  # pass as array to avoid feature-name warning
         model_score_diff = float(_load_model().predict(df)[0])
     except Exception:
         model_score_diff = epa_diff

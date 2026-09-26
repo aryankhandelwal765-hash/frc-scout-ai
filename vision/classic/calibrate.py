@@ -40,10 +40,19 @@ def compute_hsv_range(samples, h_tol=12, s_tol=60, v_tol=60):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Calibrate ball color + goal zones for match_analyzer.py")
+    parser = argparse.ArgumentParser(
+        description="Calibrate ball color + goal zones for match_analyzer.py"
+    )
     parser.add_argument("--input", required=True, help="Path to a representative match video")
-    parser.add_argument("--output", default="config.json", help="Where to save the calibration config")
-    parser.add_argument("--frame", type=int, default=60, help="Which frame to calibrate on (default: 60, to skip intros)")
+    parser.add_argument(
+        "--output", default="config.json", help="Where to save the calibration config"
+    )
+    parser.add_argument(
+        "--frame",
+        type=int,
+        default=60,
+        help="Which frame to calibrate on (default: 60, to skip intros)",
+    )
     args = parser.parse_args()
 
     cap = cv2.VideoCapture(args.input)
@@ -66,7 +75,9 @@ def main():
         if state["mode"] == "ball":
             hsv_val = sample_hsv_around(hsv_frame, x, y)
             state["ball_samples"].append(hsv_val)
-            print(f"Sampled ball HSV ~ {hsv_val.round(1)} ({len(state['ball_samples'])} samples so far)")
+            print(
+                f"Sampled ball HSV ~ {hsv_val.round(1)} ({len(state['ball_samples'])} samples so far)"
+            )
         elif state["mode"] == "zone":
             state["current_zone_points"].append([x, y])
 
@@ -98,10 +109,10 @@ def main():
         cv2.imshow("calibrate", disp)
         key = cv2.waitKey(20) & 0xFF
 
-        if key == ord('z'):
+        if key == ord("z"):
             state["mode"] = "zone"
             print("Switched to ZONE mode. Click polygon points, then press 'n' to name+save it.")
-        elif key == ord('n'):
+        elif key == ord("n"):
             if state["mode"] == "zone" and len(state["current_zone_points"]) >= 3:
                 name = input("Name this goal zone (e.g. red_hopper, blue_hopper): ").strip()
                 if name:
@@ -112,15 +123,17 @@ def main():
                 print("Back to BALL mode (press 'z' again for another zone).")
             else:
                 print("Need at least 3 points to define a zone polygon.")
-        elif key == ord('r'):
+        elif key == ord("r"):
             state = {"mode": "ball", "ball_samples": [], "zones": {}, "current_zone_points": []}
             print("Reset.")
-        elif key == ord('s'):
+        elif key == ord("s"):
             if len(state["ball_samples"]) < 2:
                 print("Sample at least 2 ball colors before saving (press 'q' to abort instead).")
                 continue
             if not state["zones"]:
-                print("Define at least 1 goal zone before saving (press 'z' then click points, 'n' to name).")
+                print(
+                    "Define at least 1 goal zone before saving (press 'z' then click points, 'n' to name)."
+                )
                 continue
             lower, upper = compute_hsv_range(state["ball_samples"])
             config = {
@@ -134,7 +147,7 @@ def main():
                 json.dump(config, f, indent=2)
             print(f"Saved config to {args.output}")
             break
-        elif key == ord('q'):
+        elif key == ord("q"):
             print("Quit without saving.")
             break
 

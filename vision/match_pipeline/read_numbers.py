@@ -37,18 +37,22 @@ def reader():
     global _READER
     if _READER is None:
         import ssl, certifi, warnings
+
         warnings.filterwarnings("ignore")
         os.environ.setdefault("SSL_CERT_FILE", certifi.where())
-        ssl._create_default_https_context = (
-            lambda *a, **k: ssl.create_default_context(cafile=certifi.where()))
+        ssl._create_default_https_context = lambda *a, **k: ssl.create_default_context(
+            cafile=certifi.where()
+        )
         import easyocr
+
         _READER = easyocr.Reader(["en"], gpu=True, verbose=False)
     return _READER
 
-BUMPER_TOP = 0.62          # bumper band starts this far down the robot box
-UPSCALE = 6                # digits are small; upscale before OCR
-MIN_MARGIN = 0.15          # best candidate must beat 2nd by this much
-MIN_SCORE = 0.55           # and clear this absolute similarity
+
+BUMPER_TOP = 0.62  # bumper band starts this far down the robot box
+UPSCALE = 6  # digits are small; upscale before OCR
+MIN_MARGIN = 0.15  # best candidate must beat 2nd by this much
+MIN_SCORE = 0.55  # and clear this absolute similarity
 
 
 def _variants(gray):
@@ -58,8 +62,9 @@ def _variants(gray):
     _, o = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     out.append(o)
     out.append(cv2.bitwise_not(o))
-    out.append(cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                     cv2.THRESH_BINARY, 31, 5))
+    out.append(
+        cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 5)
+    )
     return out
 
 
@@ -86,7 +91,7 @@ def _similarity(read, team):
     if len(read) == len(team):
         same = sum(1 for a, b in zip(read, team) if a == b)
         s = same / len(team)
-    elif read in team:                       # partial read, e.g. "534" of "5348"
+    elif read in team:  # partial read, e.g. "534" of "5348"
         s = 0.8 * len(read) / len(team)
     else:
         # digit-set overlap as a weak fallback
@@ -99,7 +104,7 @@ def bumper_crop(img, box, top_frac=BUMPER_TOP):
     x1, y1, x2, y2 = [int(v) for v in box]
     h = y2 - y1
     by1 = y1 + int(h * top_frac)
-    return img[max(0, by1):max(0, y2), max(0, x1):max(0, x2)]
+    return img[max(0, by1) : max(0, y2), max(0, x1) : max(0, x2)]
 
 
 def read_bumper(img, box, candidates, debug=False):
@@ -113,8 +118,7 @@ def read_bumper(img, box, candidates, debug=False):
     lab = cv2.cvtColor(big, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
     l = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8)).apply(l)
-    gray = cv2.cvtColor(cv2.cvtColor(cv2.merge([l, a, b]), cv2.COLOR_LAB2BGR),
-                        cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(cv2.cvtColor(cv2.merge([l, a, b]), cv2.COLOR_LAB2BGR), cv2.COLOR_BGR2GRAY)
 
     reads = []
     for cand_img in (big, cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)):
@@ -138,6 +142,7 @@ def read_bumper(img, box, candidates, debug=False):
 def match_candidates(match, truth_dir=None):
     """The six team numbers playing this match, from TBA truth."""
     import json
+
     truth_dir = truth_dir or os.path.join(HERE, "truth")
     p = os.path.join(truth_dir, f"{match}.json")
     if not os.path.exists(p):
@@ -145,7 +150,7 @@ def match_candidates(match, truth_dir=None):
     t = json.load(open(p))
     out = []
     for side in ("blue_teams", "red_teams"):
-        for k in (t.get(side) or []):
+        for k in t.get(side) or []:
             out.append(str(k).replace("frc", ""))
     return out
 
@@ -159,9 +164,11 @@ def match_candidates(match, truth_dir=None):
 # need no robot detector at all: OCR the whole frame and keep any digit blob that
 # snaps to one of the 3. A hit gives identity AND position in one step.
 
+
 def alliance_candidates(match, alliance, truth_dir=None):
     """The 3 team numbers on one alliance ('blue'|'red')."""
     import json
+
     truth_dir = truth_dir or os.path.join(HERE, "truth")
     p = os.path.join(truth_dir, f"{match}.json")
     if not os.path.exists(p):
@@ -178,11 +185,10 @@ def scan_side(frame, candidates, min_conf=0.10, upscale=2, favour=(), bonus=0.10
     on 2026hop_qm27: revL is blue-leaning 4:1, revR red-leaning 3:2 -- a LEAN, not a
     rule, because each low camera also sees across the field. Hard-filtering to one
     alliance threw away 3 of 10 valid reads, so the side is applied as a small
-    tie-break bonus instead of a filter.""" 
+    tie-break bonus instead of a filter."""
     img = frame
     if upscale != 1:
-        img = cv2.resize(frame, None, fx=upscale, fy=upscale,
-                         interpolation=cv2.INTER_CUBIC)
+        img = cv2.resize(frame, None, fx=upscale, fy=upscale, interpolation=cv2.INTER_CUBIC)
     try:
         res = reader().readtext(img, allowlist="0123456789")
     except Exception:
@@ -192,13 +198,14 @@ def scan_side(frame, candidates, min_conf=0.10, upscale=2, favour=(), bonus=0.10
         raw = re.sub(r"\D", "", txt)
         if not raw or conf < min_conf:
             continue
-        scored = sorted(((_similarity(raw, c) + (bonus if c in favour else 0.0), c)
-                         for c in candidates), reverse=True)
+        scored = sorted(
+            ((_similarity(raw, c) + (bonus if c in favour else 0.0), c) for c in candidates),
+            reverse=True,
+        )
         best, team = scored[0]
         second = scored[1][0] if len(scored) > 1 else 0.0
         if best >= MIN_SCORE and (best - second) >= MIN_MARGIN:
             xs = [p[0] / upscale for p in bb]
             ys = [p[1] / upscale for p in bb]
-            out.append((team, (min(xs), min(ys), max(xs), max(ys)),
-                        round(float(best), 3), raw))
+            out.append((team, (min(xs), min(ys), max(xs), max(ys)), round(float(best), 3), raw))
     return out

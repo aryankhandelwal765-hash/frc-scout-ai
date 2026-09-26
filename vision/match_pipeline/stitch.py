@@ -27,16 +27,17 @@ import cv2
 HERE = os.path.dirname(os.path.abspath(__file__))
 VIDEOS = os.path.join(HERE, "videos")
 
-MAX_GAP_SEC = 6.0        # longest blind gap we will bridge
-BASE_GATE_FRAC = 0.045   # gate at zero gap, as a fraction of crop width
-GATE_GROWTH_FRAC = 0.020 # extra gate allowed per second of gap
-MAX_SPEED_FRAC = 0.45    # cap on extrapolated speed, crop widths per second
-FIT_SAMPLES = 6          # samples used to estimate a fragment's end velocity
+MAX_GAP_SEC = 6.0  # longest blind gap we will bridge
+BASE_GATE_FRAC = 0.045  # gate at zero gap, as a fraction of crop width
+GATE_GROWTH_FRAC = 0.020  # extra gate allowed per second of gap
+MAX_SPEED_FRAC = 0.45  # cap on extrapolated speed, crop widths per second
+FIT_SAMPLES = 6  # samples used to estimate a fragment's end velocity
 
 
 def crop_width(match):
     """Field-crop width in px for this match's video, resolution-aware."""
     import trajectories as tj
+
     cap = cv2.VideoCapture(os.path.join(VIDEOS, f"{match}.mp4"))
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 712
@@ -75,7 +76,7 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
     cw = crop_width(match)
     base = BASE_GATE_FRAC * cw
     growth = GATE_GROWTH_FRAC * cw
-    max_speed = MAX_SPEED_FRAC * cw / fps          # px per frame
+    max_speed = MAX_SPEED_FRAC * cw / fps  # px per frame
     max_gap = MAX_GAP_SEC * fps
 
     info = {}
@@ -95,9 +96,9 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
                 continue
             gap = bf0 - af1
             if gap <= 0 or gap > max_gap:
-                continue                    # must be strictly after, and not too far
-            sp = min((avx ** 2 + avy ** 2) ** 0.5, max_speed)
-            norm = (avx ** 2 + avy ** 2) ** 0.5 or 1.0
+                continue  # must be strictly after, and not too far
+            sp = min((avx**2 + avy**2) ** 0.5, max_speed)
+            norm = (avx**2 + avy**2) ** 0.5 or 1.0
             px = ae[0] + (avx / norm) * sp * gap
             py = ae[1] + (avy / norm) * sp * gap
             d = ((bs[0] - px) ** 2 + (bs[1] - py) ** 2) ** 0.5
@@ -109,7 +110,7 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
     nxt, prv = {}, {}
     for _cost, _gap, a, b in cand:
         if a in nxt or b in prv:
-            continue                        # one successor, one predecessor
+            continue  # one successor, one predecessor
         # no cycles: walk forward from b and refuse if we reach a
         seen, cur = set(), b
         while cur in nxt and cur not in seen:
@@ -129,7 +130,7 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
             done.add(cur)
             cur = nxt.get(cur)
         out.append(chain)
-    for tid in info:                        # any leftover (cycle-broken) fragment
+    for tid in info:  # any leftover (cycle-broken) fragment
         if tid not in done:
             out.append([tid])
             done.add(tid)
@@ -167,11 +168,11 @@ def lock_identity(chain_list, read_id, tracks=None):
         if votes:
             team, n = max(votes.items(), key=lambda kv: kv[1])
             scored.append((n, len(ch), i, team))
-    scored.sort(reverse=True)               # strongest evidence claims first
+    scored.sort(reverse=True)  # strongest evidence claims first
 
-    taken = defaultdict(list)               # team -> [(lo, hi), ...] already claimed
+    taken = defaultdict(list)  # team -> [(lo, hi), ...] already claimed
     for _n, _len, i, team in scored:
-        if not spans:                       # no track data: fall back to global rule
+        if not spans:  # no track data: fall back to global rule
             if team in taken:
                 continue
             taken[team].append((0, 0))
@@ -180,7 +181,7 @@ def lock_identity(chain_list, read_id, tracks=None):
             if lo is None:
                 continue
             if any(not (hi < a or lo > b) for a, b in taken[team]):
-                continue                    # a concurrent chain already holds it
+                continue  # a concurrent chain already holds it
             taken[team].append((lo, hi))
         per_chain[i] = team
         for tid in chain_list[i]:

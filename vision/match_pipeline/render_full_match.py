@@ -44,27 +44,31 @@ RESULTS = os.path.join(HERE, "results")
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
 MATCH = "2026hop_qm20"
-STRIDE = 2          # 2 = 30fps output from 60fps source. 1 = every frame (huge).
-WIDTH = 1600        # output width; height follows
-TRAIL = 90          # motion trail length, in samples
-OUT = ""            # "" = results/<MATCH>/full_match_render.mp4
+STRIDE = 2  # 2 = 30fps output from 60fps source. 1 = every frame (huge).
+WIDTH = 1600  # output width; height follows
+TRAIL = 90  # motion trail length, in samples
+OUT = ""  # "" = results/<MATCH>/full_match_render.mp4
 # ===========================================================================
 
 # (name, seconds from AUTO start, colour) -- straight from the manual timing
 PHASES = [
-    ("AUTO",       0.0,   20.0,  (90, 255, 90)),
-    ("TRANSITION", 20.0,  30.0,  (200, 200, 200)),
-    ("SHIFT 1",    30.0,  55.0,  (255, 190, 90)),
-    ("SHIFT 2",    55.0,  80.0,  (255, 160, 60)),
-    ("SHIFT 3",    80.0,  105.0, (255, 130, 40)),
-    ("SHIFT 4",    105.0, 130.0, (255, 100, 20)),
-    ("END GAME",   130.0, 160.0, (80, 80, 255)),
+    ("AUTO", 0.0, 20.0, (90, 255, 90)),
+    ("TRANSITION", 20.0, 30.0, (200, 200, 200)),
+    ("SHIFT 1", 30.0, 55.0, (255, 190, 90)),
+    ("SHIFT 2", 55.0, 80.0, (255, 160, 60)),
+    ("SHIFT 3", 80.0, 105.0, (255, 130, 40)),
+    ("SHIFT 4", 105.0, 130.0, (255, 100, 20)),
+    ("END GAME", 130.0, 160.0, (80, 80, 255)),
 ]
 
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
-SRC_COL = {"read": (90, 255, 90), "elim": (255, 220, 90),
-           "rank": (0, 165, 255), None: (170, 170, 170)}
+SRC_COL = {
+    "read": (90, 255, 90),
+    "elim": (255, 220, 90),
+    "rank": (0, 165, 255),
+    None: (170, 170, 170),
+}
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
@@ -116,13 +120,20 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
     sp = os.path.join(HERE, "steals.csv")
     if os.path.exists(sp):
         import csv as _csv
+
         with open(sp) as _f:
             for _r in _csv.DictReader(_f):
                 if _r["match"] != match:
                     continue
-                steal_ev.append((int(_r["out_frame"]), int(_r["home_frame"]),
-                                 _r.get("team", ""), int(_r["successful"]),
-                                 float(_r["max_depth_in"])))
+                steal_ev.append(
+                    (
+                        int(_r["out_frame"]),
+                        int(_r["home_frame"]),
+                        _r.get("team", ""),
+                        int(_r["successful"]),
+                        float(_r["max_depth_in"]),
+                    )
+                )
     steal_ev.sort()
 
     per_frame = defaultdict(list)
@@ -135,6 +146,7 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
     H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     from trajectories import field_crop
+
     x1, y1, x2, y2 = field_crop((H, W, 3))
 
     scale = width / float(W)
@@ -146,8 +158,9 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
     out_h = vw_h + mini_h + hud_h
 
     out = out or os.path.join(RESULTS, match, "full_match_render.mp4")
-    writer = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"),
-                             fps / max(1, stride), (width, out_h))
+    writer = cv2.VideoWriter(
+        out, cv2.VideoWriter_fourcc(*"mp4v"), fps / max(1, stride), (width, out_h)
+    )
     mapper = td.load_mapper()
     trails = defaultdict(lambda: deque(maxlen=TRAIL))
 
@@ -176,24 +189,35 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
             trails[tid].append((px, py))
             pts = list(trails[tid])
             if len(pts) >= 2:
-                cv2.polylines(canvas[0:vw_h], [np.array(pts, np.int32)], False,
-                              col, 2, cv2.LINE_AA)
+                cv2.polylines(canvas[0:vw_h], [np.array(pts, np.int32)], False, col, 2, cv2.LINE_AA)
             cv2.circle(canvas, (px, py), 7, col, -1)
             cv2.circle(canvas, (px, py), 7, (255, 255, 255), 1)
             team = tid_team.get(tid)
             src = src_by_team.get(team) if team else None
             label = f"#{team}" if team else f"t{tid}"
-            _put(canvas, label + (f" [{src}]" if src else ""),
-                 (px + 10, py - 10), SRC_COL.get(src, (170, 170, 170)), 0.5, 1)
+            _put(
+                canvas,
+                label + (f" [{src}]" if src else ""),
+                (px + 10, py - 10),
+                SRC_COL.get(src, (170, 170, 170)),
+                0.5,
+                1,
+            )
             if mapper is not None:
                 X, Y = mapper([(cx, cy)])[0]
                 if 0 <= X < td.CW and 0 <= Y < td.CH:
                     cv2.circle(board, (int(X), int(Y)), 13, col, -1)
                     cv2.circle(board, (int(X), int(Y)), 13, (255, 255, 255), 2)
                     if team:
-                        _put(board, f"#{team}", (int(X) + 16, int(Y) - 12),
-                             SRC_COL.get(src, (60, 60, 60)), 0.6, 2)
-        canvas[vw_h:vw_h + mini_h] = cv2.resize(board, (mini_w, mini_h))
+                        _put(
+                            board,
+                            f"#{team}",
+                            (int(X) + 16, int(Y) - 12),
+                            SRC_COL.get(src, (60, 60, 60)),
+                            0.6,
+                            2,
+                        )
+        canvas[vw_h : vw_h + mini_h] = cv2.resize(board, (mini_w, mini_h))
 
         # ---- HUD: clock, phase, and a phase bar that matches TBA's shift fields
         y0 = vw_h + mini_h
@@ -201,20 +225,39 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
         _put(canvas, match, (14, y0 + 30), (255, 255, 255), 0.72, 2)
         _put(canvas, f"t={sec:6.1f}s", (250, y0 + 30), (200, 200, 200), 0.66, 2)
         _put(canvas, pname, (410, y0 + 30), pcol, 0.78, 2)
-        _put(canvas, f"{len(live)} robots tracked", (620, y0 + 30),
-             (200, 200, 200) if len(live) == 6 else (0, 165, 255), 0.6, 2)
-        _put(canvas, "green=read  yellow=elimination  orange=UNVERIFIED rank guess",
-             (900, y0 + 30), (150, 150, 150), 0.5, 1)
+        _put(
+            canvas,
+            f"{len(live)} robots tracked",
+            (620, y0 + 30),
+            (200, 200, 200) if len(live) == 6 else (0, 165, 255),
+            0.6,
+            2,
+        )
+        _put(
+            canvas,
+            "green=read  yellow=elimination  orange=UNVERIFIED rank guess",
+            (900, y0 + 30),
+            (150, 150, 150),
+            0.5,
+            1,
+        )
         # active steals: a robot currently in the opponent half on a round trip
         live_st = [e for e in steal_ev if e[0] <= f <= e[1]]
         if live_st:
             txt = "  ".join(
                 f"#{t or '?'} STEAL {d:.0f}in" + (" OK" if ok else "")
-                for _a, _b, t, ok, d in live_st[:3])
+                for _a, _b, t, ok, d in live_st[:3]
+            )
             _put(canvas, txt, (14, vw_h + mini_h - 14), (60, 230, 255), 0.62, 2)
         done = sum(1 for e in steal_ev if e[1] <= f)
-        _put(canvas, f"steals so far: {done}/{len(steal_ev)}",
-             (width - 250, y0 + 30), (60, 230, 255), 0.55, 2)
+        _put(
+            canvas,
+            f"steals so far: {done}/{len(steal_ev)}",
+            (width - 250, y0 + 30),
+            (60, 230, 255),
+            0.55,
+            2,
+        )
         bx0, bx1 = 14, width - 14
         by = y0 + 58
         span = PHASES[-1][2]
@@ -222,8 +265,7 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
             xa = int(bx0 + (bx1 - bx0) * a / span)
             xb = int(bx0 + (bx1 - bx0) * b / span)
             cv2.rectangle(canvas, (xa, by), (xb - 2, by + 22), col, -1)
-            _put(canvas, name.replace("SHIFT ", "S"), (xa + 5, by + 17),
-                 (20, 20, 20), 0.42, 1)
+            _put(canvas, name.replace("SHIFT ", "S"), (xa + 5, by + 17), (20, 20, 20), 0.42, 1)
         if 0 <= sec <= span:
             cur = int(bx0 + (bx1 - bx0) * sec / span)
             cv2.line(canvas, (cur, by - 5), (cur, by + 27), (255, 255, 255), 3)

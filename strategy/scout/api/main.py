@@ -33,7 +33,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 # Scouting video directory (vision output).
-SCOUTING_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
+SCOUTING_ROOT = (
+    Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
+)
 
 from scout.config import SYNTHESIS_MODEL, BOT_MODEL
 from scout.db import init_db, cache_stats, cache_clear, cache_purge_expired
@@ -52,7 +54,9 @@ from scout.engine.synthesis_engine import (
 )
 from scout.engine.ollama_client import stream_chat_verbose
 from scout.engine.vision_loader import (
-    get_team_vision, get_match_vision, build_scouting_notes,
+    get_team_vision,
+    get_match_vision,
+    build_scouting_notes,
 )
 from scout.settings import get_my_team, set_my_team
 
@@ -80,6 +84,7 @@ def _startup() -> None:
 
 
 # ── Request models ─────────────────────────────────────────────────────────────
+
 
 class MatchupRequest(BaseModel):
     red_teams: list[int] = Field(..., description="Exactly 3 red team numbers")
@@ -110,6 +115,7 @@ class SettingsBody(BaseModel):
 
 # ── Helpers ─────────────────────────────────────────────────────────────────────
 
+
 def _event(kind: str, **extra) -> str:
     return json.dumps({"type": kind, **extra}) + "\n"
 
@@ -121,6 +127,7 @@ def _require_ollama():
 
 def _stream_read(system: str, user: str, model: str):
     """NDJSON generator for a single streamed read (thinking + content + done)."""
+
     def gen():
         try:
             for kind, text in stream_chat_verbose(model, system, user):
@@ -128,10 +135,12 @@ def _stream_read(system: str, user: str, model: str):
             yield _event("done")
         except Exception as e:
             yield _event("error", text=str(e))
+
     return StreamingResponse(gen(), media_type="application/x-ndjson")
 
 
 # ── Status / settings ───────────────────────────────────────────────────────────
+
 
 @app.get("/health")
 def health() -> dict:
@@ -172,6 +181,7 @@ def write_settings(body: SettingsBody) -> dict:
 
 # ── Data ────────────────────────────────────────────────────────────────────────
 
+
 @app.get("/events/{event_key}/matches")
 def event_matches(event_key: str) -> dict:
     matches = data_source.get_event_matches(event_key)
@@ -179,6 +189,7 @@ def event_matches(event_key: str) -> dict:
 
 
 # ── Scouting videos (vision output) ────────────────────────────────────────
+
 
 @app.get("/scouting/videos")
 def scouting_videos() -> dict:
@@ -192,12 +203,22 @@ def scouting_videos() -> dict:
         # Prefer full_match_render.mp4 (annotated); fall back to any .mp4 in the dir.
         annotated = match_dir / "full_match_render.mp4"
         if annotated.exists():
-            videos.append({"match_key": match_dir.name, "file": "full_match_render.mp4",
-                           "size_mb": round(annotated.stat().st_size / 1e6, 1)})
+            videos.append(
+                {
+                    "match_key": match_dir.name,
+                    "file": "full_match_render.mp4",
+                    "size_mb": round(annotated.stat().st_size / 1e6, 1),
+                }
+            )
             continue
         for mp4 in match_dir.glob("*.mp4"):
-            videos.append({"match_key": match_dir.name, "file": mp4.name,
-                           "size_mb": round(mp4.stat().st_size / 1e6, 1)})
+            videos.append(
+                {
+                    "match_key": match_dir.name,
+                    "file": mp4.name,
+                    "size_mb": round(mp4.stat().st_size / 1e6, 1),
+                }
+            )
             break
     return {"videos": videos, "count": len(videos)}
 
@@ -276,12 +297,14 @@ def scouting_matches() -> dict:
             size_mb = round(render_file.stat().st_size / 1e6, 1)
             render_status = "fresh" if _render_is_fresh(match_dir, current_hash) else "stale"
 
-        matches.append({
-            "match_key": match_dir.name,
-            "ready_to_render": ready_to_render,
-            "render_status": render_status,
-            "size_mb": size_mb,
-        })
+        matches.append(
+            {
+                "match_key": match_dir.name,
+                "ready_to_render": ready_to_render,
+                "render_status": render_status,
+                "size_mb": size_mb,
+            }
+        )
     return {"matches": matches, "count": len(matches)}
 
 
@@ -384,6 +407,7 @@ def scouting_render_status(match_key: str) -> dict:
 
 # ── Vision (vision output) ────────────────────────────────────────────────
 
+
 @app.get("/vision/team/{team}")
 def vision_team(team: int, event_prefix: str = "2026hop") -> dict:
     """Aggregated vision stats for one team across an event. 6h cache."""
@@ -436,6 +460,7 @@ def vision_snapshot(team: int, event_prefix: str = "2026hop") -> dict:
         # e.g. "2026hop_qm28" -> (0, 28); "2026hop_sf1m1" -> (1, 1)
         tail = match_key.rsplit("_", 1)[-1]
         import re
+
         m = re.search(r"(\d+)", tail)
         n = int(m.group(1)) if m else 0
         stage = 0 if tail.startswith("qm") else 1
@@ -463,6 +488,7 @@ def scouting_clip(team: int, match_key: str):
     just takes seconds 20-50 (auto → early teleop). Cached on disk.
     """
     import subprocess
+
     clip_path = _CLIPS_ROOT / f"{match_key}_{team}.mp4"
     if clip_path.exists() and clip_path.stat().st_size > 0:
         return FileResponse(clip_path, media_type="video/mp4")
@@ -480,10 +506,31 @@ def scouting_clip(team: int, match_key: str):
     # -ss BEFORE -i uses fast seek; slight A/V drift is fine for a preview.
     try:
         subprocess.run(
-            [ffmpeg, "-y", "-ss", "15", "-i", str(source), "-t", "30",
-             "-vf", "scale=720:-2", "-c:v", "libx264", "-preset", "veryfast",
-             "-crf", "28", "-an", "-movflags", "+faststart", str(clip_path)],
-            capture_output=True, timeout=90, check=True,
+            [
+                ffmpeg,
+                "-y",
+                "-ss",
+                "15",
+                "-i",
+                str(source),
+                "-t",
+                "30",
+                "-vf",
+                "scale=720:-2",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "28",
+                "-an",
+                "-movflags",
+                "+faststart",
+                str(clip_path),
+            ],
+            capture_output=True,
+            timeout=90,
+            check=True,
         )
     except subprocess.CalledProcessError as e:
         raise HTTPException(500, f"ffmpeg failed: {e.stderr.decode()[-300:]}")
@@ -523,6 +570,7 @@ def predict(req: MatchupRequest) -> dict:
 
 
 # ── Streaming reads (NDJSON) ─────────────────────────────────────────────────────
+
 
 @app.post("/roles")
 def roles(req: MatchupRequest) -> dict:
@@ -587,16 +635,16 @@ def bots_stream(req: MatchupRequest) -> StreamingResponse:
     """Stream a per-robot read for all 6 teams (fast bot model), tagged by team."""
     _require_ollama()
     prediction = predict_match(req.red_teams, req.blue_teams, year=req.year)
-    teams = (
-        [(s, "red") for s in prediction["red_stats"]]
-        + [(s, "blue") for s in prediction["blue_stats"]]
-    )
+    teams = [(s, "red") for s in prediction["red_stats"]] + [
+        (s, "blue") for s in prediction["blue_stats"]
+    ]
 
     def gen():
         try:
             for stats, side in teams:
-                yield _event("bot_start", team=stats["team"],
-                             name=stats.get("name", "Unknown"), side=side)
+                yield _event(
+                    "bot_start", team=stats["team"], name=stats.get("name", "Unknown"), side=side
+                )
                 for kind, text in stream_bot_analysis(stats):
                     if kind == "content":
                         yield _event("content", team=stats["team"], text=text)

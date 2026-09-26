@@ -75,16 +75,18 @@ def load_sequences(mapper):
             delay = _start_delay_s(pts)
             duration = round(path[-1][0] - path[0][0], 2) if len(path) >= 2 else 0.0
 
-            seqs.append({
-                "match": match,
-                "station": station,
-                "team": team,
-                "alliance": o.get("alliance", ""),
-                "source": o.get("source", "none"),
-                "zone_seq": zone_seq,
-                "start_delay_s": delay,
-                "duration_s": duration,
-            })
+            seqs.append(
+                {
+                    "match": match,
+                    "station": station,
+                    "team": team,
+                    "alliance": o.get("alliance", ""),
+                    "source": o.get("source", "none"),
+                    "zone_seq": zone_seq,
+                    "start_delay_s": delay,
+                    "duration_s": duration,
+                }
+            )
     return seqs
 
 
@@ -102,9 +104,8 @@ def _already_labelled():
 
 def _show(seq, idx, total):
     team_str = seq["team"].replace("frc", "#") if seq["team"] else "unknown"
-    print(f"\n{'='*62}")
-    print(f"[{idx}/{total}]  {seq['match']} / {seq['station']} / {team_str}"
-          f"  ({seq['source']})")
+    print(f"\n{'=' * 62}")
+    print(f"[{idx}/{total}]  {seq['match']} / {seq['station']} / {team_str}  ({seq['source']})")
     print(f"Alliance: {seq['alliance']}")
     zone_str = " → ".join(seq["zone_seq"]) if seq["zone_seq"] else "(no zones detected)"
     print(f"Zones:    {zone_str}")
@@ -114,10 +115,10 @@ def _show(seq, idx, total):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--count", type=int, default=0,
-                   help="dry run: preview this many sequences without saving")
-    p.add_argument("--all", action="store_true",
-                   help="re-label already-labelled sequences too")
+    p.add_argument(
+        "--count", type=int, default=0, help="dry run: preview this many sequences without saving"
+    )
+    p.add_argument("--all", action="store_true", help="re-label already-labelled sequences too")
     a = p.parse_args()
 
     mapper = td.load_mapper()
@@ -130,15 +131,15 @@ def main():
         raise SystemExit("No valid auto_paths.json found in results/")
 
     done = set() if a.all else _already_labelled()
-    pending = [s for s in seqs
-               if (s["match"], s["station"]) not in done and s["zone_seq"]]
+    pending = [s for s in seqs if (s["match"], s["station"]) not in done and s["zone_seq"]]
 
     if a.count:
         show_n = min(a.count, len(pending))
         for i, seq in enumerate(pending[:show_n]):
             _show(seq, i + 1, show_n)
-        print(f"({len(pending)} unlabelled sequences total, "
-              f"{len(seqs) - len(pending)} already done)")
+        print(
+            f"({len(pending)} unlabelled sequences total, {len(seqs) - len(pending)} already done)"
+        )
         return
 
     if not pending:

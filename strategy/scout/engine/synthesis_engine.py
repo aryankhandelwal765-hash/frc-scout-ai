@@ -93,11 +93,25 @@ def build_strategy_brief(prediction: dict, notes: str | None = None) -> dict:
 
     text = (
         "2026 FRC match analysis.\n\n"
-        + _alliance_block("RED", prediction["red_teams"], red_arch, red_vol, red_chem,
-                          prediction["red_predicted_score"], red_pct)
+        + _alliance_block(
+            "RED",
+            prediction["red_teams"],
+            red_arch,
+            red_vol,
+            red_chem,
+            prediction["red_predicted_score"],
+            red_pct,
+        )
         + "\n\n"
-        + _alliance_block("BLUE", prediction["blue_teams"], blue_arch, blue_vol, blue_chem,
-                          prediction["blue_predicted_score"], blue_pct)
+        + _alliance_block(
+            "BLUE",
+            prediction["blue_teams"],
+            blue_arch,
+            blue_vol,
+            blue_chem,
+            prediction["blue_predicted_score"],
+            blue_pct,
+        )
         + f"\n\nEPA edge: {'RED' if prediction['epa_diff'] > 0 else 'BLUE'} favored by "
         f"{abs(prediction['epa_diff']):.1f} EPA points."
     )
@@ -106,6 +120,7 @@ def build_strategy_brief(prediction: dict, notes: str | None = None) -> dict:
     # aggregate stats so the LLM sees the aggregate + the measured behavior.
     # Only inserted for teams that have any vision data — degrades silently.
     from scout.engine.vision_loader import get_team_vision, get_team_auto_routes
+
     vision_lines = []
     auto_lines = []
     for team in prediction["red_teams"] + prediction["blue_teams"]:
@@ -142,7 +157,9 @@ def build_strategy_brief(prediction: dict, notes: str | None = None) -> dict:
         )
 
     if notes and notes.strip():
-        text += f"\n\nHUMAN SCOUTING NOTES (qualitative, may override the numbers):\n{notes.strip()}"
+        text += (
+            f"\n\nHUMAN SCOUTING NOTES (qualitative, may override the numbers):\n{notes.strip()}"
+        )
 
     return {
         "text": text,
@@ -202,8 +219,9 @@ BOT_SYSTEM_PROMPT = (
 )
 
 
-def build_bot_brief(stats: dict, archetype: dict | None = None,
-                    volatility: dict | None = None) -> str:
+def build_bot_brief(
+    stats: dict, archetype: dict | None = None, volatility: dict | None = None
+) -> str:
     """One robot's data as a compact, correctly-labeled prompt for per-bot analysis."""
     a = archetype or classify_archetype(stats)
     v = volatility or profile_volatility(stats)
@@ -218,19 +236,23 @@ def build_bot_brief(stats: dict, archetype: dict | None = None,
     return (
         f"Team {stats['team']} ({stats.get('name', 'Unknown')})\n"
         f"Playstyle: {a['archetype']} — Main phase: {a['dominant_phase']}\n"
-        f"Scoring split: auto {shares['auto']*100:.0f}% / "
-        f"teleop {shares['teleop']*100:.0f}%\n"
+        f"Scoring split: auto {shares['auto'] * 100:.0f}% / "
+        f"teleop {shares['teleop'] * 100:.0f}%\n"
         f"Avg points added: {stats['epa']:.0f} per match "
         f"(bad-day floor ~{v['floor']:.0f}, best-day ceiling ~{v['ceiling']:.0f})\n"
         f"Reliability: {reliability} (consistency {v['consistency_score']:.1f}/10)\n"
         f"Record: {stats['wins']}-{stats['losses']}-{stats['ties']} "
-        f"({stats['winrate']*100:.0f}% wins)"
+        f"({stats['winrate'] * 100:.0f}% wins)"
     )
 
 
-def stream_bot_analysis(stats: dict, archetype: dict | None = None,
-                        volatility: dict | None = None, model: str | None = None,
-                        think: bool = False):
+def stream_bot_analysis(
+    stats: dict,
+    archetype: dict | None = None,
+    volatility: dict | None = None,
+    model: str | None = None,
+    think: bool = False,
+):
     """Stream a short per-robot read (3 tight lines). Uses BOT_MODEL, disables
     thinking, and hard-caps length via num_predict so it stays brief."""
     brief = build_bot_brief(stats, archetype, volatility)
@@ -259,6 +281,7 @@ ROLES_SYSTEM_PROMPT = (
 
 def build_roles_brief(prediction: dict, brief: dict) -> str:
     """Compact all six robots (with match rank + phase split) into one prompt."""
+
     def block(side: str, arch: list[dict]) -> list[str]:
         out = []
         for a in arch:
@@ -267,7 +290,7 @@ def build_roles_brief(prediction: dict, brief: dict) -> str:
                 f"  [{side.upper()}] #{a.get('match_rank', '?')} "
                 f"Team {a['team']} ({a.get('name', 'Unknown')}): "
                 f"OPR {a['epa']:.0f}, "
-                f"auto {s['auto']*100:.0f}% / teleop {s['teleop']*100:.0f}%"
+                f"auto {s['auto'] * 100:.0f}% / teleop {s['teleop'] * 100:.0f}%"
             )
         return out
 
@@ -294,8 +317,7 @@ def _parse_roles_json(raw: str) -> dict:
     return {}
 
 
-def generate_roles(prediction: dict, brief: dict | None = None,
-                   model: str | None = None) -> dict:
+def generate_roles(prediction: dict, brief: dict | None = None, model: str | None = None) -> dict:
     """Return {team_number(str): main-job phrase(str)} for all six robots.
 
     One batched call to the fast bot model (thinking disabled), JSON-formatted,
@@ -311,6 +333,7 @@ def generate_roles(prediction: dict, brief: dict | None = None,
 
 
 # ── My-team coaching ────────────────────────────────────────────────────────────
+
 
 def coach_system_prompt(my_team: int, alliance: str) -> str:
     return (
@@ -342,15 +365,13 @@ def build_coach_brief(prediction: dict, brief: dict, my_team: int) -> tuple[str,
         raise ValueError(f"Team {my_team} is not in this match.")
     system = coach_system_prompt(my_team, alliance)
     user = (
-        brief["text"]
-        + f"\n\nYou are coaching Team {my_team} (on the {alliance} alliance). "
+        brief["text"] + f"\n\nYou are coaching Team {my_team} (on the {alliance} alliance). "
         f"Give {my_team}'s winning game plan."
     )
     return system, user
 
 
-def stream_coaching(prediction: dict, brief: dict, my_team: int,
-                    model: str | None = None):
+def stream_coaching(prediction: dict, brief: dict, my_team: int, model: str | None = None):
     """Stream a coaching read tailored to my_team. Uses the 35b model by default."""
     system, user = build_coach_brief(prediction, brief, my_team)
     model = model or SYNTHESIS_MODEL
@@ -359,8 +380,10 @@ def stream_coaching(prediction: dict, brief: dict, my_team: int,
 
 # ── Captain's briefing (alliance-level) ─────────────────────────────────────────
 
-def captain_system_prompt(our_teams: list[int], opp_teams: list[int],
-                          our_side: str, opp_side: str) -> str:
+
+def captain_system_prompt(
+    our_teams: list[int], opp_teams: list[int], our_side: str, opp_side: str
+) -> str:
     return (
         f"You are captain of the {our_side.upper()} alliance ({our_teams}), vs "
         f"{opp_side.upper()} ({opp_teams}). Deliver a TIGHT pre-match briefing to "
@@ -383,23 +406,27 @@ def build_captain_brief(prediction: dict, brief: dict, our_side: str) -> tuple[s
     """
     if our_side == "red":
         our, opp, our_lbl, opp_lbl = (
-            prediction["red_teams"], prediction["blue_teams"], "RED", "BLUE",
+            prediction["red_teams"],
+            prediction["blue_teams"],
+            "RED",
+            "BLUE",
         )
     else:
         our, opp, our_lbl, opp_lbl = (
-            prediction["blue_teams"], prediction["red_teams"], "BLUE", "RED",
+            prediction["blue_teams"],
+            prediction["red_teams"],
+            "BLUE",
+            "RED",
         )
     system = captain_system_prompt(our, opp, our_lbl, opp_lbl)
     user = (
-        brief["text"]
-        + f"\n\nYou are captaining the {our_lbl} alliance ({our}). "
+        brief["text"] + f"\n\nYou are captaining the {our_lbl} alliance ({our}). "
         f"Give the briefing for {our_lbl}."
     )
     return system, user
 
 
-def stream_captain(prediction: dict, brief: dict, our_side: str,
-                   model: str | None = None):
+def stream_captain(prediction: dict, brief: dict, our_side: str, model: str | None = None):
     """Stream an alliance captain's briefing. Uses the 35b model by default."""
     system, user = build_captain_brief(prediction, brief, our_side)
     model = model or SYNTHESIS_MODEL

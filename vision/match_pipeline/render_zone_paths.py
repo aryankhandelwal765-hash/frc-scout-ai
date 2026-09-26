@@ -72,10 +72,16 @@ def render_zone_sequence(zone_seq, title="", alliance="blue"):
     valid = [z for z in zone_seq if z in zones.ZONES]
     if not valid:
         if title:
-            cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.75, (100, 100, 100), 2)
-        cv2.putText(img, "No zones detected", (16, td.CH // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (140, 140, 140), 2)
+            cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
+        cv2.putText(
+            img,
+            "No zones detected",
+            (16, td.CH // 2),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (140, 140, 140),
+            2,
+        )
         return img
 
     n = len(valid)
@@ -109,34 +115,47 @@ def render_zone_sequence(zone_seq, title="", alliance="blue"):
         cv2.circle(img, center, 20, col, 3)
         num = str(i + 1)
         tw, th = cv2.getTextSize(num, cv2.FONT_HERSHEY_SIMPLEX, 0.65, 2)[0]
-        cv2.putText(img, num, (center[0] - tw // 2, center[1] + th // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.65, (20, 20, 20), 2)
+        cv2.putText(
+            img,
+            num,
+            (center[0] - tw // 2, center[1] + th // 2),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.65,
+            (20, 20, 20),
+            2,
+        )
 
     # Short zone labels offset from center
     for i, (zone_name, center) in enumerate(zip(valid, centers)):
-        short = (zone_name
-                 .replace("Neutral ", "N.")
-                 .replace("Blue ", "B.")
-                 .replace("Red ", "R.")
-                 .replace(" Trench", " Tr")
-                 .replace(" Bump", " Bmp"))
+        short = (
+            zone_name.replace("Neutral ", "N.")
+            .replace("Blue ", "B.")
+            .replace("Red ", "R.")
+            .replace(" Trench", " Tr")
+            .replace(" Bump", " Bmp")
+        )
         lx, ly = center[0] + 24, center[1] + 6
-        cv2.putText(img, short, (lx, ly), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.40, (255, 255, 255), 4, cv2.LINE_AA)
-        cv2.putText(img, short, (lx, ly), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.40, (20, 20, 20), 1, cv2.LINE_AA)
+        cv2.putText(
+            img, short, (lx, ly), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 4, cv2.LINE_AA
+        )
+        cv2.putText(
+            img, short, (lx, ly), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (20, 20, 20), 1, cv2.LINE_AA
+        )
 
     # Title
     if title:
-        cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.75, (255, 255, 255), 6, cv2.LINE_AA)
-        cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.75, (20, 20, 20), 2, cv2.LINE_AA)
+        cv2.putText(
+            img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 6, cv2.LINE_AA
+        )
+        cv2.putText(
+            img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (20, 20, 20), 2, cv2.LINE_AA
+        )
 
     # Legend bottom
-    legend = "  ".join(f"{i+1}={z}" for i, z in enumerate(valid))
-    cv2.putText(img, legend[:120], (16, td.CH - 16), cv2.FONT_HERSHEY_SIMPLEX,
-                0.38, (80, 80, 80), 1)
+    legend = "  ".join(f"{i + 1}={z}" for i, z in enumerate(valid))
+    cv2.putText(
+        img, legend[:120], (16, td.CH - 16), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (80, 80, 80), 1
+    )
 
     return img
 
@@ -162,8 +181,9 @@ def render_match_zone_paths(match, force=False):
         team_label = team.replace("frc", "#") if str(team).startswith("frc") else str(team)
         name = info.get("name", "")
         title = f"{team_label}  {match}  {name}"
-        img = render_zone_sequence(info["zone_seq"], title=title,
-                                   alliance=info.get("alliance", "blue"))
+        img = render_zone_sequence(
+            info["zone_seq"], title=title, alliance=info.get("alliance", "blue")
+        )
         cv2.imwrite(out, img)
         n += 1
     return n
@@ -189,8 +209,9 @@ def render_team_zone_grid(team, force=False):
                 continue
             name = info.get("name", "")
             title = f"{match} {station} {name}"
-            img = render_zone_sequence(info["zone_seq"], title=title,
-                                       alliance=info.get("alliance", "blue"))
+            img = render_zone_sequence(
+                info["zone_seq"], title=title, alliance=info.get("alliance", "blue")
+            )
             # Thumbnail: scale to 1/3
             h, w = img.shape[:2]
             thumb = cv2.resize(img, (w // 3, h // 3))
@@ -207,7 +228,7 @@ def render_team_zone_grid(team, force=False):
         frames.append(np.full_like(frames[0], 240))
     grid_rows = []
     for r in range(rows):
-        grid_rows.append(np.hstack(frames[r * cols:(r + 1) * cols]))
+        grid_rows.append(np.hstack(frames[r * cols : (r + 1) * cols]))
     grid = np.vstack(grid_rows)
     cv2.imwrite(out, grid)
     return out
@@ -227,6 +248,7 @@ def render_team_zone_aggregate(team, force=False, start_side=None):
         return out
 
     from collections import Counter
+
     zone_counts: Counter = Counter()
     transition_counts: Counter = Counter()
     n_matches = 0
@@ -262,11 +284,14 @@ def render_team_zone_aggregate(team, force=False, start_side=None):
     # Semi-transparent zone fills scaled by visit frequency
     overlay = img.copy()
     for zone_name, count in zone_counts.items():
-        intensity = count / max_visits          # 0..1
+        intensity = count / max_visits  # 0..1
         px0, py0, px1, py1 = _zone_rect_canvas(zone_name)
         # Blue tint scaled by intensity
-        col = (int(40 + 180 * intensity), int(60 + 140 * (1 - intensity)),
-               int(20 + 220 * intensity))
+        col = (
+            int(40 + 180 * intensity),
+            int(60 + 140 * (1 - intensity)),
+            int(20 + 220 * intensity),
+        )
         cv2.rectangle(overlay, (px0, py0), (px1, py1), col, -1)
     cv2.addWeighted(overlay, 0.45, img, 0.55, 0, img)
 
@@ -274,8 +299,11 @@ def render_team_zone_aggregate(team, force=False, start_side=None):
     for zone_name, count in zone_counts.items():
         px0, py0, px1, py1 = _zone_rect_canvas(zone_name)
         intensity = count / max_visits
-        col = (int(40 + 180 * intensity), int(60 + 140 * (1 - intensity)),
-               int(20 + 220 * intensity))
+        col = (
+            int(40 + 180 * intensity),
+            int(60 + 140 * (1 - intensity)),
+            int(20 + 220 * intensity),
+        )
         cv2.rectangle(img, (px0, py0), (px1, py1), col, 2)
 
         cx, cy = _zone_center_canvas(zone_name)
@@ -283,16 +311,37 @@ def render_team_zone_aggregate(team, force=False, start_side=None):
         tw, th = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
         cv2.circle(img, (cx, cy), 18, (255, 255, 255), -1)
         cv2.circle(img, (cx, cy), 18, col, 3)
-        cv2.putText(img, lbl, (cx - tw // 2, cy + th // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (20, 20, 20), 2)
+        cv2.putText(
+            img, lbl, (cx - tw // 2, cy + th // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (20, 20, 20), 2
+        )
 
-        short = (zone_name.replace("Neutral ", "N.").replace("Blue ", "B.")
-                 .replace("Red ", "R.").replace(" Trench", " Tr")
-                 .replace(" Bump", " Bmp"))
-        cv2.putText(img, short, (cx + 22, cy + 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.36, (255, 255, 255), 4, cv2.LINE_AA)
-        cv2.putText(img, short, (cx + 22, cy + 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.36, (20, 20, 20), 1, cv2.LINE_AA)
+        short = (
+            zone_name.replace("Neutral ", "N.")
+            .replace("Blue ", "B.")
+            .replace("Red ", "R.")
+            .replace(" Trench", " Tr")
+            .replace(" Bump", " Bmp")
+        )
+        cv2.putText(
+            img,
+            short,
+            (cx + 22, cy + 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.36,
+            (255, 255, 255),
+            4,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            short,
+            (cx + 22, cy + 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.36,
+            (20, 20, 20),
+            1,
+            cv2.LINE_AA,
+        )
 
     # Transition arrows: thickness ∝ frequency
     for (a, b), count in sorted(transition_counts.items(), key=lambda x: x[1]):
@@ -302,27 +351,41 @@ def render_team_zone_aggregate(team, force=False, start_side=None):
         t = count / max_trans
         thick = max(1, int(1 + 7 * t))
         alpha_col = (int(220 * t), int(180 * t), int(220 * t))
-        cv2.arrowedLine(img, ca, cb, (255, 255, 255), thick + 3,
-                        cv2.LINE_AA, tipLength=0.1)
-        cv2.arrowedLine(img, ca, cb, alpha_col, thick,
-                        cv2.LINE_AA, tipLength=0.1)
+        cv2.arrowedLine(img, ca, cb, (255, 255, 255), thick + 3, cv2.LINE_AA, tipLength=0.1)
+        cv2.arrowedLine(img, ca, cb, alpha_col, thick, cv2.LINE_AA, tipLength=0.1)
         # Count on thicker arrows
         if count >= 2:
             mid = ((ca[0] + cb[0]) // 2, (ca[1] + cb[1]) // 2)
-            cv2.putText(img, str(count), mid, cv2.FONT_HERSHEY_SIMPLEX,
-                        0.45, (255, 255, 255), 4, cv2.LINE_AA)
-            cv2.putText(img, str(count), mid, cv2.FONT_HERSHEY_SIMPLEX,
-                        0.45, (30, 30, 30), 1, cv2.LINE_AA)
+            cv2.putText(
+                img,
+                str(count),
+                mid,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.45,
+                (255, 255, 255),
+                4,
+                cv2.LINE_AA,
+            )
+            cv2.putText(
+                img, str(count), mid, cv2.FONT_HERSHEY_SIMPLEX, 0.45, (30, 30, 30), 1, cv2.LINE_AA
+            )
 
     team_label = team.replace("frc", "#") if str(team).startswith("frc") else team
     side_label = f"  [{start_side.upper()} START]" if start_side else ""
     title = f"{team_label}  AUTO ZONE AGGREGATE{side_label}  ({n_matches} matches)"
-    cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX,
-                0.75, (255, 255, 255), 6, cv2.LINE_AA)
-    cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX,
-                0.75, (20, 20, 20), 2, cv2.LINE_AA)
-    cv2.putText(img, "circle = visit count   arrow thickness = transition frequency",
-                (16, td.CH - 16), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (80, 80, 80), 1)
+    cv2.putText(
+        img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 6, cv2.LINE_AA
+    )
+    cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (20, 20, 20), 2, cv2.LINE_AA)
+    cv2.putText(
+        img,
+        "circle = visit count   arrow thickness = transition frequency",
+        (16, td.CH - 16),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.40,
+        (80, 80, 80),
+        1,
+    )
 
     cv2.imwrite(out, img)
     return out

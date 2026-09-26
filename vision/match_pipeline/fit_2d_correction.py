@@ -45,10 +45,10 @@ import zones
 RESULTS = os.path.join(HERE, "results")
 CALIB = os.path.join(HERE, "calib.json")
 
-DEGREE = 2          # polynomial degree; 6 coefficients for 2D degree-2
-TRIM = 0.15         # trim this fraction from each Y-bin's tail before fitting
-MIN_TRACK = 60      # ignore short tracks (robot left frame early / ID flicker)
-FRAME_TOL = 4       # frames around detected start frame that count as "at start"
+DEGREE = 2  # polynomial degree; 6 coefficients for 2D degree-2
+TRIM = 0.15  # trim this fraction from each Y-bin's tail before fitting
+MIN_TRACK = 60  # ignore short tracks (robot left frame early / ID flicker)
+FRAME_TOL = 4  # frames around detected start frame that count as "at start"
 BOUNDARY_WEIGHT = 0.3  # weight of field-boundary soft constraints vs starting-line
 
 
@@ -58,7 +58,7 @@ def _poly2d_features(X, Y, degree=2):
     cols = [np.ones_like(x)]
     for d in range(1, degree + 1):
         for i in range(d + 1):
-            cols.append(x ** (d - i) * y ** i)
+            cols.append(x ** (d - i) * y**i)
     return np.column_stack(cols)
 
 
@@ -123,6 +123,7 @@ def boundary_obs(mapper, clamp_margin=15.0):
     pairs = []
     for tcsv in sorted(glob.glob(os.path.join(RESULTS, "*", "trajectory.csv"))):
         import csv
+
         with open(tcsv) as f:
             for row in csv.DictReader(f):
                 cx, cy = float(row["cx"]), float(row["cy"])
@@ -130,7 +131,7 @@ def boundary_obs(mapper, clamp_margin=15.0):
                 fi = zones.to_field_inches(canvas_xy)[0]
                 raw_x, raw_y = fi[0], fi[1]
                 if raw_y < -clamp_margin:
-                    pairs.append((raw_x, raw_y, raw_x, 0.0))        # true Y = 0
+                    pairs.append((raw_x, raw_y, raw_x, 0.0))  # true Y = 0
                 elif raw_y > zones.FIELD_WID + clamp_margin:
                     pairs.append((raw_x, raw_y, raw_x, zones.FIELD_WID))  # true Y = FIELD_WID
     return pairs
@@ -154,14 +155,15 @@ def fit(obs_3col, boundary_pairs, degree=DEGREE, trim=TRIM, bins=8, reg=0.5):
             continue
         v = np.sort(err_x[m])
         k = int(len(v) * trim)
-        v = v[k:len(v) - k] if len(v) - 2 * k >= 3 else v
+        v = v[k : len(v) - k] if len(v) - 2 * k >= 3 else v
         xs_b.append((a + b) / 2.0)
         ex_b.append(float(np.median(v)))
         w_b.append(float(m.sum()))
 
     if len(xs_b) < degree + 1:
-        raise SystemExit("Not enough Y-bin observations to fit X correction. "
-                         "Run batch_auto.py first.")
+        raise SystemExit(
+            "Not enough Y-bin observations to fit X correction. Run batch_auto.py first."
+        )
 
     # Fit coef_x: poly2d(raw_X, raw_Y) -> X error
     # Primary signal: binned medians along Y (X held at starting-line X ≈ 158.6 or 492.6)
@@ -202,10 +204,14 @@ def report(mapper, coef_x, coef_y, obs_3col, degree=DEGREE):
     err_before = np.abs(true_x - raw_x)
     err_after = np.abs(true_x - (raw_x + dx))
     print(f"\n  Observations: {len(raw_x)} robots on a starting line")
-    print(f"  X error before: median={np.median(err_before):.1f}in  "
-          f"p90={np.percentile(err_before, 90):.1f}in")
-    print(f"  X error after:  median={np.median(err_after):.1f}in  "
-          f"p90={np.percentile(err_after, 90):.1f}in")
+    print(
+        f"  X error before: median={np.median(err_before):.1f}in  "
+        f"p90={np.percentile(err_before, 90):.1f}in"
+    )
+    print(
+        f"  X error after:  median={np.median(err_after):.1f}in  "
+        f"p90={np.percentile(err_after, 90):.1f}in"
+    )
 
 
 def main():
@@ -231,8 +237,10 @@ def main():
         print("Collecting starting-line observations ...")
         obs = starting_line_obs(mapper)
         if len(obs) < 20:
-            raise SystemExit(f"Only {len(obs)} starting-line observations -- "
-                             "run batch_auto.py on at least a few matches first")
+            raise SystemExit(
+                f"Only {len(obs)} starting-line observations -- "
+                "run batch_auto.py on at least a few matches first"
+            )
 
         print("Collecting field-boundary constraints ...")
         bp = boundary_obs(mapper)

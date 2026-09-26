@@ -42,18 +42,18 @@ OUTDIR = os.path.join(HERE, "team_routes")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-TEAM = ""             # e.g. "frc2056"; "" = every team
-MIN_RUNS = 3          # a team needs this many usable autos to get a page
-SAMPLES = 60          # points each path is resampled to before averaging
-MAX_CLUSTERS = 3      # most start-groups to split a team into
-SPLIT_DIST = 170      # cluster centres closer than this (top-down px) are one group
-ONTIME_ONLY = True    # only use runs whose track exists at the auto-window start.
-                      # A run picked up mid-auto has no meaningful start position --
-                      # measured: only 58% of paths begin within 0.5s of the window,
-                      # and the rest begin up to 8s late.
-ONTIME_FRAMES = 30    # "at the start" = within this many frames of the window start
-DELAY_SPLIT_S = 1.5   # gap between fast and slow sub-groups to count as "delayed" variant
-DELAY_MIN_EACH = 2    # both sub-groups need at least this many runs before we split
+TEAM = ""  # e.g. "frc2056"; "" = every team
+MIN_RUNS = 3  # a team needs this many usable autos to get a page
+SAMPLES = 60  # points each path is resampled to before averaging
+MAX_CLUSTERS = 3  # most start-groups to split a team into
+SPLIT_DIST = 170  # cluster centres closer than this (top-down px) are one group
+ONTIME_ONLY = True  # only use runs whose track exists at the auto-window start.
+# A run picked up mid-auto has no meaningful start position --
+# measured: only 58% of paths begin within 0.5s of the window,
+# and the rest begin up to 8s late.
+ONTIME_FRAMES = 30  # "at the start" = within this many frames of the window start
+DELAY_SPLIT_S = 1.5  # gap between fast and slow sub-groups to count as "delayed" variant
+DELAY_MIN_EACH = 2  # both sub-groups need at least this many runs before we split
 # ===========================================================================
 
 
@@ -65,8 +65,7 @@ def _resample(xy, n=SAMPLES):
         return None
     src = np.linspace(0.0, 1.0, len(xy))
     dst = np.linspace(0.0, 1.0, n)
-    return np.stack([np.interp(dst, src, xy[:, 0]),
-                     np.interp(dst, src, xy[:, 1])], 1)
+    return np.stack([np.interp(dst, src, xy[:, 0]), np.interp(dst, src, xy[:, 1])], 1)
 
 
 def _start_delay_s(path_fi_t, threshold_in=30.0):
@@ -90,8 +89,7 @@ def load_runs(mapper):
     skipped_late = 0
 
     # Prefer smoothed_auto_paths.json per match when available
-    match_dirs = sorted(
-        d for d in glob.glob(os.path.join(RESULTS, "*")) if os.path.isdir(d))
+    match_dirs = sorted(d for d in glob.glob(os.path.join(RESULTS, "*")) if os.path.isdir(d))
 
     for match_dir in match_dirs:
         match = os.path.basename(match_dir)
@@ -129,10 +127,16 @@ def load_runs(mapper):
 
             # Canvas-pixel path for rendering (existing logic)
             if use_smooth and o.get("coords") == "field_in":
-                canvas = np.array([[
-                    fx * (td.FX1 - td.FX0) / zones.FIELD_LEN + td.FX0,
-                    fy * (td.FY1 - td.FY0) / zones.FIELD_WID + td.FY0,
-                ] for _t, fx, fy in path], float)
+                canvas = np.array(
+                    [
+                        [
+                            fx * (td.FX1 - td.FX0) / zones.FIELD_LEN + td.FX0,
+                            fy * (td.FY1 - td.FY0) / zones.FIELD_WID + td.FY0,
+                        ]
+                        for _t, fx, fy in path
+                    ],
+                    float,
+                )
                 fi = np.array([[fx, fy] for _t, fx, fy in path], float)
                 pts_fi_t = [(row[0], row[1], row[2]) for row in path]
             else:
@@ -149,15 +153,17 @@ def load_runs(mapper):
             zone_seq = zones.zone_sequence(fi_can.tolist(), min_dwell=3)
             delay = _start_delay_s(pts_fi_t)
 
-            per[team].append({
-                "alliance": alliance,
-                "rs": rs,
-                "fi_can": fi_can,
-                "zone_seq": zone_seq,
-                "delay_s": delay,
-                "match": match,
-                "station": station,
-            })
+            per[team].append(
+                {
+                    "alliance": alliance,
+                    "rs": rs,
+                    "fi_can": fi_can,
+                    "zone_seq": zone_seq,
+                    "delay_s": delay,
+                    "match": match,
+                    "station": station,
+                }
+            )
 
     if skipped_late:
         print(f"  skipped {skipped_late} runs that began mid-auto (no usable start)")
@@ -193,8 +199,7 @@ def cluster_starts(runs):
                     cent[j] = starts[lab == j].mean(0)
         if lab is None or len(set(lab.tolist())) < k:
             continue
-        sep = min(np.linalg.norm(cent[a] - cent[b])
-                  for a in range(k) for b in range(a + 1, k))
+        sep = min(np.linalg.norm(cent[a] - cent[b]) for a in range(k) for b in range(a + 1, k))
         if sep < SPLIT_DIST or min((lab == j).sum() for j in range(k)) < 2:
             continue
         best = [np.where(lab == j)[0].tolist() for j in range(k)]
@@ -262,23 +267,46 @@ def render_team(team, runs, groups=None, out=None):
         cv2.polylines(img, [mp], False, col, 4, cv2.LINE_AA)
         cv2.circle(img, tuple(mp[0]), 11, (255, 255, 255), -1)
         cv2.circle(img, tuple(mp[0]), 11, col, 3)
-        cv2.arrowedLine(img, tuple(mp[-8]), tuple(mp[-1]), col, 4, cv2.LINE_AA,
-                        tipLength=0.6)
+        cv2.arrowedLine(img, tuple(mp[-8]), tuple(mp[-1]), col, 4, cv2.LINE_AA, tipLength=0.6)
         mean_delay = np.mean([runs[i]["delay_s"] for i in g])
         delay_tag = f" (delayed ~{mean_delay:.1f}s)" if mean_delay > DELAY_SPLIT_S else ""
         lbl = f"start {chr(65 + gi)}  n={len(g)}{delay_tag}"
-        cv2.putText(img, lbl, (mp[0][0] + 16, mp[0][1] - 12),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.62, (255, 255, 255), 5, cv2.LINE_AA)
-        cv2.putText(img, lbl, (mp[0][0] + 16, mp[0][1] - 12),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.62, col, 2, cv2.LINE_AA)
+        cv2.putText(
+            img,
+            lbl,
+            (mp[0][0] + 16, mp[0][1] - 12),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.62,
+            (255, 255, 255),
+            5,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            img,
+            lbl,
+            (mp[0][0] + 16, mp[0][1] - 12),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.62,
+            col,
+            2,
+            cv2.LINE_AA,
+        )
 
-    title = (f"{tp._label(team)}   {len(runs)} autos "
-             f"({nblue} blue + {len(runs) - nblue} red rotated in)   "
-             f"{len(groups)} start group{'s' if len(groups) > 1 else ''}")
-    cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.68,
-                (30, 30, 30), 2)
-    cv2.putText(img, "thick = mean route   rings = spread   grey = individual autos",
-                (16, td.CH - 16), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (110, 110, 110), 1)
+    title = (
+        f"{tp._label(team)}   {len(runs)} autos "
+        f"({nblue} blue + {len(runs) - nblue} red rotated in)   "
+        f"{len(groups)} start group{'s' if len(groups) > 1 else ''}"
+    )
+    cv2.putText(img, title, (16, 32), cv2.FONT_HERSHEY_SIMPLEX, 0.68, (30, 30, 30), 2)
+    cv2.putText(
+        img,
+        "thick = mean route   rings = spread   grey = individual autos",
+        (16, td.CH - 16),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.52,
+        (110, 110, 110),
+        1,
+    )
     os.makedirs(OUTDIR, exist_ok=True)
     out = out or os.path.join(OUTDIR, f"{tp._label(team).strip('#')}.png")
     cv2.imwrite(out, img)
@@ -298,14 +326,16 @@ def export_json(per_team, out_path):
             delayed = mean_delay > DELAY_SPLIT_S
             modal_seq = _modal_zone_seq(runs, g)
             matches = [runs[i]["match"] for i in g]
-            clusters.append({
-                "id": gi,
-                "n_runs": len(g),
-                "delayed": delayed,
-                "mean_delay_s": round(mean_delay, 2),
-                "zone_sequence": modal_seq,
-                "matches": matches,
-            })
+            clusters.append(
+                {
+                    "id": gi,
+                    "n_runs": len(g),
+                    "delayed": delayed,
+                    "mean_delay_s": round(mean_delay, 2),
+                    "zone_sequence": modal_seq,
+                    "matches": matches,
+                }
+            )
         result[team] = {"clusters": clusters, "n_total": len(runs)}
     json.dump(result, open(out_path, "w"), indent=2)
     return len(result)
@@ -314,8 +344,9 @@ def export_json(per_team, out_path):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--team", default=TEAM, help="single team key; default = all")
-    p.add_argument("--json-only", action="store_true",
-                   help="export team_routes.json only, skip PNG rendering")
+    p.add_argument(
+        "--json-only", action="store_true", help="export team_routes.json only, skip PNG rendering"
+    )
     a = p.parse_args()
 
     mapper = td.load_mapper()

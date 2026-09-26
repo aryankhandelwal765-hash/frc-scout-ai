@@ -16,7 +16,7 @@ import os
 import cv2
 import numpy as np
 
-DEFAULT_CROP = (0, 100, 1280, 470)   # top overhead field for this feed
+DEFAULT_CROP = (0, 100, 1280, 470)  # top overhead field for this feed
 
 
 def main():
@@ -24,12 +24,22 @@ def main():
     p.add_argument("--input", required=True)
     p.add_argument("--outdir", default="dataset/images")
     p.add_argument("--n", type=int, default=150, help="how many frames to keep")
-    p.add_argument("--crop", type=int, nargs=4, metavar=("X1", "Y1", "X2", "Y2"),
-                   default=DEFAULT_CROP, help="region to keep (match the analysis crop)")
+    p.add_argument(
+        "--crop",
+        type=int,
+        nargs=4,
+        metavar=("X1", "Y1", "X2", "Y2"),
+        default=DEFAULT_CROP,
+        help="region to keep (match the analysis crop)",
+    )
     p.add_argument("--start-frame", type=int, default=0)
     p.add_argument("--end-frame", type=int, help="default: last readable scoreboard frame")
-    p.add_argument("--dup-thresh", type=float, default=6.0,
-                   help="skip a frame if mean pixel diff from the last kept one is below this")
+    p.add_argument(
+        "--dup-thresh",
+        type=float,
+        default=6.0,
+        help="skip a frame if mean pixel diff from the last kept one is below this",
+    )
     args = p.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)

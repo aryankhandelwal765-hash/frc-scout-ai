@@ -44,11 +44,11 @@ OUT = os.path.join(HERE, "auto_start.json")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-ONLY = []            # match keys; [] = every video
-AUTO_LEN = 20        # auto length in seconds, READ off the broadcast timer (it
-                     # counts 20 -> 1 then jumps to 2:20 teleop). Not 15.
-SCAN_SEC = 26.0      # how far into the video to look for the countdown
-STRIDE = 20          # frames between timer OCR samples
+ONLY = []  # match keys; [] = every video
+AUTO_LEN = 20  # auto length in seconds, READ off the broadcast timer (it
+# counts 20 -> 1 then jumps to 2:20 teleop). Not 15.
+SCAN_SEC = 26.0  # how far into the video to look for the countdown
+STRIDE = 20  # frames between timer OCR samples
 WORKERS = 6
 # ===========================================================================
 
@@ -92,15 +92,21 @@ def detect(match, auto_len=AUTO_LEN, scan_sec=SCAN_SEC, stride=STRIDE):
     if len(ests) < 4:
         return None
     ests = np.array(ests, float)
-    return {"match": match, "start_frame": int(round(float(np.median(ests)))),
-            "fps": float(fps), "n_reads": len(ests),
-            "spread": float(np.percentile(ests, 90) - np.percentile(ests, 10))}
+    return {
+        "match": match,
+        "start_frame": int(round(float(np.median(ests)))),
+        "fps": float(fps),
+        "n_reads": len(ests),
+        "spread": float(np.percentile(ests, 90) - np.percentile(ests, 10)),
+    }
 
 
 def main():
     from concurrent.futures import ProcessPoolExecutor, as_completed
-    matches = ONLY or sorted(os.path.splitext(os.path.basename(p))[0]
-                             for p in glob.glob(os.path.join(VIDEOS, "*.mp4")))
+
+    matches = ONLY or sorted(
+        os.path.splitext(os.path.basename(p))[0] for p in glob.glob(os.path.join(VIDEOS, "*.mp4"))
+    )
     print(f"{len(matches)} matches, auto_len={AUTO_LEN}s")
     out = {}
     with ProcessPoolExecutor(max_workers=WORKERS) as ex:
@@ -120,12 +126,18 @@ def main():
         sf = np.array([v["start_frame"] for v in out.values()])
         sp = np.array([v["spread"] for v in out.values()])
         print(f"\ndetected on {len(out)}/{len(matches)} matches -> {OUT}")
-        print(f"  start_frame: min={sf.min()} median={np.median(sf):.0f} "
-              f"max={sf.max()} std={sf.std():.0f}")
-        print(f"  per-match estimate spread (p90-p10, frames): "
-              f"median={np.median(sp):.0f} max={sp.max():.0f}")
-        print("  A small spread means the countdown reads agree -- that is the "
-              "detector checking itself.")
+        print(
+            f"  start_frame: min={sf.min()} median={np.median(sf):.0f} "
+            f"max={sf.max()} std={sf.std():.0f}"
+        )
+        print(
+            f"  per-match estimate spread (p90-p10, frames): "
+            f"median={np.median(sp):.0f} max={sp.max():.0f}"
+        )
+        print(
+            "  A small spread means the countdown reads agree -- that is the "
+            "detector checking itself."
+        )
     else:
         print("no matches detected -- check the timer box / AUTO_LEN")
 

@@ -23,15 +23,15 @@ from collections import defaultdict
 
 class ScoringEngine:
     def __init__(self, zones, possession_radius, possession_bbox_margin):
-        self.zones = zones                          # list[GoalZone]
+        self.zones = zones  # list[GoalZone]
         self.possession_radius = possession_radius
         self.possession_bbox_margin = possession_bbox_margin
 
-        self.ball_possessor = {}     # ball_id -> (alliance, robot_id)
+        self.ball_possessor = {}  # ball_id -> (alliance, robot_id)
         self.scored_ball_ids = set()  # balls already counted (don't double count)
-        self.events = []             # list of scoring-event dicts
-        self.robot_scores = defaultdict(int)   # (alliance, robot_id) -> count
-        self.unattributed = 0        # scored balls with no known possessor
+        self.events = []  # list of scoring-event dicts
+        self.robot_scores = defaultdict(int)  # (alliance, robot_id) -> count
+        self.unattributed = 0  # scored balls with no known possessor
 
     # -- possession -----------------------------------------------------------
     def update_possession(self, ball_tracks, robots_by_alliance):

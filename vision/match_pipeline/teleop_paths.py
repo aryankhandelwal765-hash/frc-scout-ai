@@ -43,10 +43,10 @@ RESULTS = os.path.join(HERE, "results")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-AUTO_SEC = 20.0          # manual: AUTO is 20s; teleop analysis begins after it
-MIN_SAMPLES = 30         # a chain needs this many teleop samples to be usable
+AUTO_SEC = 20.0  # manual: AUTO is 20s; teleop analysis begins after it
+MIN_SAMPLES = 30  # a chain needs this many teleop samples to be usable
 OUT = os.path.join(HERE, "teleop_facts.json")
-ONLY = []                # match keys; [] = every current-geometry match
+ONLY = []  # match keys; [] = every current-geometry match
 # ===========================================================================
 
 
@@ -123,7 +123,8 @@ def main():
 
     matches = ONLY or sorted(
         os.path.basename(os.path.dirname(x))
-        for x in glob.glob(os.path.join(RESULTS, "*", "auto_paths.json")))
+        for x in glob.glob(os.path.join(RESULTS, "*", "auto_paths.json"))
+    )
     mapper = td.load_mapper()
     if mapper is None:
         raise SystemExit("No field map -- run autofit_fieldmap.py first.")
@@ -148,14 +149,20 @@ def main():
     nb = sum(r["tele_bump"] for r in rows)
     nt = sum(r["tele_trench"] for r in rows)
     print(f"\n{len(rows)} team-matches with teleop paths across {nm} matches -> {a.out}")
-    print(f"  tele_bump   used: {nb}/{len(rows)} = {100.0 * nb / len(rows):.0f}%"
-          f"   (hand sheet said 59.9%)")
-    print(f"  tele_trench used: {nt}/{len(rows)} = {100.0 * nt / len(rows):.0f}%"
-          f"   (hand sheet said 56.9%)")
+    print(
+        f"  tele_bump   used: {nb}/{len(rows)} = {100.0 * nb / len(rows):.0f}%"
+        f"   (hand sheet said 59.9%)"
+    )
+    print(
+        f"  tele_trench used: {nt}/{len(rows)} = {100.0 * nt / len(rows):.0f}%"
+        f"   (hand sheet said 56.9%)"
+    )
     for k in ("tele_bump_visits", "tele_trench_visits", "tele_hub_visits"):
         v = np.array([r[k] for r in rows])
-        print(f"  {k:20s} median {np.median(v):4.0f}  p90 {np.percentile(v, 90):4.0f}"
-              f"  max {v.max():4.0f}")
+        print(
+            f"  {k:20s} median {np.median(v):4.0f}  p90 {np.percentile(v, 90):4.0f}"
+            f"  max {v.max():4.0f}"
+        )
 
 
 if __name__ == "__main__":

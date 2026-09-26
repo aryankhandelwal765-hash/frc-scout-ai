@@ -16,12 +16,12 @@ class Track:
 
     def __init__(self, tid, centroid, bbox):
         self.id = tid
-        self.centroid = centroid       # last known (cx, cy)
-        self.bbox = bbox               # last known (x, y, w, h)
-        self.missed = 0                # consecutive frames unmatched
-        self.age = 0                   # total frames alive
-        self.visible = True            # matched to a detection THIS frame?
-        self.history = [centroid]      # centroid trail
+        self.centroid = centroid  # last known (cx, cy)
+        self.bbox = bbox  # last known (x, y, w, h)
+        self.missed = 0  # consecutive frames unmatched
+        self.age = 0  # total frames alive
+        self.visible = True  # matched to a detection THIS frame?
+        self.history = [centroid]  # centroid trail
 
 
 class CentroidTracker:
@@ -29,7 +29,7 @@ class CentroidTracker:
         self.max_distance = max_distance
         self.grace_frames = grace_frames
         self.next_id = 0
-        self.tracks = {}               # id -> Track
+        self.tracks = {}  # id -> Track
 
     def update(self, detections):
         """Match `detections` (list of {'centroid','bbox',...}) to existing tracks.

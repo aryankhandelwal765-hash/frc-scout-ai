@@ -35,13 +35,13 @@ OUTDIR = os.path.join(HERE, "reports")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-TEAM = ""                       # e.g. "2056"; "" = every team
+TEAM = ""  # e.g. "2056"; "" = every team
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
 TABLE = os.path.join(HERE, "scout_table.csv")
-TEMPERATURE = 0.2               # low: this is reporting, not creative writing
+TEMPERATURE = 0.2  # low: this is reporting, not creative writing
 TIMEOUT = 180
-DRY_RUN = False                 # True = print the fact block, never call the model
+DRY_RUN = False  # True = print the fact block, never call the model
 # ===========================================================================
 
 SYSTEM = """You write short scouting notes for an FRC team from MEASURED data.
@@ -98,8 +98,9 @@ def team_facts(team, rows, routes=None):
     # Phrasing is deliberately verbose and self-describing. A terse label like
     # "alliance: blue 10, red 8" reads as a WIN-LOSS RECORD to a language model --
     # it did exactly that on the first run. Every count here says what it counts.
-    st = ", ".join(f"station {k} in {v} match{'es' if v != 1 else ''}"
-                   for k, v in sorted(stations.items()))
+    st = ", ".join(
+        f"station {k} in {v} match{'es' if v != 1 else ''}" for k, v in sorted(stations.items())
+    )
     f = [
         f"[tba] played {n} matches in total",
         f"[tba] was on the BLUE alliance for {allies['blue']} of those matches and "
@@ -109,25 +110,35 @@ def team_facts(team, rows, routes=None):
         f"[tba] climbed the tower in endgame in {climbs} of {n} matches",
         f"[tba] climbed during autonomous in {autoclimbs} of {n} matches",
     ]
-    for col, label in (("alliance_auto_fuel", "auto"),
-                       ("alliance_teleop_fuel", "teleop"),
-                       ("alliance_total_fuel", "total")):
+    for col, label in (
+        ("alliance_auto_fuel", "auto"),
+        ("alliance_teleop_fuel", "teleop"),
+        ("alliance_total_fuel", "total"),
+    ):
         a = avg(col)
         if a is not None:
-            f.append(f"[tba] mean ALLIANCE {label} fuel in this team's matches: {a} "
-                     f"(this is the 3-robot alliance total, NOT this team alone)")
+            f.append(
+                f"[tba] mean ALLIANCE {label} fuel in this team's matches: {a} "
+                f"(this is the 3-robot alliance total, NOT this team alone)"
+            )
     if idsrc:
         conf = idsrc.get("read", 0) + idsrc.get("elim", 0)
-        f.append(f"[vision] team identification: {idsrc.get('read',0)} by reading the "
-                 f"bumper number, {idsrc.get('elim',0)} by elimination, "
-                 f"{idsrc.get('rank',0)} by unverified station-order guess")
+        f.append(
+            f"[vision] team identification: {idsrc.get('read', 0)} by reading the "
+            f"bumper number, {idsrc.get('elim', 0)} by elimination, "
+            f"{idsrc.get('rank', 0)} by unverified station-order guess"
+        )
         if conf < n / 2:
-            f.append("[vision] WARNING: most matches were identified by the unverified "
-                     "station-order guess, so video-derived facts may describe the "
-                     "wrong robot")
+            f.append(
+                "[vision] WARNING: most matches were identified by the unverified "
+                "station-order guess, so video-derived facts may describe the "
+                "wrong robot"
+            )
     if routes:
-        f.append(f"[vision] auto routes: {routes['n_runs']} usable autos forming "
-                 f"{routes['n_groups']} distinct starting group(s)")
+        f.append(
+            f"[vision] auto routes: {routes['n_runs']} usable autos forming "
+            f"{routes['n_groups']} distinct starting group(s)"
+        )
     return {"team": str(team), "matches": n, "facts": f}
 
 
@@ -137,6 +148,7 @@ def load_routes():
         sys.path.insert(0, HERE)
         import topdown as td
         import team_routes as tr
+
         mapper = td.load_mapper()
         if mapper is None:
             return {}
@@ -155,20 +167,24 @@ def load_routes():
         return {}
 
 
-def ask(facts, host=OLLAMA_HOST, model=MODEL, temperature=TEMPERATURE,
-        timeout=TIMEOUT):
-    body = json.dumps({
-        "model": model,
-        "stream": False,
-        "options": {"temperature": temperature},
-        "messages": [
-            {"role": "system", "content": SYSTEM},
-            {"role": "user", "content":
-                f"Team {facts['team']}. Facts:\n" + "\n".join(facts["facts"])},
-        ],
-    }).encode()
-    req = urllib.request.Request(f"{host}/api/chat", data=body,
-                                 headers={"Content-Type": "application/json"})
+def ask(facts, host=OLLAMA_HOST, model=MODEL, temperature=TEMPERATURE, timeout=TIMEOUT):
+    body = json.dumps(
+        {
+            "model": model,
+            "stream": False,
+            "options": {"temperature": temperature},
+            "messages": [
+                {"role": "system", "content": SYSTEM},
+                {
+                    "role": "user",
+                    "content": f"Team {facts['team']}. Facts:\n" + "\n".join(facts["facts"]),
+                },
+            ],
+        }
+    ).encode()
+    req = urllib.request.Request(
+        f"{host}/api/chat", data=body, headers={"Content-Type": "application/json"}
+    )
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())["message"]["content"].strip()
 
@@ -184,8 +200,9 @@ def main():
     rows = load_table()
     routes = load_routes()
     teams = [a.team] if a.team else sorted({r["team"] for r in rows}, key=lambda t: int(t))
-    print(f"{len(teams)} teams, model={a.model} host={a.host}"
-          + ("  [DRY RUN]" if a.dry_run else ""))
+    print(
+        f"{len(teams)} teams, model={a.model} host={a.host}" + ("  [DRY RUN]" if a.dry_run else "")
+    )
 
     os.makedirs(OUTDIR, exist_ok=True)
     combined = []
@@ -199,22 +216,26 @@ def main():
         try:
             text = ask(f, a.host, a.model)
         except urllib.error.URLError as e:
-            raise SystemExit(f"Cannot reach Ollama at {a.host}: {e.reason}\n"
-                             "Start it with:  OLLAMA_HOST=0.0.0.0 ollama serve")
+            raise SystemExit(
+                f"Cannot reach Ollama at {a.host}: {e.reason}\n"
+                "Start it with:  OLLAMA_HOST=0.0.0.0 ollama serve"
+            )
         except Exception as e:
             print(f"  {t}: {e.__class__.__name__}: {e}")
             continue
         open(os.path.join(OUTDIR, f"{t}.md"), "w").write(
             f"# Team {t}\n\n{text}\n\n## Measured facts\n\n"
-            + "\n".join(f"- {x}" for x in f["facts"]) + "\n")
+            + "\n".join(f"- {x}" for x in f["facts"])
+            + "\n"
+        )
         combined.append(f"## Team {t}\n\n{text}\n")
         print(f"  [{i}/{len(teams)}] {t}")
     if combined:
         open(os.path.join(OUTDIR, "_all.md"), "w").write(
             "# 2026hop scouting notes\n\n"
             "Generated from measured data. Every statement traces to a fact block in "
-            "the per-team file; nothing here is human judgement.\n\n"
-            + "\n".join(combined))
+            "the per-team file; nothing here is human judgement.\n\n" + "\n".join(combined)
+        )
         print(f"\nwrote {len(combined)} reports -> {OUTDIR}")
 
 

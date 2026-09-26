@@ -44,10 +44,10 @@ RESULTS = os.path.join(HERE, "results")
 # so dense sampling is wasted work: the top view costs one EasyOCR call PER BOX,
 # while a side scan costs one call for the WHOLE frame and can return several teams
 # at once. So sample the side views hard and the top view sparsely.
-TOP_EVERY = 120         # sample the top view every N frames (one OCR call per box)
-SIDE_EVERY = 45         # sample each side view every N frames (one call per frame)
-SIDE_BONUS = 0.10       # tie-break bonus for the alliance a side camera leans to
-MIN_VOTES = 2           # need at least this many votes to call a track identified
+TOP_EVERY = 120  # sample the top view every N frames (one OCR call per box)
+SIDE_EVERY = 45  # sample each side view every N frames (one call per frame)
+SIDE_BONUS = 0.10  # tie-break bonus for the alliance a side camera leans to
+MIN_VOTES = 2  # need at least this many votes to call a track identified
 
 # ByteTrack fragments badly -- measured 228 track ids for 6 robots on qm27. A flat
 # TOP_EVERY across a ~10k-frame match therefore spends its reads on whichever
@@ -57,14 +57,14 @@ MIN_VOTES = 2           # need at least this many votes to call a track identifi
 # looks at (identity tids 5202-10018 vs auto tids 28-990: zero overlap).
 # So sample the auto window hard. It is only ~900 frames, robots are maximally
 # separated there, and bumpers face the cameras.
-AUTO_EVERY = 10         # sample stride INSIDE the auto window
+AUTO_EVERY = 10  # sample stride INSIDE the auto window
 # Teleop sampling is budgeted per TRACK, not by stride -- see _sample_frames.
 # Tuned on qm27: 6/8/700 gave 45 identified tracks in 247s; 4/20/420 gives 40 in
 # 182s with IDENTICAL downstream steal attribution (54%). The extra 5 tracks are
 # short fragments that change nothing, so the cheaper setting is the default.
-PER_TRACK_SAMPLES = 4   # frames OCR'd per teleop track, spread over its lifetime
-MIN_TRACK_FRAMES = 20   # ignore flicker fragments shorter than this
-MAX_SAMPLES = 420       # global cap on top-view frames OCR'd per match
+PER_TRACK_SAMPLES = 4  # frames OCR'd per teleop track, spread over its lifetime
+MIN_TRACK_FRAMES = 20  # ignore flicker fragments shorter than this
+MAX_SAMPLES = 420  # global cap on top-view frames OCR'd per match
 
 
 def _load_tracks(match):
@@ -82,14 +82,17 @@ def _load_tracks(match):
             votes[tid][r["alliance"]] += 1
             frames[tid].add(fr)
             pos[tid][fr] = (float(r["cx"]), float(r["cy"]))
-    return {tid: {"alliance": votes[tid].most_common(1)[0][0],
-                  "frames": frames[tid], "pos": pos[tid]} for tid in frames}
+    return {
+        tid: {"alliance": votes[tid].most_common(1)[0][0], "frames": frames[tid], "pos": pos[tid]}
+        for tid in frames
+    }
 
 
 def _auto_window(match, tracks):
     """(lo, hi) frame bounds of the auto period, taken from auto_paths' own
     constants so the two files cannot drift apart."""
     import auto_paths as ap
+
     fps = 60.0
     tj_path = os.path.join(RESULTS, match, "tracks.json")
     if os.path.exists(tj_path):
@@ -144,6 +147,7 @@ def _sample_frames(tracks, auto_lo, auto_hi):
 def _top_reads(match, tracks, candidates, model, rn, frames=None):
     """Read the bumper inside each tracked box -> votes keyed by track id."""
     import trajectories as tj
+
     vid = os.path.join(VIDEOS, f"{match}.mp4")
     if not os.path.exists(vid):
         return defaultdict(Counter)
@@ -161,8 +165,7 @@ def _top_reads(match, tracks, candidates, model, rn, frames=None):
             break
         cx0, cy0, cx1, cy1 = tj.field_crop(frame.shape)
         crop = frame[cy0:cy1, cx0:cx1]
-        res = model.predict(crop, conf=0.3, imgsz=960, agnostic_nms=True,
-                            verbose=False)[0]
+        res = model.predict(crop, conf=0.3, imgsz=960, agnostic_nms=True, verbose=False)[0]
         # Re-running the tracker would mint NEW ids that don't match trajectory.csv,
         # so instead bind each detection to the existing track whose logged ground
         # point is nearest at this frame.
@@ -176,10 +179,10 @@ def _top_reads(match, tracks, candidates, model, rn, frames=None):
                     d = (gx - px) ** 2 + (gy - py) ** 2
                     if d < best:
                         best, tid = d, k
-                if tid is None or best > 120 ** 2:
+                if tid is None or best > 120**2:
                     continue
                 if sum(out[tid].values()) >= 4:
-                    continue                    # already well-evidenced; skip the OCR
+                    continue  # already well-evidenced; skip the OCR
                 team, conf = rn.read_bumper(crop, (bx1, by1, bx2, by2), candidates)
                 if team:
                     out[tid][team] += 1
@@ -202,8 +205,9 @@ def _side_reads(match, candidates, favour_by_view, rn, every=SIDE_EVERY):
             ok, frame = cap.read()
             if not ok:
                 break
-            for team, bb, sc, raw in rn.scan_side(frame, candidates,
-                                                  favour=favour, bonus=SIDE_BONUS):
+            for team, bb, sc, raw in rn.scan_side(
+                frame, candidates, favour=favour, bonus=SIDE_BONUS
+            ):
                 hits.append((f, team))
             f += every
         cap.release()
@@ -238,17 +242,26 @@ def run(match, model=None):
 
     # 2. side views -- a read is stamped with a frame, so it votes for the tracks
     #    alive at that moment on the SAME alliance as the team read.
-    for f, team in _side_reads(match, candidates,
-                               {"revL": rn.alliance_candidates(match, "blue"),
-                                "revR": rn.alliance_candidates(match, "red")}, rn):
+    for f, team in _side_reads(
+        match,
+        candidates,
+        {
+            "revL": rn.alliance_candidates(match, "blue"),
+            "revR": rn.alliance_candidates(match, "red"),
+        },
+        rn,
+    ):
         al = team_alliance.get(team)
-        live = [tid for tid, t in tracks.items()
-                if t["alliance"] == al and any(abs(fr - f) <= SIDE_EVERY
-                                               for fr in (min(t["frames"]), max(t["frames"])))
-                or (t["alliance"] == al and f in t["frames"])]
-        if len(live) == 1:                 # unambiguous -> full vote
+        live = [
+            tid
+            for tid, t in tracks.items()
+            if t["alliance"] == al
+            and any(abs(fr - f) <= SIDE_EVERY for fr in (min(t["frames"]), max(t["frames"])))
+            or (t["alliance"] == al and f in t["frames"])
+        ]
+        if len(live) == 1:  # unambiguous -> full vote
             votes[live[0]][team] += 1
-        elif live:                         # ambiguous -> spread a partial vote
+        elif live:  # ambiguous -> spread a partial vote
             for tid in live:
                 votes[tid][team] += 1.0 / len(live)
 
@@ -278,7 +291,7 @@ def run(match, model=None):
 
     out = {}
     for tier in ("auto", "match"):
-        used = defaultdict(list)     # team -> [(lo, hi), ...] already claimed
+        used = defaultdict(list)  # team -> [(lo, hi), ...] already claimed
         tier_tids = [t for t in votes if t in tracks and _in_auto(t) == (tier == "auto")]
         ranked = sorted(tier_tids, key=lambda t: -sum(votes[t].values()))
         for tid in ranked:
@@ -292,10 +305,14 @@ def run(match, model=None):
                 total = sum(c.values())
                 if n >= MIN_VOTES:
                     fr = tracks[tid]["frames"]
-                    out[str(tid)] = {"alliance": tracks[tid]["alliance"], "team": team,
-                                     "confidence": round(n / total, 3),
-                                     "votes": {k: round(v, 2) for k, v in c.items()},
-                                     "source": "read", "window": tier}
+                    out[str(tid)] = {
+                        "alliance": tracks[tid]["alliance"],
+                        "team": team,
+                        "confidence": round(n / total, 3),
+                        "votes": {k: round(v, 2) for k, v in c.items()},
+                        "source": "read",
+                        "window": tier,
+                    }
                     used[team].append((min(fr), max(fr)))
                 break
 
@@ -307,9 +324,11 @@ def run(match, model=None):
     # tracks alive in the auto window, so a match-tier read is dead weight to it.
     in_auto = sorted({v["team"] for v in out.values() if v.get("window") == "auto"})
     n_auto_tracks = sum(1 for v in out.values() if v.get("window") == "auto")
-    print(f"  {match}: identified {len(out)} tracks by READ "
-          f"({n_auto_tracks} in AUTO, covering {len(in_auto)}/{len(candidates)} teams) "
-          f"-> {in_auto}")
+    print(
+        f"  {match}: identified {len(out)} tracks by READ "
+        f"({n_auto_tracks} in AUTO, covering {len(in_auto)}/{len(candidates)} teams) "
+        f"-> {in_auto}"
+    )
     return out
 
 
@@ -322,6 +341,7 @@ def main():
         return
     from ultralytics import YOLO
     import trajectories as tj
+
     model = YOLO(tj._newest_weights())
     for tr in sorted(glob.glob(os.path.join(RESULTS, "*", "trajectory.csv"))):
         run(os.path.basename(os.path.dirname(tr)), model)

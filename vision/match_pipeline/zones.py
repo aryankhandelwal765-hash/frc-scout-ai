@@ -35,19 +35,21 @@ FIELD_LEN = 651.2
 FIELD_WID = 317.7
 
 # structure band, confirmed by AprilTag X positions
-BAND_NEAR = 158.6                 # ROBOT STARTING LINE / HUB near face
-BAND_FAR = 205.6                  # HUB far face (47in deep)
-RED_BAND_FAR = FIELD_LEN - BAND_NEAR      # 492.6
-RED_BAND_NEAR = FIELD_LEN - BAND_FAR      # 445.6
+BAND_NEAR = 158.6  # ROBOT STARTING LINE / HUB near face
+BAND_FAR = 205.6  # HUB far face (47in deep)
+RED_BAND_FAR = FIELD_LEN - BAND_NEAR  # 492.6
+RED_BAND_NEAR = FIELD_LEN - BAND_FAR  # 445.6
 
 # lateral bands across the width at the structure band (manual 5.4/5.5/5.6)
-HUB_Y0, HUB_Y1 = FIELD_WID / 2 - 23.5, FIELD_WID / 2 + 23.5    # 135.35 .. 182.35
-BUMP_Y0, BUMP_Y1 = HUB_Y0 - 73.0, HUB_Y1 + 73.0                # 62.35 .. 255.35
+HUB_Y0, HUB_Y1 = FIELD_WID / 2 - 23.5, FIELD_WID / 2 + 23.5  # 135.35 .. 182.35
+BUMP_Y0, BUMP_Y1 = HUB_Y0 - 73.0, HUB_Y1 + 73.0  # 62.35 .. 255.35
 
 # "TOP"/"BOTTOM" are as seen in the broadcast: TOP = far guardrail (Y=0).
-NEUTRAL_ROWS = [("Top", 0.0, FIELD_WID / 3),
-                ("Mid", FIELD_WID / 3, 2 * FIELD_WID / 3),
-                ("Bot", 2 * FIELD_WID / 3, FIELD_WID)]
+NEUTRAL_ROWS = [
+    ("Top", 0.0, FIELD_WID / 3),
+    ("Mid", FIELD_WID / 3, 2 * FIELD_WID / 3),
+    ("Bot", 2 * FIELD_WID / 3, FIELD_WID),
+]
 
 
 def _rect(x0, y0, x1, y1):
@@ -58,8 +60,7 @@ def build_zones():
     """name -> (x0, y0, x1, y1) in field inches. Checked in priority order, so
     structures win over the broad zones they sit inside."""
     z = {}
-    for tag, near, far in (("Blue", BAND_NEAR, BAND_FAR),
-                           ("Red", RED_BAND_FAR, RED_BAND_NEAR)):
+    for tag, near, far in (("Blue", BAND_NEAR, BAND_FAR), ("Red", RED_BAND_FAR, RED_BAND_NEAR)):
         z[f"{tag} Hub"] = _rect(near, HUB_Y0, far, HUB_Y1)
         z[f"Top {tag} Bump"] = _rect(near, BUMP_Y0, far, HUB_Y0)
         z[f"Bot {tag} Bump"] = _rect(near, HUB_Y1, far, BUMP_Y1)
@@ -85,9 +86,11 @@ def build_zones():
 ZONES = build_zones()
 # structures are checked first so a point inside the HUB is not reported as the
 # broad zone that geometrically contains it
-PRIORITY = ([k for k in ZONES if "Hub" in k or "Bump" in k or "Trench" in k]
-            + [k for k in ZONES if k not in
-               [k2 for k2 in ZONES if "Hub" in k2 or "Bump" in k2 or "Trench" in k2]])
+PRIORITY = [k for k in ZONES if "Hub" in k or "Bump" in k or "Trench" in k] + [
+    k
+    for k in ZONES
+    if k not in [k2 for k2 in ZONES if "Hub" in k2 or "Bump" in k2 or "Trench" in k2]
+]
 
 
 def zone_at(x_in, y_in):
@@ -132,6 +135,7 @@ def _x_correction():
     global _XCORR
     if _XCORR is None:
         import json
+
         p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calib.json")
         try:
             _XCORR = (json.load(open(p)).get("x_correction") or {}).get("coef") or []
@@ -145,6 +149,7 @@ def _2d_correction():
     global _CORR2D
     if _CORR2D is None:
         import json
+
         p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calib.json")
         try:
             _CORR2D = json.load(open(p)).get("correction_2d") or {}
@@ -156,11 +161,12 @@ def _2d_correction():
 def _apply_2d(x, y, corr):
     """Apply correction_2d to (x, y) arrays, return (corr_x, corr_y)."""
     import numpy as np
+
     deg = corr["degree"]
     cols = [np.ones_like(x)]
     for d in range(1, deg + 1):
         for i in range(d + 1):
-            cols.append(x ** (d - i) * y ** i)
+            cols.append(x ** (d - i) * y**i)
     A = np.column_stack(cols)
     return x + A @ np.array(corr["coef_x"]), y + A @ np.array(corr["coef_y"])
 
@@ -175,6 +181,7 @@ def to_field_inches(xy_canvas):
     """
     import topdown as td
     import numpy as np
+
     a = np.asarray(xy_canvas, float)
     sx = FIELD_LEN / (td.FX1 - td.FX0)
     sy = FIELD_WID / (td.FY1 - td.FY0)

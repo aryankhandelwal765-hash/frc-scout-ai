@@ -29,7 +29,7 @@ import pytesseract
 _TESSERACT_CMD = os.environ.get("TESSERACT_CMD")
 if _TESSERACT_CMD:
     pytesseract.pytesseract.tesseract_cmd = _TESSERACT_CMD
-from boxes import TIMER_BOX_FRAC   # centre match timer "M:SS", as frame fractions
+from boxes import TIMER_BOX_FRAC  # centre match timer "M:SS", as frame fractions
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PARENT = os.path.dirname(HERE)
@@ -41,7 +41,7 @@ RAW = os.path.join(HERE, "videos_raw")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-ONLY = []              # e.g. ["2026hop_qm1"]; [] = all videos
+ONLY = []  # e.g. ["2026hop_qm1"]; [] = all videos
 # --- multi-view (fusion) ------------------------------------------------------
 # The broadcast is a stitch: a top overhead view plus TWO low reverse views (one
 # behind each hub tower) side by side underneath. At 1080p the reverse views are
@@ -50,18 +50,18 @@ ONLY = []              # e.g. ["2026hop_qm1"]; [] = all videos
 # lower band away. Rects are FRACTIONS of frame size, so they hold at any source
 # resolution. Verified on 1920x1080.
 MULTIVIEW = True
-VIEW_RECTS = {                       # name -> (x, y, w, h) as fractions
-    "top":  (0.000, 0.000, 1.000, 0.661),
+VIEW_RECTS = {  # name -> (x, y, w, h) as fractions
+    "top": (0.000, 0.000, 1.000, 0.661),
     "revL": (0.004, 0.674, 0.456, 0.236),
     "revR": (0.539, 0.674, 0.457, 0.236),
 }
-KEEP_BOTTOM = 476      # legacy single-view crop (used when MULTIVIEW = False)
-PAD = 2.0              # seconds of pad kept on each side of the detected match window
-MANUAL = None          # override auto-trim: (start_sec, end_sec); None = auto-detect
-SAMPLE_EVERY = 2.0     # seconds between timer OCR samples for match-window detect
-WORKERS = 8            # parallel videos (OCR + ffmpeg are CPU-bound)
-DELETE_RAW = True      # delete the original after a verified-good clean (no backup kept)
-FORCE = False          # re-clean even if already done
+KEEP_BOTTOM = 476  # legacy single-view crop (used when MULTIVIEW = False)
+PAD = 2.0  # seconds of pad kept on each side of the detected match window
+MANUAL = None  # override auto-trim: (start_sec, end_sec); None = auto-detect
+SAMPLE_EVERY = 2.0  # seconds between timer OCR samples for match-window detect
+WORKERS = 8  # parallel videos (OCR + ffmpeg are CPU-bound)
+DELETE_RAW = True  # delete the original after a verified-good clean (no backup kept)
+FORCE = False  # re-clean even if already done
 # ===========================================================================
 
 
@@ -78,7 +78,8 @@ def read_timer(frame, box=None):
     g = cv2.cvtColor(big, cv2.COLOR_BGR2GRAY)
     _, th = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     txt = pytesseract.image_to_string(
-        th, config="--psm 7 -c tessedit_char_whitelist=0123456789:").strip()
+        th, config="--psm 7 -c tessedit_char_whitelist=0123456789:"
+    ).strip()
     if ":" not in txt:
         return None
     a, b = txt.split(":")[:2]
@@ -108,7 +109,7 @@ def match_window(video, pad=PAD, sample_every=SAMPLE_EVERY):
     step = max(1, int(sample_every * fps))
     prev = None
     first_dec = None
-    timer_reads = []                  # (frame, seconds_remaining)
+    timer_reads = []  # (frame, seconds_remaining)
     f = 0
     while f < total:
         cap.set(cv2.CAP_PROP_POS_FRAMES, f)
@@ -132,17 +133,17 @@ def match_window(video, pad=PAD, sample_every=SAMPLE_EVERY):
         start = 0.0
 
     end = None
-    teleop = [r for r in timer_reads if r[1] >= 115]      # >= ~1:55 => teleop
+    teleop = [r for r in timer_reads if r[1] >= 115]  # >= ~1:55 => teleop
     if teleop:
         peak_frame = max(teleop, key=lambda r: r[1])[0]
         after = [r for r in timer_reads if r[0] > peak_frame]
         zeros = [r for r in after if r[1] <= 1]
         if zeros:
-            end = min(zeros, key=lambda r: r[0])[0] / fps + 1.0   # buzzer + tiny pad
+            end = min(zeros, key=lambda r: r[0])[0] / fps + 1.0  # buzzer + tiny pad
         elif after:
-            end = max(after, key=lambda r: r[0])[0] / fps + 2.0   # timer vanished early
+            end = max(after, key=lambda r: r[0])[0] / fps + 2.0  # timer vanished early
     if end is None:
-        end = (total / fps) if total > 0 else 0.0             # fallback: whole video
+        end = (total / fps) if total > 0 else 0.0  # fallback: whole video
 
     return max(0.0, start), min(total / fps if total > 0 else end, end)
 
@@ -184,11 +185,30 @@ def clean_one(match, keep_bottom, pad, manual, force, delete_raw=DELETE_RAW):
     start, end = manual if manual else match_window(src, pad)
     dur = max(0.1, end - start)
     tmp = os.path.join(VIDEOS, f".{match}.clean.tmp.mp4")
-    cmd = ["ffmpeg", "-y", "-ss", f"{start:.2f}", "-t", f"{dur:.2f}", "-i", src,
-           "-vf", f"crop=iw:{keep_bottom}:0:0",
-           "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-an",
-           "-threads", "3",              # cap per-job threads so parallel jobs don't thrash
-           "-loglevel", "error", tmp]
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-ss",
+        f"{start:.2f}",
+        "-t",
+        f"{dur:.2f}",
+        "-i",
+        src,
+        "-vf",
+        f"crop=iw:{keep_bottom}:0:0",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "20",
+        "-an",
+        "-threads",
+        "3",  # cap per-job threads so parallel jobs don't thrash
+        "-loglevel",
+        "error",
+        tmp,
+    ]
     r = subprocess.run(cmd, capture_output=True, text=True)
     # verify the clean is good BEFORE we touch/delete the original
     good = r.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0
@@ -199,14 +219,14 @@ def clean_one(match, keep_bottom, pad, manual, force, delete_raw=DELETE_RAW):
         return match, "FAIL: " + (tail[-1] if tail else "ffmpeg error")
 
     if delete_raw:
-        os.replace(tmp, cur)                      # overwrite original -> it's gone
+        os.replace(tmp, cur)  # overwrite original -> it's gone
         if os.path.exists(raw):
             os.remove(raw)
         note = " (orig deleted)"
     else:
         os.makedirs(RAW, exist_ok=True)
         if os.path.exists(cur) and not os.path.exists(raw):
-            shutil.copy(cur, raw)                 # keep a backup once
+            shutil.copy(cur, raw)  # keep a backup once
         os.replace(tmp, cur)
         note = ""
     sz = os.path.getsize(cur) // (1024 * 1024)
@@ -218,8 +238,9 @@ def _clean_multiview(match, src, cur, raw, pad, manual, force, delete_raw):
     videos/<view>/<match>.mp4 for each reverse view. All share the same time
     window, so frame N lines up across views -- that's what makes fusion possible."""
     outs = {v: os.path.join(_view_dir(v), f"{match}.mp4") for v in VIEW_RECTS}
-    if not force and all(os.path.exists(p) and os.path.getsize(p) > 0
-                         for v, p in outs.items() if v != "top"):
+    if not force and all(
+        os.path.exists(p) and os.path.getsize(p) > 0 for v, p in outs.items() if v != "top"
+    ):
         return match, "skip (already split)"
 
     cap = cv2.VideoCapture(src)
@@ -235,16 +256,36 @@ def _clean_multiview(match, src, cur, raw, pad, manual, force, delete_raw):
     made = []
     for view, (fx, fy, fw, fh) in VIEW_RECTS.items():
         x, y = int(fx * W), int(fy * H)
-        w, h = int(fw * W) // 2 * 2, int(fh * H) // 2 * 2      # even dims for h264
+        w, h = int(fw * W) // 2 * 2, int(fh * H) // 2 * 2  # even dims for h264
         os.makedirs(_view_dir(view), exist_ok=True)
         tmp = os.path.join(_view_dir(view), f".{match}.{view}.tmp.mp4")
-        cmd = ["ffmpeg", "-y", "-ss", f"{start:.2f}", "-t", f"{dur:.2f}", "-i", src,
-               "-vf", f"crop={w}:{h}:{x}:{y}",
-               "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-an",
-               "-threads", "3", "-loglevel", "error", tmp]
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-ss",
+            f"{start:.2f}",
+            "-t",
+            f"{dur:.2f}",
+            "-i",
+            src,
+            "-vf",
+            f"crop={w}:{h}:{x}:{y}",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "veryfast",
+            "-crf",
+            "20",
+            "-an",
+            "-threads",
+            "3",
+            "-loglevel",
+            "error",
+            tmp,
+        ]
         r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode != 0 or not os.path.exists(tmp) or os.path.getsize(tmp) == 0:
-            for p in made:                        # roll back partial split
+            for p in made:  # roll back partial split
                 if os.path.exists(p):
                     os.remove(p)
             if os.path.exists(tmp):
@@ -262,8 +303,9 @@ def _clean_multiview(match, src, cur, raw, pad, manual, force, delete_raw):
         os.remove(raw)
         note = " (orig deleted)"
     mb = sum(os.path.getsize(p) for p in outs.values()) // (1024 * 1024)
-    return match, (f"ok  trim[{start:.0f}-{end:.0f}s] {len(VIEW_RECTS)} views "
-                   f"@{W}x{H}  ({mb} MB){note}")
+    return match, (
+        f"ok  trim[{start:.0f}-{end:.0f}s] {len(VIEW_RECTS)} views @{W}x{H}  ({mb} MB){note}"
+    )
 
 
 def main():
@@ -277,8 +319,10 @@ def main():
         if m not in matches and (not ONLY or m in set(ONLY)):
             matches.append(m)
     matches = sorted(set(matches))
-    print(f"{len(matches)} videos to clean, {WORKERS} workers "
-          f"(keep top {KEEP_BOTTOM}px, timer-trimmed)")
+    print(
+        f"{len(matches)} videos to clean, {WORKERS} workers "
+        f"(keep top {KEEP_BOTTOM}px, timer-trimmed)"
+    )
     ok = fail = skip = 0
     jobs = [(m, KEEP_BOTTOM, PAD, MANUAL, FORCE) for m in matches]
     with ProcessPoolExecutor(max_workers=WORKERS) as ex:
@@ -290,8 +334,7 @@ def main():
             ok += status.startswith("ok")
             skip += status.startswith("skip")
             fail += status.startswith("FAIL")
-    print(f"\nDone: {ok} cleaned, {skip} skipped, {fail} failed. "
-          f"Originals in {RAW}/")
+    print(f"\nDone: {ok} cleaned, {skip} skipped, {fail} failed. Originals in {RAW}/")
 
 
 if __name__ == "__main__":

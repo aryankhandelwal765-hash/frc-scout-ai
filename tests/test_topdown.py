@@ -28,9 +28,9 @@ def test_canvas_geometry_is_self_consistent():
 def test_corner_order_is_tl_tr_br_bl():
     """Every consumer assumes this order; assert it rather than trust it."""
     tl, tr, br, bl = td.FIELD_CORNERS
-    assert tl[0] < tr[0] and tl[1] == tr[1]      # top edge, left to right
-    assert bl[0] < br[0] and bl[1] == br[1]      # bottom edge, left to right
-    assert tl[1] < bl[1]                          # top above bottom
+    assert tl[0] < tr[0] and tl[1] == tr[1]  # top edge, left to right
+    assert bl[0] < br[0] and bl[1] == br[1]  # bottom edge, left to right
+    assert tl[1] < bl[1]  # top above bottom
 
 
 def test_project_maps_the_field_quad_onto_the_canvas_rectangle():
@@ -63,6 +63,7 @@ def test_project_handles_a_single_point():
 
 
 # ── Polynomial field map ─────────────────────────────────────────────────
+
 
 def _landmark_src():
     """Camera points for the 9 landmarks — here, the canvas points themselves

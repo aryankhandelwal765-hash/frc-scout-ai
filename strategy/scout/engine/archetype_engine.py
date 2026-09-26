@@ -8,10 +8,10 @@ Consumes the stats dict produced by statbotics_loader.parse_team_stats().
 """
 
 # Phase-share thresholds (fraction of a team's scoring breakdown).
-_AUTO_SPECIALIST = 0.28      # auto share this high = auto-focused
-_ENDGAME_SPECIALIST = 0.30   # endgame share this high = climb/endgame-focused
-_TELEOP_DOMINANT = 0.60      # teleop share this high = cycling workhorse
-_BALANCED_SPREAD = 0.12      # max-min phase share below this = balanced
+_AUTO_SPECIALIST = 0.28  # auto share this high = auto-focused
+_ENDGAME_SPECIALIST = 0.30  # endgame share this high = climb/endgame-focused
+_TELEOP_DOMINANT = 0.60  # teleop share this high = cycling workhorse
+_BALANCED_SPREAD = 0.12  # max-min phase share below this = balanced
 
 
 def _phase_shares(stats: dict) -> dict:
@@ -89,8 +89,8 @@ def classify_archetype(stats: dict) -> dict:
         "summary": (
             f"Team {stats.get('team')} ({stats.get('name', 'Unknown')}): "
             f"{tier} {label} — EPA {epa:.0f}, "
-            f"auto {shares['auto']*100:.0f}% / teleop {shares['teleop']*100:.0f}% / "
-            f"endgame {shares['endgame']*100:.0f}%."
+            f"auto {shares['auto'] * 100:.0f}% / teleop {shares['teleop'] * 100:.0f}% / "
+            f"endgame {shares['endgame'] * 100:.0f}%."
         ),
     }
 

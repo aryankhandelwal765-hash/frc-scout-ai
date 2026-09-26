@@ -38,18 +38,18 @@ TRUTH = os.path.join(HERE, "truth")
 # ===========================================================================
 # EDIT ME (PyCharm one-click).
 # ===========================================================================
-MATCH = "2026hop_qm100"   # a 5-read match; qm27 is the other well-studied one
-START = 0.0               # clip start, seconds (0 = start of the trimmed video)
-END = 22.0                # clip end, seconds. Auto is ~2-17s, so this covers it.
-SIDE_EVERY = 45           # OCR each reverse view every N source frames
-OUT = ""                  # output path; "" = results/<MATCH>/fusion_<start>-<end>.mp4
+MATCH = "2026hop_qm100"  # a 5-read match; qm27 is the other well-studied one
+START = 0.0  # clip start, seconds (0 = start of the trimmed video)
+END = 22.0  # clip end, seconds. Auto is ~2-17s, so this covers it.
+SIDE_EVERY = 45  # OCR each reverse view every N source frames
+OUT = ""  # output path; "" = results/<MATCH>/fusion_<start>-<end>.mp4
 # ===========================================================================
 
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
 GREY = (170, 170, 170)
-TRAIL = 60                # trail length, in trajectory samples
-PANEL_W = 420             # right-hand evidence panel width, px
+TRAIL = 60  # trail length, in trajectory samples
+PANEL_W = 420  # right-hand evidence panel width, px
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
@@ -96,13 +96,13 @@ def _load_auto(match):
     if not os.path.exists(p):
         return {}
     d = json.load(open(p)).get("teams", {})
-    return {o["tid"]: (o.get("team"), o.get("source"), o.get("station"))
-            for o in d.values()}
+    return {o["tid"]: (o.get("team"), o.get("source"), o.get("station")) for o in d.values()}
 
 
 def _side_hits(match, view, candidates, favour, lo, hi, every):
     """{frame: [(team, conf)]} read straight off a reverse view, no detector."""
     import read_numbers as rn
+
     path = os.path.join(VIDEOS, view, f"{match}.mp4")
     if not os.path.exists(path):
         return {}
@@ -151,14 +151,20 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
     candidates = rn.match_candidates(match) or []
     blue_c = rn.alliance_candidates(match, "blue") or []
     red_c = rn.alliance_candidates(match, "red") or []
-    print(f"{match}: {len(candidates)} candidate teams, "
-          f"{len(ident_team)} tracks with a read, {len(auto)} robots in the auto book")
+    print(
+        f"{match}: {len(candidates)} candidate teams, "
+        f"{len(ident_team)} tracks with a read, {len(auto)} robots in the auto book"
+    )
 
     print("scanning reverse views for reads (no detector needed) ...")
-    side = {"revL": _side_hits(match, "revL", candidates, tuple(blue_c), lo, hi, side_every),
-            "revR": _side_hits(match, "revR", candidates, tuple(red_c), lo, hi, side_every)}
-    print(f"  revL hits on {len(side['revL'])} sampled frames, "
-          f"revR hits on {len(side['revR'])} sampled frames")
+    side = {
+        "revL": _side_hits(match, "revL", candidates, tuple(blue_c), lo, hi, side_every),
+        "revR": _side_hits(match, "revR", candidates, tuple(red_c), lo, hi, side_every),
+    }
+    print(
+        f"  revL hits on {len(side['revL'])} sampled frames, "
+        f"revR hits on {len(side['revR'])} sampled frames"
+    )
 
     cap = cv2.VideoCapture(top_path)
     capL = cv2.VideoCapture(os.path.join(VIDEOS, "revL", f"{match}.mp4"))
@@ -169,13 +175,12 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
 
     okL, fL = capL.read()
     sh = fL.shape[:2] if okL else (254, 874)
-    side_h = int(sh[0] * (W / 2.0) / sh[1])          # each side view fills half the width
+    side_h = int(sh[0] * (W / 2.0) / sh[1])  # each side view fills half the width
     out_w, out_h = W + PANEL_W, H + side_h
 
     out = out or os.path.join(RESULTS, match, f"fusion_{int(start)}-{int(end)}.mp4")
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    vw = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"), fps / max(1, stride),
-                         (out_w, out_h))
+    vw = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"mp4v"), fps / max(1, stride), (out_w, out_h))
 
     trails = defaultdict(lambda: deque(maxlen=TRAIL))
     last_side = {"revL": (None, []), "revR": (None, [])}
@@ -206,8 +211,9 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
             col = BLUE_BGR if al == "blue" else RED_BGR
             pts = list(trails[tid])
             if len(pts) >= 2:
-                cv2.polylines(canvas[y1:y2, x1:x2], [np.array(pts, np.int32)],
-                              False, col, 2, cv2.LINE_AA)
+                cv2.polylines(
+                    canvas[y1:y2, x1:x2], [np.array(pts, np.int32)], False, col, 2, cv2.LINE_AA
+                )
             px, py = x1 + int(cx), y1 + int(cy)
             cv2.circle(canvas, (px, py), 6, col, -1)
             cv2.circle(canvas, (px, py), 6, (255, 255, 255), 1)
@@ -229,18 +235,30 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
             xoff = i * (W // 2)
             if okv:
                 v = cv2.resize(frv, (W // 2, side_h))
-                canvas[H:H + side_h, xoff:xoff + (W // 2)] = v
+                canvas[H : H + side_h, xoff : xoff + (W // 2)] = v
             hits = side[name].get(f)
             if hits:
                 last_side[name] = (f, hits)
             lf, lh = last_side[name]
             fresh = lf is not None and (f - lf) < side_every
-            _put(canvas, f"{name}  ({'BLUE' if name == 'revL' else 'RED'} side)",
-                 (xoff + 10, H + 22), (255, 255, 255), 0.6, 2)
+            _put(
+                canvas,
+                f"{name}  ({'BLUE' if name == 'revL' else 'RED'} side)",
+                (xoff + 10, H + 22),
+                (255, 255, 255),
+                0.6,
+                2,
+            )
             if lh:
                 txt = "  ".join(f"#{t}" for t, _ in lh)
-                _put(canvas, f"read: {txt}", (xoff + 10, H + 48),
-                     (90, 255, 90) if fresh else (120, 140, 120), 0.62, 2)
+                _put(
+                    canvas,
+                    f"read: {txt}",
+                    (xoff + 10, H + 48),
+                    (90, 255, 90) if fresh else (120, 140, 120),
+                    0.62,
+                    2,
+                )
             else:
                 _put(canvas, "read: -", (xoff + 10, H + 48), GREY, 0.6, 2)
 
@@ -248,23 +266,34 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
         px0 = W
         cv2.rectangle(canvas, (px0, 0), (out_w, out_h), (24, 24, 24), -1)
         y = 26
-        _put(canvas, match, (px0 + 12, y), (255, 255, 255), 0.62, 2); y += 24
+        _put(canvas, match, (px0 + 12, y), (255, 255, 255), 0.62, 2)
+        y += 24
         in_auto = auto_lo <= f <= auto_hi
-        _put(canvas, f"frame {f}   t={f / fps:5.1f}s"
-                     + ("   [AUTO]" if in_auto else ""),
-             (px0 + 12, y), (90, 255, 90) if in_auto else GREY, 0.5); y += 26
+        _put(
+            canvas,
+            f"frame {f}   t={f / fps:5.1f}s" + ("   [AUTO]" if in_auto else ""),
+            (px0 + 12, y),
+            (90, 255, 90) if in_auto else GREY,
+            0.5,
+        )
+        y += 26
         _put(canvas, "AUTO BOOK  (team / how)", (px0 + 12, y), (255, 255, 255), 0.52, 1)
         y += 20
-        for tid, (team, source, station) in sorted(auto.items(),
-                                                   key=lambda kv: kv[1][2] or ""):
+        for tid, (team, source, station) in sorted(auto.items(), key=lambda kv: kv[1][2] or ""):
             col = (90, 255, 90) if source == "read" else (0, 200, 255)
             live = f in {fr for fr in (f,)} and any(t == tid for t, *_ in per_frame.get(f, []))
             mark = ">" if live else " "
-            _put(canvas, f"{mark} {station or '?':6s} {str(team).replace('frc', '#'):8s}"
-                         f" {source or '-'}", (px0 + 12, y), col, 0.5); y += 19
+            _put(
+                canvas,
+                f"{mark} {station or '?':6s} {str(team).replace('frc', '#'):8s} {source or '-'}",
+                (px0 + 12, y),
+                col,
+                0.5,
+            )
+            y += 19
         y += 10
-        _put(canvas, "PER-TRACK VOTES (identity.json)", (px0 + 12, y),
-             (255, 255, 255), 0.52, 1); y += 20
+        _put(canvas, "PER-TRACK VOTES (identity.json)", (px0 + 12, y), (255, 255, 255), 0.52, 1)
+        y += 20
         live_tids = {t for t, *_ in per_frame.get(f, [])}
         shown = 0
         for tid in sorted(ident_votes, key=lambda t: (t not in live_tids, t)):
@@ -274,7 +303,8 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
             top = sorted(v.items(), key=lambda kv: -kv[1])[:3]
             txt = " ".join(f"{t}:{n:g}" for t, n in top)
             col = (255, 255, 255) if tid in live_tids else (120, 120, 120)
-            _put(canvas, f"t{tid:<4d} {txt}", (px0 + 12, y), col, 0.46); y += 17
+            _put(canvas, f"t{tid:<4d} {txt}", (px0 + 12, y), col, 0.46)
+            y += 17
             shown += 1
             if y > out_h - 30 or shown > 18:
                 break
@@ -283,7 +313,10 @@ def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
         written += 1
         f += 1
 
-    cap.release(); capL.release(); capR.release(); vw.release()
+    cap.release()
+    capL.release()
+    capR.release()
+    vw.release()
     print(f"wrote {written} frames -> {out}")
     return out
 

@@ -11,10 +11,12 @@ def fake_provider():
     """A stand-in module with the provider interface."""
     m = types.ModuleType("fake_provider")
     m.calls = []
-    m.get_team_stats = lambda team, year: (m.calls.append(("stats", team, year)) or {"team": team, "epa": 42.0})
+    m.get_team_stats = lambda team, year: (
+        m.calls.append(("stats", team, year)) or {"team": team, "epa": 42.0}
+    )
     m.is_reachable = lambda: True
     m.is_configured = lambda: True
-    m.get_event_matches = lambda key: (m.calls.append(("matches", key)) or [{"key": key}])
+    m.get_event_matches = lambda key: m.calls.append(("matches", key)) or [{"key": key}]
     return m
 
 

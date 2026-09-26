@@ -29,12 +29,16 @@ CLASSES = ["blue_robot", "red_robot"]
 
 
 def build_split(dataset, val_frac, seed):
-    images = sorted(glob.glob(os.path.join(dataset, "images", "*.jpg")) +
-                    glob.glob(os.path.join(dataset, "images", "*.png")))
+    images = sorted(
+        glob.glob(os.path.join(dataset, "images", "*.jpg"))
+        + glob.glob(os.path.join(dataset, "images", "*.png"))
+    )
     labels_dir = os.path.join(dataset, "labels")
     # keep only reviewed frames (label file exists)
-    pairs = [(im, os.path.join(labels_dir, os.path.splitext(os.path.basename(im))[0] + ".txt"))
-             for im in images]
+    pairs = [
+        (im, os.path.join(labels_dir, os.path.splitext(os.path.basename(im))[0] + ".txt"))
+        for im in images
+    ]
     pairs = [(im, lb) for im, lb in pairs if os.path.exists(lb)]
     if not pairs:
         raise SystemExit("No labeled frames found. Run annotate.py first.")
@@ -82,8 +86,15 @@ def main():
 
     print(f"Training {args.model} on {device} for {args.epochs} epochs @ {args.imgsz}px ...")
     model = YOLO(args.model)
-    model.train(data=yaml_path, epochs=args.epochs, imgsz=args.imgsz,
-                batch=args.batch, device=device, name=args.name, patience=30)
+    model.train(
+        data=yaml_path,
+        epochs=args.epochs,
+        imgsz=args.imgsz,
+        batch=args.batch,
+        device=device,
+        name=args.name,
+        patience=30,
+    )
     print("\nDone. Detector weights: runs/detect/%s/weights/best.pt" % args.name)
     print("Next: I'll wire this into a detector-based estimator for real per-robot attribution.")
 
