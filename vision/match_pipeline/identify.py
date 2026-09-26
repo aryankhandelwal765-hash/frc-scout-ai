@@ -27,7 +27,7 @@ import json
 import os
 import sys
 import warnings
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
 import cv2
 import numpy as np
@@ -217,6 +217,7 @@ def _side_reads(match, candidates, favour_by_view, rn, every=SIDE_EVERY):
 def run(match, model=None):
     import read_numbers as rn
     from ultralytics import YOLO
+
     import trajectories as tj
 
     tracks = _load_tracks(match)
@@ -340,6 +341,7 @@ def main():
         run(args.match)
         return
     from ultralytics import YOLO
+
     import trajectories as tj
 
     model = YOLO(tj._newest_weights())

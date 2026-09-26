@@ -1,6 +1,5 @@
 """tba_loader — phase-point extraction and the 2026 endgame rule. No network."""
 
-import pytest
 
 from scout.engine import tba_loader as tba
 

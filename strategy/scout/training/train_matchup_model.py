@@ -1,17 +1,12 @@
 import time
+
 import joblib
 import pandas as pd
-
-from pathlib import Path
-
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-
-from sklearn.metrics import mean_absolute_error, accuracy_score
-
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 
-from scout.config import MODELS_DIR, PROCESSED_DIR, MATCHUP_MODEL_DIR
-
+from scout.config import MATCHUP_MODEL_DIR, MODELS_DIR, PROCESSED_DIR
 from scout.engine.model_features import MODEL_FEATURES
 
 # =========================================================

@@ -5,8 +5,7 @@ All the numbers you'll actually want to change live here (or are exposed as CLI
 flags in track_match.py). Broadcast footage varies a lot -- expect to tune.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Tuple
+from dataclasses import dataclass
 
 # ---------------------------------------------------------------------------
 # Bumper (alliance) colors -- used to detect ROBOTS.
@@ -53,7 +52,7 @@ class GoalZone:
 
     name: str
     alliance: str  # 'red' | 'blue' | 'shared'
-    rect: Tuple[int, int, int, int]
+    rect: tuple[int, int, int, int]
 
     def contains(self, cx: float, cy: float) -> bool:
         x, y, w, h = self.rect

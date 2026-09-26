@@ -27,14 +27,11 @@ import os
 import sys
 from collections import defaultdict
 
-import cv2
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import auto_paths as ap
 import topdown as td
-import topdown_paths as tp
 import zones
 
 RESULTS = os.path.join(HERE, "results")

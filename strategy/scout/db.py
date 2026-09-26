@@ -18,7 +18,7 @@ import os
 import sqlite3
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def _hash(*parts: Any) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
-def cache_get(key: str) -> Optional[Any]:
+def cache_get(key: str) -> Any | None:
     """Return the cached value or None if missing/expired."""
     try:
         with _conn() as c:

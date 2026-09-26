@@ -219,7 +219,7 @@ def get_team_stats(team: int, year: int = 2026) -> dict | None:
     if hit and (time.time() - hit[0]) < _STATS_TTL:
         return hit[1]
 
-    from scout.db import cache_get, cache_set, tba_team_key, TTL_TBA
+    from scout.db import TTL_TBA, cache_get, cache_set, tba_team_key
 
     db_key = tba_team_key(team, year)
     db_hit = cache_get(db_key)
@@ -270,7 +270,7 @@ def get_event_matches(event_key: str) -> list[dict]:
     if not is_configured():
         return []
 
-    from scout.db import cache_get, cache_set, tba_matches_key, TTL_TBA
+    from scout.db import TTL_TBA, cache_get, cache_set, tba_matches_key
 
     db_key = tba_matches_key(event_key)
     db_hit = cache_get(db_key)

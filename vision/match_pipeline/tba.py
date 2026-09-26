@@ -9,12 +9,12 @@ Read-only. Needs an auth key (X-TBA-Auth-Key). Supply it via, in priority order:
 Get a key (free) at https://www.thebluealliance.com/account -> "Read API Keys".
 """
 
+import json
 import os
 import ssl
 import time
-import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 BASE = "https://www.thebluealliance.com/api/v3"
 _KEY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tba_key")

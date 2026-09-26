@@ -62,7 +62,7 @@ def build_split(dataset, val_frac, seed):
         f.write(f"path: {os.path.abspath(out)}\n")
         f.write("train: images/train\n")
         f.write("val: images/val\n")
-        f.write(f"names:\n")
+        f.write("names:\n")
         for i, c in enumerate(CLASSES):
             f.write(f"  {i}: {c}\n")
     print(f"Split: {len(split['train'])} train / {len(split['val'])} val")

@@ -1,9 +1,9 @@
 import json
+
 import pandas as pd
 
-from scout.config import RAW_MATCHES_DIR, STATBOTICS_DIR, PROCESSED_DIR
-
-from scout.engine.feature_engineering import build_statbotics_lookup, build_matchup_features
+from scout.config import PROCESSED_DIR, RAW_MATCHES_DIR, STATBOTICS_DIR
+from scout.engine.feature_engineering import build_matchup_features, build_statbotics_lookup
 
 # =========================================================
 # CONFIG
@@ -21,7 +21,7 @@ OUTPUT_FILE = PROCESSED_DIR / "matchup_dataset.csv"
 
 print("\nLoading matches...\n")
 
-with open(MATCH_FILE, "r") as f:
+with open(MATCH_FILE) as f:
     matches = json.load(f)
 
 print(f"Loaded {len(matches)} matches.\n")
@@ -32,7 +32,7 @@ print(f"Loaded {len(matches)} matches.\n")
 
 print("Loading Statbotics data...\n")
 
-with open(TEAM_DATA_FILE, "r") as f:
+with open(TEAM_DATA_FILE) as f:
     team_data = json.load(f)
 
 print(f"Loaded {len(team_data)} teams.\n")

@@ -40,7 +40,8 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HERE, "classic"))
 sys.path.insert(0, os.path.join(_HERE, "match_pipeline"))
 
-from scoring_estimator import SCOREBOARD, YELLOW_LO, YELLOW_HI, ocr_ball_count, moving_ball_mask
+from scoring_estimator import SCOREBOARD, YELLOW_HI, YELLOW_LO, moving_ball_mask, ocr_ball_count
+
 from boxes import CROP  # MUST match the crop the detector was trained on
 
 BLUE_BGR = (255, 120, 0)
@@ -68,7 +69,7 @@ def run(
 
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     x1, y1, x2, y2 = CROP
     cw, ch = x2 - x1, y2 - y1

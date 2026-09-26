@@ -21,7 +21,6 @@ import re
 import sys
 
 import cv2
-import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -36,7 +35,10 @@ _READER = None
 def reader():
     global _READER
     if _READER is None:
-        import ssl, certifi, warnings
+        import ssl
+        import warnings
+
+        import certifi
 
         warnings.filterwarnings("ignore")
         os.environ.setdefault("SSL_CERT_FILE", certifi.where())

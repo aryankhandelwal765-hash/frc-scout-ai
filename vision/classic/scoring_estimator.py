@@ -192,7 +192,7 @@ def pick_crop(input_path):
     ok, frame = cap.read()
     cap.release()
     if not ok:
-        raise IOError(f"Could not read a frame from {input_path}")
+        raise OSError(f"Could not read a frame from {input_path}")
     print("\nDrag a box around the part to KEEP (e.g. the top overhead field).")
     print("Press ENTER/SPACE to confirm, ESC to cancel.\n")
     x, y, w, h = cv2.selectROI(
@@ -221,7 +221,7 @@ def run(
     os.makedirs(outdir, exist_ok=True)
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))

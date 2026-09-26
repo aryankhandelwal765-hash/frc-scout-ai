@@ -17,10 +17,11 @@ Controls:
     - Press 'r' to reset everything and start over.
 """
 
+import argparse
+import json
+
 import cv2
 import numpy as np
-import json
-import argparse
 
 
 def sample_hsv_around(hsv_frame, x, y, radius=6):
@@ -59,7 +60,7 @@ def main():
     cap.set(cv2.CAP_PROP_POS_FRAMES, args.frame)
     ret, frame = cap.read()
     if not ret:
-        raise IOError("Could not read a frame from the video at that position.")
+        raise OSError("Could not read a frame from the video at that position.")
     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     state = {

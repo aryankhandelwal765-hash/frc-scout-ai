@@ -56,7 +56,7 @@ def grab_frame(input_path, at_sec):
     ok, frame = cap.read()
     cap.release()
     if not ok:
-        raise IOError(f"Could not read frame at {at_sec}s from {input_path}")
+        raise OSError(f"Could not read frame at {at_sec}s from {input_path}")
     x1, y1, x2, y2 = CROP
     return frame[y1:y2, x1:x2].copy()
 

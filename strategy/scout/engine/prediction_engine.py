@@ -1,13 +1,14 @@
-import joblib
-import pandas as pd
 from pathlib import Path
 
-from scout.engine.model_features import MODEL_FEATURES
+import joblib
+import pandas as pd
+
+from scout.engine.data_source import get_team_stats
 from scout.engine.feature_engineering import (
     build_matchup_features,
     win_probability_from_diff,
 )
-from scout.engine.data_source import get_team_stats
+from scout.engine.model_features import MODEL_FEATURES
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 _score_model = None

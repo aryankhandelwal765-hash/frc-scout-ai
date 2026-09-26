@@ -62,8 +62,8 @@ def _run_one(args):
         os.environ.setdefault(v, "1")
     sys.path.insert(0, PARENT)
     sys.path.insert(0, CLASSIC)
-    import scoring_estimator as se
     import cv2
+    import scoring_estimator as se
 
     cv2.setNumThreads(1)
     os.makedirs(outdir, exist_ok=True)

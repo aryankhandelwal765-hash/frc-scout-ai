@@ -136,6 +136,7 @@ def _put(img, text, org, color=(255, 255, 255), scale=0.5, thick=1):
 
 def run(match=MATCH, start=START, end=END, side_every=SIDE_EVERY, out=OUT):
     import read_numbers as rn
+
     from trajectories import field_crop
 
     top_path = os.path.join(VIDEOS, f"{match}.mp4")

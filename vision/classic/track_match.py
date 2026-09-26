@@ -21,14 +21,13 @@ import csv
 import json
 import os
 
-import cv2
-
 import config
-from config import Params, GoalZone
+import cv2
 import detection
-from tracking import CentroidTracker
-from scoring import ScoringEngine
 import overlay
+from config import GoalZone, Params
+from scoring import ScoringEngine
+from tracking import CentroidTracker
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +59,7 @@ def pick_zones_interactive(input_path):
     ok, frame = cap.read()
     cap.release()
     if not ok:
-        raise IOError(f"Could not read a frame from {input_path}")
+        raise OSError(f"Could not read a frame from {input_path}")
 
     print("\nZone picker:")
     print("  - Drag a box around each GOAL / scoring region.")
@@ -104,7 +103,7 @@ def process_video(
 
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))

@@ -21,7 +21,6 @@ PyCharm: set TEAM (or "" for all), click Run.
 import argparse
 import collections
 import csv
-import glob
 import json
 import os
 import sys
@@ -146,8 +145,9 @@ def load_routes():
     """n usable autos and start-group count per team, from team_routes if built."""
     try:
         sys.path.insert(0, HERE)
-        import topdown as td
         import team_routes as tr
+
+        import topdown as td
 
         mapper = td.load_mapper()
         if mapper is None:

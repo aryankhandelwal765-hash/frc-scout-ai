@@ -2,8 +2,6 @@
 
 import time
 
-import pytest
-
 
 def test_roundtrip(temp_cache_db):
     db = temp_cache_db

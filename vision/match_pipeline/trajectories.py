@@ -260,7 +260,7 @@ def run(
 
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     probe = cv2.VideoCapture(input_path)
     _ok, _f = probe.read()

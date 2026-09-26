@@ -35,7 +35,6 @@ sys.path.insert(0, PARENT)
 import auto_paths as ap
 import stitch
 import topdown as td
-import topdown_paths as tp
 
 VIDEOS = os.path.join(HERE, "videos")
 RESULTS = os.path.join(HERE, "results")

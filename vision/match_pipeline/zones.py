@@ -179,8 +179,9 @@ def to_field_inches(xy_canvas):
       2. x_correction (calib_refine.py 1D poly) if present
       3. No correction (raw scale only)
     """
-    import topdown as td
     import numpy as np
+
+    import topdown as td
 
     a = np.asarray(xy_canvas, float)
     sx = FIELD_LEN / (td.FX1 - td.FX0)

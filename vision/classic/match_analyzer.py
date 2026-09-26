@@ -12,14 +12,14 @@ Usage:
         --output annotated.mp4 --events scoring_events.csv
 """
 
-import cv2
-import numpy as np
-import json
-import csv
 import argparse
+import csv
+import json
 from collections import defaultdict
 
-from robot_tracker import RED_RANGES, BLUE_RANGE, get_color_mask, find_blobs, MIN_CONTOUR_AREA
+import cv2
+import numpy as np
+from robot_tracker import BLUE_RANGE, MIN_CONTOUR_AREA, RED_RANGES, find_blobs, get_color_mask
 
 
 class HistoryTracker:
@@ -120,7 +120,7 @@ def process_video(input_path, config_path, output_path, events_path, min_robot_a
 
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))

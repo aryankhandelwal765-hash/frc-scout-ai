@@ -28,8 +28,8 @@ import topdown as td
 import zones
 
 try:
+    from scipy.cluster.hierarchy import fcluster, linkage
     from scipy.spatial.distance import squareform
-    from scipy.cluster.hierarchy import linkage, fcluster
 
     _SCIPY = True
 except ImportError:

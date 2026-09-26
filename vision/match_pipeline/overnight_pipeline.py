@@ -100,6 +100,7 @@ def phase4_render(force=False):
     """Re-render topdown_auto.png for every match that has smoothed_auto_paths.json."""
     sys.path.insert(0, HERE)
     import glob
+
     import topdown as td
     import topdown_paths as tp
 
@@ -267,7 +268,7 @@ def main():
     print(f"  {RESULTS}/*/topdown_auto.png          -- re-rendered match renders")
     print(f"  {os.path.join(HERE, 'topdown_paths/')}  -- per-team aggregate pages")
     print(f"  {os.path.join(HERE, 'auto_book/_all.md')}  -- written auto scouting book")
-    print(f"\nIf validate_paths.py shows worse center-line violations than before,")
+    print("\nIf validate_paths.py shows worse center-line violations than before,")
     print("run: python overnight_pipeline.py --only 1 --force")
     print("to re-solve Phase 1 with different parameters, then re-run 2-4.")
 

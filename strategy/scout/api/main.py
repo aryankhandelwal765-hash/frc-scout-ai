@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
@@ -37,27 +37,27 @@ SCOUTING_ROOT = (
     Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
 )
 
-from scout.config import SYNTHESIS_MODEL, BOT_MODEL
-from scout.db import init_db, cache_stats, cache_clear, cache_purge_expired
+from scout.config import BOT_MODEL, SYNTHESIS_MODEL
+from scout.db import cache_clear, cache_purge_expired, cache_stats, init_db
 from scout.engine import data_source, ollama_client
-from scout.engine.prediction_engine import predict_match
 from scout.engine.archetype_engine import classify_archetype
-from scout.engine.volatility_engine import profile_volatility
-from scout.engine.synthesis_engine import (
-    build_strategy_brief,
-    synthesize,
-    SYSTEM_PROMPT,
-    stream_bot_analysis,
-    build_coach_brief,
-    build_captain_brief,
-    generate_roles,
-)
 from scout.engine.ollama_client import stream_chat_verbose
-from scout.engine.vision_loader import (
-    get_team_vision,
-    get_match_vision,
-    build_scouting_notes,
+from scout.engine.prediction_engine import predict_match
+from scout.engine.synthesis_engine import (
+    SYSTEM_PROMPT,
+    build_captain_brief,
+    build_coach_brief,
+    build_strategy_brief,
+    generate_roles,
+    stream_bot_analysis,
+    synthesize,
 )
+from scout.engine.vision_loader import (
+    build_scouting_notes,
+    get_match_vision,
+    get_team_vision,
+)
+from scout.engine.volatility_engine import profile_volatility
 from scout.settings import get_my_team, set_my_team
 
 app = FastAPI(

@@ -45,6 +45,7 @@ SHOW_ONLY_IN_BOX = False  # True = paint masks only inside robot boxes
 
 def main():
     from ultralytics import YOLO
+
     import trajectories as tj
 
     video = os.path.join(VIDEOS, f"{MATCH}.mp4")

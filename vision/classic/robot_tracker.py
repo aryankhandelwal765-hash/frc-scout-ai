@@ -6,10 +6,11 @@ Usage:
     python robot_tracker.py --input match_clip.mp4 --output annotated.mp4 --csv positions.csv
 """
 
+import argparse
+import csv
+
 import cv2
 import numpy as np
-import csv
-import argparse
 
 # HSV color ranges for FRC bumpers.
 # Red wraps around hue 0/180 in OpenCV's HSV space, so it needs two ranges.
@@ -77,7 +78,7 @@ class SimpleTracker:
 def process_video(input_path, output_path, csv_path, min_area):
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        raise IOError(f"Could not open {input_path}")
+        raise OSError(f"Could not open {input_path}")
 
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))

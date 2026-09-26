@@ -31,7 +31,7 @@ available_teams = set(df["Team Number"].dropna().astype(int).tolist())
 # LOAD MATCHES
 # =========================================================
 
-with open(MATCH_FILE, "r") as f:
+with open(MATCH_FILE) as f:
     matches = json.load(f)
 
 # =========================================================

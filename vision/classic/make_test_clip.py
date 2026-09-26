@@ -12,6 +12,7 @@ Run the tracker on it with:
 """
 
 import json
+
 import cv2
 import numpy as np
 

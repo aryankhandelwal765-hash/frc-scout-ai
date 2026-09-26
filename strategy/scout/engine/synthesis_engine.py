@@ -16,13 +16,12 @@ Orchestrates:
 import json
 import re
 
-from scout.config import SYNTHESIS_MODEL, BOT_MODEL
-from scout.engine.prediction_engine import predict_match
-from scout.engine.archetype_engine import classify_alliance, classify_archetype
-from scout.engine.volatility_engine import profile_alliance, profile_volatility
-from scout.engine.chemistry_engine import analyze_chemistry
+from scout.config import BOT_MODEL, SYNTHESIS_MODEL
 from scout.engine import ollama_client
-
+from scout.engine.archetype_engine import classify_alliance, classify_archetype
+from scout.engine.chemistry_engine import analyze_chemistry
+from scout.engine.prediction_engine import predict_match
+from scout.engine.volatility_engine import profile_alliance, profile_volatility
 
 SYSTEM_PROMPT = (
     "You are the strategy captain for a top FRC (FIRST Robotics Competition) team "
@@ -119,7 +118,7 @@ def build_strategy_brief(prediction: dict, notes: str | None = None) -> dict:
     # Vision-derived measurements (per-team ball scoring from CV). Runs after
     # aggregate stats so the LLM sees the aggregate + the measured behavior.
     # Only inserted for teams that have any vision data — degrades silently.
-    from scout.engine.vision_loader import get_team_vision, get_team_auto_routes
+    from scout.engine.vision_loader import get_team_auto_routes, get_team_vision
 
     vision_lines = []
     auto_lines = []

@@ -1,6 +1,5 @@
 """data_source — the provider dispatcher. No provider is ever really called."""
 
-import sys
 import types
 
 import pytest
@@ -65,7 +64,6 @@ def test_get_event_matches_empty_when_unsupported(ds, monkeypatch):
 
 def test_providers_are_imported_lazily():
     """Only the active backend is imported, so statbotics need not be installed."""
-    import importlib
     import inspect
 
     from scout.engine import data_source

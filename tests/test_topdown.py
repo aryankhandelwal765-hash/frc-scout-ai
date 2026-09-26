@@ -14,7 +14,6 @@ import cv2  # noqa: E402
 
 import topdown as td  # noqa: E402
 
-
 # A plausible camera-side quadrilateral of the field, in CROP pixels.
 # Order matches FIELD_CORNERS everywhere: TL, TR, BR, BL.
 SRC = np.array([[120, 180], [1160, 175], [1265, 455], [15, 460]], np.float32)

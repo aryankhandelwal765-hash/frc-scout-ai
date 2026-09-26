@@ -14,10 +14,8 @@ gives verified per-robot activity + specific match behaviors the LLM can cite.
 """
 
 import json
-import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional
 
 from scout.db import cache_get, cache_set
 

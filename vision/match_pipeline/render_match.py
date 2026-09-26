@@ -18,7 +18,6 @@ RESULTS = os.path.join(HERE, "results")
 TRUTH = os.path.join(HERE, "truth")
 CALIB = os.path.join(HERE, "calib.json")
 
-from boxes import CROP  # detector crop (offset added back for full-frame draw)
 
 BLUE_BGR = (255, 120, 0)
 RED_BGR = (0, 80, 255)
@@ -87,12 +86,13 @@ def run(
     imgsz=960,
     match=None,
 ):
+    from scoring_estimator import ocr_ball_count
     from ultralytics import YOLO
-    from scoring_estimator import ocr_ball_count, SCOREBOARD
+
     from trajectories import (
+        alliance_from_masks,
         bumper_strip,
         frame_bumper_masks,
-        alliance_from_masks,
         lab_alliance,
         static_color_masks,
     )
@@ -102,7 +102,7 @@ def run(
 
     cap = cv2.VideoCapture(video)
     if not cap.isOpened():
-        raise IOError(f"Could not open {video}")
+        raise OSError(f"Could not open {video}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))

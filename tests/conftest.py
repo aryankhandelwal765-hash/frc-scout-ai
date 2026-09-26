@@ -1,6 +1,5 @@
 """Shared fixtures. Nothing here touches the network."""
 
-import os
 import sys
 from pathlib import Path
 
