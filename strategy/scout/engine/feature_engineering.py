@@ -1,3 +1,5 @@
+"""Alliance feature vectors for the score model, and the win-probability sigmoid."""
+
 import math
 
 

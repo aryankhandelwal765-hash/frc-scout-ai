@@ -1,3 +1,5 @@
+"""Ordered feature names the trained matchup model expects at inference time."""
+
 MODEL_FEATURES = [
     "red_epa",
     "blue_epa",

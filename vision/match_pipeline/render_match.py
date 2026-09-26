@@ -1,3 +1,8 @@
+"""Render a match with tracked robots, alliance colours and per-robot labels.
+
+Usage: python render_match.py --match <match_key>
+"""
+
 import json
 import os
 import sys
@@ -137,7 +142,6 @@ def run(
         }
     teams = _team_map(match) if classify else None
     calib = json.load(open(CALIB)) if os.path.exists(CALIB) else None
-    stations = {k: tuple(v) for k, v in calib["stations"].items()} if (calib and classify) else None
     zones = calib.get("scoring_zones", []) if calib else []
     tid_team = {}  # tid -> label string
     first_pos = {}  # tid -> (cx,cy) crop coords, for classify

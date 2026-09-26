@@ -14,7 +14,7 @@ pytest.importorskip("cv2", reason="the detector path needs opencv")
 
 @needs_weights
 def test_newest_weights_resolves_to_a_file():
-    ultralytics = pytest.importorskip("ultralytics", reason="ultralytics not installed")
+    pytest.importorskip("ultralytics", reason="ultralytics not installed")
     import trajectories
 
     path = trajectories._newest_weights()

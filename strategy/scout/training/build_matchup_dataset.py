@@ -1,3 +1,8 @@
+"""Build the per-matchup training dataset from cached TBA matches.
+
+Usage: python -m scout.training.build_matchup_dataset
+"""
+
 import json
 
 import pandas as pd

@@ -1,3 +1,5 @@
+"""Match prediction: EPA win probability plus the trained score model."""
+
 from pathlib import Path
 
 import joblib

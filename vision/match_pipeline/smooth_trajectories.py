@@ -253,7 +253,6 @@ def smooth_match(match, mapper, correction):
             ]
         )
         for tid, rows in sorted(smoothed_tracks.items()):
-            al = rows[0][2]
             for frame, t, alliance, fx, fy, vx, vy, interp, conf in rows:
                 w.writerow(
                     [

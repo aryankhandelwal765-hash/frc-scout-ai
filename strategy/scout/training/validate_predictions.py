@@ -1,3 +1,8 @@
+"""Score cached predictions against played matches.
+
+Usage: python -m scout.training.validate_predictions
+"""
+
 import os
 
 # Directory holding the raw scouting CSV exports. Override with the

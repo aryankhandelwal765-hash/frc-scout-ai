@@ -16,11 +16,14 @@ Per detected robot:
   read_bumper(crop_bgr, box, candidates) -> (team, confidence) or (None, 0.0)
 """
 
+import logging
 import os
 import re
 import sys
 
 import cv2
+
+logger = logging.getLogger(__name__)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -135,7 +138,7 @@ def read_bumper(img, box, candidates, debug=False):
     top_team, top_score = ranked[0]
     second = ranked[1][1] if len(ranked) > 1 else 0.0
     if debug:
-        print("   reads:", reads, "->", ranked[:3])
+        logger.debug("reads: %s -> %s", reads, ranked[:3])
     if top_score >= MIN_SCORE and (top_score - second) >= MIN_MARGIN:
         return top_team, round(float(top_score), 3)
     return None, round(float(top_score), 3)

@@ -76,7 +76,6 @@ def draw_possession(frame, balls, robots_by_alliance, engine):
 
 
 def draw_scoreboard(frame, engine, frame_idx, time_sec):
-    h = frame.shape[0]
     panel_w, panel_h = 260, 150
     x0, y0 = 10, 10
     overlay = frame.copy()

@@ -1,3 +1,8 @@
+"""Aggregate per-robot scouting CSV rows into per-team features.
+
+Usage: python -m scout.training.build_scouting_features
+"""
+
 import pandas as pd
 
 from scout.config import SCOUTING_DIR

@@ -69,7 +69,7 @@ def main():
         for gx, gy, gw, gh in (RED_GOAL, BLUE_GOAL):
             cv2.rectangle(img, (gx, gy), (gx + gw, gy + gh), GOAL_FILL, -1)
 
-        rx, by = red_x(f), 260
+        rx = red_x(f)
         bx = blue_x(f)
         draw_robot(img, rx, 260, RED_BGR)
         draw_robot(img, bx, 260, BLUE_BGR)

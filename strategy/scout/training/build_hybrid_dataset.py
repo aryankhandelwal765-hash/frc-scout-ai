@@ -1,3 +1,8 @@
+"""Build the hybrid scouting + EPA training dataset.
+
+Usage: python -m scout.training.build_hybrid_dataset
+"""
+
 import json
 
 import pandas as pd

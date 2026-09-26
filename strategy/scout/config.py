@@ -1,3 +1,5 @@
+"""Paths, model names and the TBA key loader. Secrets come from the environment."""
+
 import os
 from pathlib import Path
 

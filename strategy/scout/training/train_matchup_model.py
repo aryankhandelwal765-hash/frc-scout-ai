@@ -1,3 +1,8 @@
+"""Train the matchup score/win model and write it to scout/models/.
+
+Usage: python -m scout.training.train_matchup_model
+"""
+
 import time
 
 import joblib

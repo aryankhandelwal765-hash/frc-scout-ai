@@ -1,3 +1,5 @@
+"""Ollama HTTP client. Streams ("thinking" | "content", text) events from a chat."""
+
 import json
 import os
 
