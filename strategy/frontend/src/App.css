@@ -68,7 +68,6 @@
   border-right-color: var(--primary);
 }
 .nav-item .material-symbols-outlined { font-size: 20px; }
-.sidebar-cta { padding: 16px 22px; border-top: 1px solid var(--border); }
 .sidebar-status { padding: 14px 22px 0; display: flex; flex-direction: column; gap: 10px; }
 .side-stat {
   display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600;
@@ -122,13 +121,6 @@
   padding: 22px;
 }
 .card-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.01em; }
-.section-title {
-  display: flex; align-items: center; gap: 12px;
-  font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em;
-  color: var(--outline); font-weight: 700; margin: 6px 0 12px;
-}
-.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.section-hint { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--outline); }
 
 /* ── Page intro ──────────────────────────────────────────── */
 .page-intro { margin-bottom: 2px; }
@@ -260,12 +252,6 @@
 .unit-card.blue .unit-rank { color: var(--blue); }
 .unit-team { font-family: var(--mono); font-size: 20px; font-weight: 800; line-height: 1.1; }
 .unit-name { font-size: 12px; color: var(--outline); font-weight: 500; }
-.unit-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.05em; padding: 4px 8px; border-radius: 6px;
-}
-.unit-card.red .unit-badge { background: rgba(255, 90, 95, .18); color: var(--red); }
-.unit-card.blue .unit-badge { background: rgba(58, 160, 255, .18); color: var(--blue); }
 .warn-flag {
   width: 20px; height: 20px; border-radius: 50%; border: none; cursor: pointer;
   font-weight: 900; font-size: 12px; background: #6b5522; color: var(--amber);
@@ -298,9 +284,6 @@
 .chem-score { font-family: var(--mono); font-size: 24px; font-weight: 800; line-height: 1; }
 .chem-score span { font-family: 'Inter'; font-size: 11px; color: var(--outline); font-weight: 500; margin-left: 4px; }
 .chem-sub { font-family: var(--mono); font-size: 11px; color: var(--outline); margin-top: 4px; }
-.chem-notes { list-style: none; padding: 0; margin: 0; flex: 1; min-width: 200px; }
-.chem-notes li { font-size: 12px; color: var(--muted); padding-left: 15px; position: relative; line-height: 1.6; }
-.chem-notes li::before { content: '›'; position: absolute; left: 0; color: var(--primary-tint); font-weight: 800; }
 
 /* ── Synthesis / streaming reads ─────────────────────────── */
 .synth-card {
