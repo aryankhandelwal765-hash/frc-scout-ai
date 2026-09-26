@@ -1,5 +1,10 @@
 # FRC Scout AI — Deployment Guide
 
+> **Untested.** These steps have not been run. The compose file and Dockerfile
+> are syntax-checked only — Docker was not available on the machine this was
+> prepared on. The non-Docker quickstart in the root README is the verified path.
+
+
 ## Quick start (Docker)
 
 All commands below run from `strategy/`.

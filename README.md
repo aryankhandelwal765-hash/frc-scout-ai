@@ -213,7 +213,10 @@ and [Ollama](https://ollama.com).
 A free [TBA read key](https://www.thebluealliance.com/account) is required for
 live data.
 
-### Without Docker
+### Without Docker (recommended)
+
+This is the path that is actually verified — a fresh clone was taken through it
+end to end.
 
 ```bash
 git clone https://github.com/aryankhandelwal765-hash/frc-scout-ai.git
@@ -243,7 +246,14 @@ strategy/.venv/bin/python -m pip install -r requirements-dev.txt
 strategy/.venv/bin/python -m pytest
 ```
 
-### With Docker
+### With Docker (untested)
+
+> **Untested.** The compose file and Dockerfile have been syntax-checked only —
+> Docker was not available on the machine this was prepared on, so the stack has
+> never been brought up from this branch. Treat the commands below as a starting
+> point, not a verified recipe. Use the non-Docker path above for a known-good
+> setup.
+
 
 ```bash
 git clone https://github.com/aryankhandelwal765-hash/frc-scout-ai.git
