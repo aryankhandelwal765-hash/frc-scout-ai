@@ -57,7 +57,7 @@ OUT = os.path.join(HERE, "path_quality.csv")
 def check():
     mapper = td.load_mapper()
     if mapper is None:
-        raise SystemExit("No field map -- run multi_video_apriltag_calib.py first.")
+        raise SystemExit("No field map -- run autofit_fieldmap.py first.")
     cx = (td.FX0 + td.FX1) / 2.0
     half = (td.FX1 - td.FX0) / 2.0
 

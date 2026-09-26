@@ -4,17 +4,14 @@ Measures FRC robots from match video and fuses that with The Blue Alliance into 
 
 [![CI](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml)
 
-<!-- TODO(aryan): record a ~20s screen capture of an analyze run (match setup ->
-     dashboard -> streaming captain read) and save it to docs/media/hero.gif. -->
-![demo](docs/media/hero.gif)
-
 ## What it does
 
 Scouting an FRC event normally means humans with clipboards watching matches and
 typing what they saw. This replaces the watching half with computer vision: a
 YOLO detector and ByteTrack follow every robot through the broadcast, bumper
-numbers are read with OCR to work out which robot is which team, and the field
-is calibrated so paths can be measured in field coordinates rather than pixels.
+numbers are read with OCR to work out which robot is which team, and an
+approximate field map projects paths into field coordinates rather than pixels —
+good enough to say which zone a robot worked, not to measure distances.
 
 Those measurements are joined with The Blue Alliance's official results and OPR
 aggregates, run through archetype, volatility and chemistry engines, and handed
@@ -32,8 +29,8 @@ flowchart LR
         direction TB
         P1["YOLO detector<br/>+ ByteTrack"] --> P2["fragment stitching"]
         P2 --> P3["bumper OCR<br/>identity voting"]
-        P3 --> P4["field calibration<br/>+ homography"]
-        P4 --> P5["Kalman smoothing<br/>auto paths · zones · steals"]
+        P3 --> P4["field map<br/>(polynomial autofit)"]
+        P4 --> P5["auto paths · zones<br/>fuel split · steals"]
     end
 
     P --> EX["export_to_strategy.py<br/>scout_table.csv"]
@@ -111,39 +108,56 @@ Identity is **graded**, and every robot records how it was named:
 | `rank` | left-to-right station guess, unvalidated |
 
 Station order is the last resort, and it is labelled as such rather than being
-laundered into the same confidence as a real read.
+laundered into the same confidence as a real read. Across the 670 auto paths
+that get validated, **392 (58%) carry a team number read directly off a bumper**;
+the remaining 42% are assigned by elimination (112) or rank order (165).
 
 ### Calibration
 
 Three approaches were built and measured against each other: a robot-point-cloud
-autofit, hand-clicked landmarks, and an AprilTag PnP solve. The canonical path
-today is two phases, driven by `overnight_pipeline.py`:
+autofit, hand-clicked landmarks, and an AprilTag solve.
 
-1. `multi_video_apriltag_calib.py` — accumulate AprilTag observations across
-   *every* video in the event and solve one ground homography. Using all videos
-   rather than one is much better conditioned.
-2. `fit_2d_correction.py` — fit a degree-2 polynomial correction on top, using
-   robots sitting on the starting line at match start as ground truth.
+**What is in use:** `autofit_fieldmap.py` — a degree-2 polynomial through 9
+landmarks inferred from the robot point cloud, written to
+`calib.json["fieldmap"]`. Every downstream script reads that map via
+`topdown.load_mapper()`. It is good enough for zone-level questions ("did this
+robot work the trench?") and not good enough for metric distances.
 
-Superseded calibration scripts are in `match_pipeline/_archive/` with a note on
-why each lost.
+**What is not:** the AprilTag route. `multi_video_apriltag_calib.py` ran and its
+solve was rejected — `calib.json["ground_homography"]` records 16 tags and 64
+corners at a **239-pixel reprojection error**, flagged `"bad": true`. Because it
+never produced a usable map, `fit_2d_correction.py` never wrote its correction,
+and phases 2 through 4 of `overnight_pipeline.py` have never completed. The
+scripts are still there because converging that path is the goal, but nothing
+downstream consumes their output today. See Roadmap.
 
-### Smoothing and derived facts
+### Derived facts
 
-`smooth_trajectories.py` runs a Kalman filter over the tracks. From smoothed
-paths in field coordinates the pipeline derives auto paths and the 22 named field
-zones (`zones.py`, `auto_paths.py`), a per-robot fuel split (`fuel_split.py`),
-and cross-half excursions (`steals.py`).
+From auto paths in field coordinates the pipeline derives the 22 named field
+zones (`zones.py`, `auto_paths.py`), per-team route books (`team_routes.py`), a
+per-robot fuel split (`fuel_split.py`), and cross-half excursions
+(`steals.py`).
+
+`smooth_trajectories.py` implements Kalman smoothing over the tracks, but it is
+part of the un-completed overnight pipeline — no smoothed output exists on disk,
+and the derived facts above come from raw ByteTrack paths.
 
 ### Validation
 
-Two independent checks, neither needing hand labels:
+Two checks, neither needing hand labels. Both are cross-checks against
+independent sources, not accuracy measurements against labelled ground truth —
+there is no labelled ground truth for this.
 
 - **Against TBA.** `compare_tba.py` compares the vision estimate with the
-  official `score_breakdown` per alliance per match.
+  official `score_breakdown` per alliance per match. Numbers under Results.
 - **Against the rulebook.** Fully crossing the centre line during auto is a major
-  foul, so a path that does is almost certainly a vision error, not a robot
-  error. `validate_paths.py` turns that into an accuracy estimate.
+  foul, so a path that does is almost certainly a vision error rather than a
+  robot error. `validate_paths.py` counts those crossings.
+
+  This is a **lower bound on error, not a measure of path accuracy.** It only
+  catches errors large enough to break a rule — a path can be wrong by a metre
+  and never cross the line, and that error is invisible to this check. Read it
+  as "at least this fraction is wrong", never as "the rest is right".
 
 ### "Unmeasured is not zero"
 
@@ -174,16 +188,40 @@ correlation is 0.86 and the estimator is essentially unbiased. The failures
 cluster in playoff matches (`f1m*`, `sf*`), which use a different broadcast
 overlay — a known, bounded problem rather than a diffuse accuracy one.
 
-Detection recall, and the per-identity-source accuracy table, are documented in
-`vision/match_pipeline/README.md` as ~2.3 of 3 robots per alliance and
-0.8 / 3.8 / 7.1% illegal-crossing rates for `read` / `elim` / `rank`.
+### Detection recall
 
-> TODO(aryan): the committed `examples/2026hop/path_quality.csv` does not
-> reproduce those crossing rates — recomputing from it gives 49.5% / 49.1% /
-> 60.6% (52.1% overall, n=670). The CSV is most likely stale, from before the
-> AprilTag calibration landed. Rerun `validate_paths.py` against the current
-> field map and put the real numbers here. Same for the ~2.3 recall figure,
-> which nothing on disk currently reproduces.
+Counting distinct track ids per frame and averaging over every frame of all 139
+matches:
+
+| | mean | median | min | max |
+|---|---:|---:|---:|---:|
+| robots tracked per alliance (of 3) | **2.15** | 2.13 | 0.54 | 3.60 |
+| robots tracked per match (of 6) | **4.29** | 4.28 | 1.98 | 5.72 |
+
+This is the ceiling on everything downstream. A robot that is never detected
+cannot be identified, pathed, or credited with a score.
+
+### Rule violations in auto
+
+`validate_paths.py` counts illegal centre-line crossings. As above: a **lower
+bound on error**, not a measure of path accuracy. Computed from the committed
+[`examples/2026hop/path_quality.csv`](examples/2026hop/path_quality.csv):
+
+| identity source | violations | n | rate |
+|---|---:|---:|---:|
+| `read` | 6 | 392 | 1.5% |
+| `elim` | 4 | 112 | 3.6% |
+| `rank` | 10 | 165 | 6.1% |
+| **all** | **20** | **670** | **3.0%** |
+
+The ordering is what matters: paths whose robot was identified by an actual
+bumper read break the rule roughly four times less often than paths assigned by
+rank order. That is the case for OCR voting over station order, measured rather
+than asserted.
+
+Coverage: 670 paths across **112 of 139 matches**. The remaining 27 are 720p-era
+geometry, excluded by `topdown_paths._fresh()` because their coordinates predate
+the current 1080p crop.
 
 ## Strategy
 
@@ -301,10 +339,22 @@ docs/               deployment guide and development notes
 
 ## Known limitations
 
-- **Detection recall is the ceiling on everything else.** Not every robot is
-  found in every frame, and nothing downstream can recover a robot that was
-  never detected. See the TODO above — the currently committed figures do not
-  agree and need a rerun.
+- **Detection recall is the ceiling on everything else.** 2.15 of 3 robots per
+  alliance are tracked in an average frame. Nothing downstream can recover a
+  robot that was never detected.
+- **There is no measure of path accuracy.** The centre-line check is a lower
+  bound on error — it only catches mistakes big enough to break a rule. A path
+  wrong by a metre passes it. Measuring real path accuracy would need labelled
+  ground truth, which does not exist for this footage.
+- **The field map is approximate, and the AprilTag route has not converged.**
+  The map in use is a 9-landmark polynomial autofit — fine for "which zone was
+  this robot in", not for distances. The AprilTag multi-video solve was
+  attempted and rejected at a 239-pixel reprojection error, so phases 2 through
+  4 of `overnight_pipeline.py` (2D correction, Kalman smoothing, re-render)
+  have never completed. Nothing downstream uses AprilTag output today.
+- **Auto-path validation covers 112 of 139 matches.** The other 27 are 720p-era
+  geometry and are skipped by the freshness gate, so the 3.0% figure does not
+  cover the whole event.
 - **Per-robot splits are estimates; alliance totals are checkable.** The
   scoreboard gives an exact per-alliance count. Dividing it among three robots
   is a heuristic weighted by each robot's scoring-zone activity, and it is only
@@ -321,14 +371,20 @@ docs/               deployment guide and development notes
   deliberately left alone rather than tuned by eye; a test pins the current value
   so it cannot drift silently. Fixing it properly means normalising OPR onto an
   EPA scale in `feature_engineering.py`.
-- **`rank` identities are unproven.** `ALLIANCE_ORDER` has never been validated.
-  Treat every `rank`-sourced label as a guess.
+- **42% of identities are not read off a bumper.** 392 of 670 auto paths carry a
+  directly-read team number; 112 come from elimination and 165 from rank order.
+  `ALLIANCE_ORDER` has never been validated, so every `rank`-sourced label is a
+  guess — and those paths break the centre-line rule four times more often than
+  read ones.
 - **Endgame is hard-zeroed for 2026.** Climb is worth ~nothing this season, so
   `tba_loader._phase_points` returns 0 for it and the prompts refuse to discuss
   it. That is a season-specific rule, not a general one.
 
 ## Roadmap
 
+- Get the AprilTag calibration converging — it currently solves at a 239-pixel
+  reprojection error and is rejected. That unblocks the 2D correction and the
+  Kalman smoothing phases, and is the prerequisite for any metric claim.
 - Normalise OPR onto the EPA scale and retune the win-probability sigma against
   held-out matches.
 - Handle the playoff broadcast overlay so scoreboard OCR stops failing on `sf*`

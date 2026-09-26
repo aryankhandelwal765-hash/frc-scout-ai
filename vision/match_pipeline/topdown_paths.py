@@ -9,7 +9,7 @@ Output -> results/<match>/topdown_auto.png
        -> topdown_paths/<team>.png        (each team's auto across all its matches)
        -> topdown_paths/_all.png          (one match's six, or an index)
 
-Needs: a field map (multi_video_apriltag_calib.py) + auto_paths.json (batch_auto.py).
+Needs: a field map (autofit_fieldmap.py) + auto_paths.json (batch_auto.py).
 
   python topdown_paths.py --match 2026hop_qm27      # one match
   python topdown_paths.py                            # all matches + per-team aggregate
@@ -351,7 +351,7 @@ def main():
 
     mapper = td.load_mapper()
     if mapper is None:
-        raise SystemExit("No field map -- run multi_video_apriltag_calib.py first.")
+        raise SystemExit("No field map -- run autofit_fieldmap.py first.")
 
     if args.match:
         out = render_match(args.match, mapper)

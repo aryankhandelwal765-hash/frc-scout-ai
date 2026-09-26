@@ -23,7 +23,7 @@ The 2026 Hopper division. 141 matches were processed; 112 produced both an
 | `scout_table.csv` | `scout_table.py` | One row per (match, team) — the table exported to the strategy half |
 | `fuel_split.csv` | `fuel_split.py` | Per-robot fuel estimate from the alliance total |
 | `steals.csv` | `steals.py` | Cross-half excursions |
-| `path_quality.csv` | `validate_paths.py` | Centre-line rule violations, the accuracy check |
+| `path_quality.csv` | `validate_paths.py` | Illegal centre-line crossings in auto — a lower bound on error, not a path-accuracy measure. Regenerated against the live field map; 670 paths over 112 of 139 matches |
 | `reports/` | `report_llm.py` | Generated facts-only scouting notes |
 
 ### `match_results/2026hop_qm14/`

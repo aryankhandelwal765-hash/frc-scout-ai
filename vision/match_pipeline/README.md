@@ -27,30 +27,70 @@ playing, so a partial read still resolves. Two rules matter and were both bugs:
 chains fragments back into per-robot runs (velocity-aware gating), then a read
 anywhere on a chain locks the whole chain.
 
-**Identity is graded, and the grades are measured.** Every robot carries how it was
-named, and an independent check — the manual makes fully crossing the CENTER LINE
-in AUTO a MAJOR FOUL, so a path that does is almost certainly a vision error —
-gives an accuracy estimate with no hand labelling:
+**Identity is graded, and every robot records how it was named.** Over the 670
+auto paths that `validate_paths.py` scores, the split is:
 
-| source | meaning | illegal-crossing rate |
+| source | meaning | share |
 |---|---|---|
-| `read` | bumper number read | 0.8% |
-| `elim` | only team left after the others were read | 3.8% |
-| `rank` | left-to-right station guess, UNVALIDATED | 7.1% |
+| `read` | team number read off the bumper | 392/670 — **58%** |
+| `elim` | the only team left once the others were read | 112/670 — 17% |
+| `rank` | left-to-right station guess, UNVALIDATED | 165/670 — 25% |
+| `none` | no identity | 1/670 |
 
-`ALLIANCE_ORDER` has never been validated. Treat every `rank` label as unproven.
+So a little under three in five robots are named from direct evidence; the rest
+are assigned by elimination or by rank order. `ALLIANCE_ORDER` has never been
+validated — treat every `rank` label as unproven.
 
-**Calibration is approximate and that is a deliberate stopping point.** Three
-approaches were measured against each other: the robot-cloud autofit (active),
-hand-clicked landmarks, and an AprilTag PnP solve. Autofit won — 3.0% illegal
-crossings and 96.5% of points landing on the carpet, vs 27.6%/35.0% for PnP. Good
-enough for zone-level questions; not good enough for metric distances. Do not
-re-litigate without a measured before/after from `validate_paths.py`.
+**Rule-violation check — a lower bound on error, not a measure of accuracy.**
+The manual makes fully crossing the CENTER LINE during AUTO a major foul, so a
+path that does is almost certainly a vision error rather than a robot error.
+`validate_paths.py` counts those crossings. It catches only errors large enough
+to break a rule: a path can be wrong by a metre and still never cross the line,
+and those errors are invisible here. Read it as "at least this fraction is
+wrong", never as "the rest is right".
 
-**Zones are real now.** The manual sizes every structure but places them only in
-figures. The official AprilTag layout closes that gap because tags are mounted ON
-the structures at published coordinates — that is how `zones.py` knows the HUB
-occupies 158.6..205.6in and where the trenches sit.
+Measured from `path_quality.csv` (regenerate with `validate_paths.py`):
+
+| identity source | violations | n | rate |
+|---|---:|---:|---:|
+| `read` | 6 | 392 | 1.5% |
+| `elim` | 4 | 112 | 3.6% |
+| `rank` | 10 | 165 | 6.1% |
+| **all** | **20** | **670** | **3.0%** |
+
+The ordering is the useful part: paths whose robot was identified by a bumper
+read break the rule four times less often than paths assigned by rank order.
+
+Coverage: 670 paths across **112 of 139 matches**. The other 27 are 720p-era
+geometry and are excluded by `topdown_paths._fresh()`, which rejects any
+`auto_paths.json` whose widest point falls short of the current 1080p crop.
+
+**Detection recall: 2.15 of 3 robots per alliance.** Counting distinct track ids
+per frame and averaging over every frame of all 139 matches: 2.15 per alliance
+(median 2.13), 4.29 of 6 per match. This is the ceiling on everything
+downstream — a robot that was never detected cannot be identified, pathed or
+scored.
+
+**Calibration is approximate, and the AprilTag route has not converged.** The
+active field map is `autofit_fieldmap.py`: a degree-2 polynomial through 9
+landmarks inferred from the robot point cloud, stored in
+`calib.json["fieldmap"]`. Good enough for zone-level questions, not for metric
+distances.
+
+The AprilTag multi-video solve was attempted and **rejected**:
+`calib.json["ground_homography"]` records 16 tags / 64 corners at
+`reproj_px = 239.5` and is flagged `"bad": true`. `correction_2d` was never
+written, so phases 2-4 of `overnight_pipeline.py` have never completed. The
+scripts remain in place because getting that path converging is the goal — but
+nothing downstream uses their output today. Do not re-litigate the choice
+without a measured before/after from `validate_paths.py`.
+
+**Zones come from the published AprilTag layout.** The manual sizes every
+structure but places them only in figures. The official tag coordinates close
+that gap, because tags are mounted ON the structures — that is how `zones.py`
+knows the HUB occupies 158.6..205.6in and where the trenches sit. (This uses the
+published layout file as a lookup table; it is independent of the AprilTag
+*calibration* solve above, which did not converge.)
 
 | file | what |
 |------|------|
@@ -60,11 +100,12 @@ occupies 158.6..205.6in and where the trenches sit.
 | `auto_start.py` | exact AUTO start frame per match, read off the broadcast timer |
 | `zones.py` | 22 named field zones in inches; point→zone and path→zone_sequence |
 | `steals.py` | teleop excursions into the opponent half and the run home |
-| `validate_paths.py` | accuracy check using the CENTER LINE rule as ground truth |
+| `validate_paths.py` | rule-violation check: illegal CENTER LINE crossings in auto |
 | `scout_table.py` | one row per (match, team) in hand-scouting schema, source-tagged |
 | `report_llm.py` | readable scouting notes via local Ollama, facts-only prompt |
 | `export_to_strategy.py` | hand-off to the strategy strategy system |
-| `multi_video_apriltag_calib.py` + `fit_2d_correction.py` | camera→field map (canonical; older variants in `_archive/`) |
+| `autofit_fieldmap.py` | camera→field map **in use** (9-landmark polynomial) |
+| `multi_video_apriltag_calib.py` + `fit_2d_correction.py` | AprilTag map — attempted, not converging; unused (see `_archive/README.md`) |
 | `topdown.py` / `topdown_paths.py` / `team_routes.py` | bird's-eye field + route books |
 | `render_full_match.py` / `render_fusion.py` / `render_autopaths.py` | visual checks |
 
@@ -80,8 +121,9 @@ occupies 158.6..205.6in and where the trenches sit.
 - `auto_paths.json` is keyed by STATION, not team. Read the team off the record.
 
 **Known-open:** teleop paths for `tele_bump`/`tele_trench`; the fuel split
-(TBA alliance total x zone-gated activity share); detection recall sits at ~2.3 of
-3 robots per alliance, which is the ceiling on everything else.
+(TBA alliance total x zone-gated activity share); detection recall sits at 2.15
+of 3 robots per alliance, which is the ceiling on everything else; and the
+AprilTag calibration route, which has not yet converged.
 
 ---
 

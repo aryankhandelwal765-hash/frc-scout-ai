@@ -122,7 +122,7 @@ def main():
 
     mapper = td.load_mapper()
     if mapper is None:
-        raise SystemExit("No field map. Run multi_video_apriltag_calib.py first.")
+        raise SystemExit("No field map. Run autofit_fieldmap.py first.")
 
     print("Loading zone sequences from results/ ...")
     seqs = load_sequences(mapper)
