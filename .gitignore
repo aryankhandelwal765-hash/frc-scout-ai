@@ -10,6 +10,7 @@ secrets.toml
 
 # ─── Private notes (not part of the public repo) ───────────────────────────
 HANDOFF.md
+RUNBOOK.md
 
 # ─── Python ────────────────────────────────────────────────────────────────
 __pycache__/

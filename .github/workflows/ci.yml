@@ -40,6 +40,13 @@ jobs:
           pip install -r strategy/requirements.txt
           pip install -r requirements-dev.txt
 
+      - name: Lint (ruff)
+        run: |
+          ruff format --check .
+          # 118 pre-existing findings are tracked rather than suppressed, so
+          # this gate covers formatting and the rules that are already clean.
+          ruff check --select I,F401,UP .
+
       - name: Run tests
         run: pytest -v
 

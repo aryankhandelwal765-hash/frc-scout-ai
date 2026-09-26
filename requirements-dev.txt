@@ -11,3 +11,4 @@ pytest>=8.0.0
 opencv-python-headless>=4.9
 numpy>=1.26
 httpx2>=0.28
+ruff>=0.16

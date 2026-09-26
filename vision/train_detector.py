@@ -95,8 +95,8 @@ def main():
         name=args.name,
         patience=30,
     )
-    print("\nDone. Detector weights: runs/detect/%s/weights/best.pt" % args.name)
-    print("Next: I'll wire this into a detector-based estimator for real per-robot attribution.")
+    print(f"\nDone. Detector weights: runs/detect/{args.name}/weights/best.pt")
+    print("Next: point detector_estimator.py at these weights for per-robot attribution.")
 
 
 if __name__ == "__main__":
