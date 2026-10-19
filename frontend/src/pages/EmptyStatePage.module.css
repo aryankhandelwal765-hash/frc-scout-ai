@@ -1,0 +1,23 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--spacing-lg);
+}
+
+.content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.content h1 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+.content p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+}
