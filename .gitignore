@@ -102,3 +102,11 @@ graphify-out/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# ─── Team scouting app: runtime data (never commit real scouting data) ─────
+uploads/
+backups/
+backend/*.db
+data/private/
+scouting_export*.csv
+prescout_export*.csv
