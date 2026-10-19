@@ -1,0 +1,7 @@
+extend = "../pyproject.toml"
+
+[lint]
+# FastAPI's Depends()/Path() in argument defaults is the idiom.
+flake8-bugbear.extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Path", "fastapi.Query", "fastapi.Body",
+]
