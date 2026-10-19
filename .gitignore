@@ -60,6 +60,7 @@ vision/match_pipeline/videos/
 vision/match_pipeline/videos_raw/
 vision/dataset/
 vision/dataset_v2/
+vision/review/review_bench_data/
 
 # ─── Generated pipeline output (regenerate; see docs) ──────────────────────
 # One representative event is committed under examples/ instead.

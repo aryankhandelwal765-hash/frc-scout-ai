@@ -100,7 +100,13 @@ def ask(host, model, image_path, boxes_json, think):
     # some thinking models (qwen3-vl) ignore think=false and put the schema-constrained
     # answer in the "thinking" field, leaving "content" empty
     text = msg.get("content") or msg.get("thinking") or ""
-    return json.loads(text[text.find("{") :])
+    i = text.find("{")
+    if i < 0:
+        raise ValueError("model returned no JSON object")
+    v = json.loads(text[i:])
+    if not isinstance(v, dict) or "boxes" not in v:
+        raise ValueError("model JSON has no boxes list")
+    return v
 
 
 def main():

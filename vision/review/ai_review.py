@@ -102,7 +102,8 @@ def prepare(args):
     print(f"prepared {len(frame_names(args.frames))} frames -> {args.out}")
 
 
-def score(args):
+def evaluate(args):
+    """Compare verdicts to human labels. Returns a metrics dict (no printing)."""
     tp = fp = fn = col_ok = col_n = 0
     dec_ok = dec_n = 0
     miss_true = miss_found = 0
@@ -180,15 +181,33 @@ def score(args):
                 fp += 1
         fn += len(truth) - len(used)
 
-    n = dec_n or 1
-    print(f"verdicts: {args.verdicts}  (missing files: {missing_files})")
-    print(f"per-box decision agreement: {dec_ok}/{dec_n} = {dec_ok / n:.1%}")
-    for k, (ok, tot) in per_verdict.items():
+    return {
+        "missing_files": missing_files,
+        "dec_ok": dec_ok,
+        "dec_n": dec_n,
+        "per_verdict": per_verdict,
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
+        "col_ok": col_ok,
+        "col_n": col_n,
+        "miss_true": miss_true,
+        "miss_found": miss_found,
+    }
+
+
+def score(args):
+    m = evaluate(args)
+    n = m["dec_n"] or 1
+    tp, fp, fn = m["tp"], m["fp"], m["fn"]
+    print(f"verdicts: {args.verdicts}  (missing files: {m['missing_files']})")
+    print(f"per-box decision agreement: {m['dec_ok']}/{m['dec_n']} = {m['dec_ok'] / n:.1%}")
+    for k, (ok, tot) in m["per_verdict"].items():
         print(f"   human said {k:8s}: model agreed {ok}/{tot}")
     print(f"after applying verdicts (no human-added boxes): TP={tp} FP={fp} FN={fn}")
     print(f"   precision {tp / max(1, tp + fp):.1%}   recall {tp / max(1, tp + fn):.1%}")
-    print(f"   colour correct on matched boxes: {col_ok}/{col_n}")
-    print(f"robots the human had to add: {miss_true}; model pointed at {miss_found}")
+    print(f"   colour correct on matched boxes: {m['col_ok']}/{m['col_n']}")
+    print(f"robots the human had to add: {m['miss_true']}; model pointed at {m['miss_found']}")
 
 
 def main():

@@ -1,0 +1,13 @@
+[
+  {"name": "qwen36_nothink", "model": "qwen3.6:35b-a3b", "think": false},
+  {"name": "qwen36_nothink_keepbias", "model": "qwen3.6:35b-a3b", "think": false, "prompt": "keep_bias"},
+  {"name": "qwen36_nothink_half", "model": "qwen3.6:35b-a3b", "think": false, "scale": 0.5},
+  {"name": "qwen36_nothink_par2", "model": "qwen3.6:35b-a3b", "think": false, "parallel": 2},
+  {"name": "qwen38_nothink", "model": "qwen3.8:latest", "think": false},
+  {"name": "qwen36_think_cap2k", "model": "qwen3.6:35b-a3b", "think": true, "num_predict": 2048, "fallback_no_think": true},
+  {"name": "qwen3vl_think", "model": "qwen3-vl:30b", "think": true},
+  {"name": "qwen3vl_think_half", "model": "qwen3-vl:30b", "think": true, "scale": 0.5},
+  {"name": "qwen3vl_think_cap1500", "model": "qwen3-vl:30b", "think": true, "num_predict": 1500, "fallback_no_think": true},
+  {"name": "qwen3vl_think_keepbias", "model": "qwen3-vl:30b", "think": true, "prompt": "keep_bias"},
+  {"name": "llama32v_11b", "model": "llama3.2-vision:11b", "pull_if_missing": true}
+]
