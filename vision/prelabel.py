@@ -14,7 +14,12 @@ Detectors (union, NMS-merged). Each is a "vote":
               here: it finds people on this footage but returns zero "robot" boxes
               (tried several prompts, CPU and MPS, conf down to 0.03), so it is off.
 
-A box found by every vote is high trust; found by fewer is flagged. Boxes on static field
+A box found by every vote is high trust; found by fewer is flagged.
+
+Filters (see match_pipeline/robot_filters.py):
+  nested-box merge   a small box inside a bigger one is a duplicate, dropped
+  person veto        COCO person detector; a box mostly inside a ref/FTA/driver is dropped
+  colour elimination if 3 robots read one colour, any unreadable robot is the other Boxes on static field
 structure (hub towers, ramps) are dropped using the same empty-field trick as
 trajectories.py. Alliance comes from bumper colour (trajectories.alliance_from_masks),
 not from a detector class, because the class is unreliable.
@@ -48,6 +53,8 @@ except ImportError:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "match_pipeline"))
+import robot_filters as rf  # noqa: E402
+
 import trajectories as tj  # noqa: E402
 
 EXPECTED_ROBOTS = 6
@@ -113,6 +120,13 @@ def detect(model, img, conf, imgsz, device):
     return [(tuple(float(v) for v in b.xyxy[0]), float(b.conf[0])) for b in res.boxes]
 
 
+def detect_people(model, img, conf, device, imgsz=960):
+    res = model.predict(img, conf=conf, imgsz=imgsz, classes=[0], verbose=False, device=device)[0]
+    if res.boxes is None:
+        return []
+    return [tuple(float(v) for v in b.xyxy[0]) for b in res.boxes]
+
+
 def merge(votes, iou_thr=0.5):
     """Union of detector outputs. votes = [(name, [(box, conf)])].
     Each result: dict(box, conf, src={names that found it})."""
@@ -149,6 +163,13 @@ def main():
     p.add_argument("--conf", type=float, default=0.15, help="low on purpose; review prunes")
     p.add_argument("--imgsz", type=int, default=1280)
     p.add_argument("--device", default="auto")
+    p.add_argument(
+        "--person-model",
+        default=os.path.join(HERE, "yolov8n.pt"),
+        help="COCO detector used to veto boxes on people",
+    )
+    p.add_argument("--no-person-veto", action="store_true")
+    p.add_argument("--person-conf", type=float, default=0.35)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--only", nargs="*", help="video stems to use instead of sampling")
     args = p.parse_args()
@@ -170,6 +191,7 @@ def main():
     if not fine_path:
         raise SystemExit("no finetuned weights found; pass --finetuned")
     fine_model = YOLO(fine_path)
+    person_model = None if args.no_person_veto else YOLO(args.person_model)
     scales = [int(x) for x in args.scales.split(",")]
     print(f"device={device} finetuned={fine_path} scales={scales} world={args.world}")
 
@@ -213,12 +235,21 @@ def main():
                 votes.append(("world", detect(world_model, crop, args.conf, args.imgsz, device)))
             dets = merge(votes)
             n_votes = len(votes)
+            dets = rf.merge_nested(dets)
             dets = [d for d in dets if not tj.is_static_fp(d["box"], fp)]
+            n_vetoed = 0
+            if person_model:
+                people = detect_people(person_model, crop, args.person_conf, device)
+                kept, _gone = rf.veto_people([d["box"] for d in dets], people)
+                kept = set(kept)
+                n_vetoed = len(dets) - len(kept)
+                dets = [d for d in dets if d["box"] in kept]
             bm, rm, _ = tj.frame_bumper_masks(crop, bg_b, bg_r)
+            read = [tj.alliance_from_masks(bm, rm, d["box"]) for d in dets]
+            colours, how = rf.eliminate_alliances(read)
 
             lines, flags, preview = [], [], crop.copy()
-            for d in dets:
-                alliance = tj.alliance_from_masks(bm, rm, d["box"])
+            for d, alliance in zip(dets, colours):
                 all_agree = len(d["src"]) == n_votes
                 reasons = []
                 if alliance is None:
@@ -254,6 +285,8 @@ def main():
             review[name] = {
                 "n_boxes": len(dets),
                 "flagged": n_flagged,
+                "vetoed_people": n_vetoed,
+                "colour_by_elimination": how.count("elim"),
                 "count_off": count_off,
                 "reasons": sorted({x for r in flags for x in r}),
                 "priority": n_flagged * 2 + count_off,
