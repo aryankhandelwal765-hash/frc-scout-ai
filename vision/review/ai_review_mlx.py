@@ -33,7 +33,20 @@ SCHEMA_HINT = (
 )
 
 
+# Bounded "reasoning budget": thinking stays off, but each box gets a short written
+# reason BEFORE its verdict, so the model reasons about every box in ~10 tokens each.
+SCHEMA_HINT_REASON = (
+    "\n\nFor each box first write a reason of at most 10 words (what is in the box, and "
+    "its bumper colour or why it is not a robot), THEN the verdict. Reply with ONLY a "
+    "JSON object in exactly this shape, one entry per box id:\n"
+    '{"boxes":[{"id":0,"why":"red robot, red bumper visible","verdict":"keep"},'
+    '{"id":1,"why":"referee standing, no robot","verdict":"delete"}],'
+    '"missed":[{"colour":"blue","box":[0.1,0.4,0.2,0.7]}],"unsure":false}'
+)
+
+
 def parse_verdict(text):
+    text = text.split("</think>")[-1]  # thinking runs: the answer follows the reasoning
     i = text.find("{")
     if i < 0:
         raise ValueError("no JSON object in reply")
@@ -63,6 +76,11 @@ def main():
     p.add_argument("--max-tokens", type=int, default=900)
     p.add_argument("--limit", type=int, help="only the first N unfinished frames")
     p.add_argument("--think", action="store_true", help="leave the model's thinking on")
+    p.add_argument(
+        "--reason",
+        action="store_true",
+        help="thinking off, but a short written reason per box before each verdict",
+    )
     args = p.parse_args()
 
     from mlx_vlm import generate, load
@@ -107,7 +125,9 @@ def main():
         lines = [
             f"  id {b['id']}: drawn {b['drawn_colour']}, box {b['box_frac']}" for b in meta["boxes"]
         ]
-        text = PROMPT.format(boxes="\n".join(lines) or "  (no boxes)") + SCHEMA_HINT
+        text = PROMPT.format(boxes="\n".join(lines) or "  (no boxes)") + (
+            SCHEMA_HINT_REASON if args.reason else SCHEMA_HINT
+        )
         png = os.path.join(args.inputs, n + ".png")
 
         verdict, stats, err = None, {}, ""
