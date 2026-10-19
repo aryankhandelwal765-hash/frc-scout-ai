@@ -14,8 +14,9 @@ OUT = Path(__file__).resolve().parent.parent / "openapi.json"
 
 def build_spec() -> dict:
     # Throwaway in-memory settings; nothing here touches a database or a real key.
-    settings = Settings(_env_file=None, env="dev", secret_key="x" * 40, cookie_secure=True,
-                        database_url="sqlite://")
+    settings = Settings(
+        _env_file=None, env="dev", secret_key="x" * 40, cookie_secure=True, database_url="sqlite://"
+    )
     return create_app(settings).openapi()
 
 

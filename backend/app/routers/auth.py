@@ -27,8 +27,13 @@ def _set_cookie(request: Request, response: Response, user: User) -> None:
     s = request.app.state.settings
     token = create_token(user.id, s.secret_key.get_secret_value(), s.token_ttl_seconds)
     response.set_cookie(
-        s.cookie_name, token, max_age=s.token_ttl_seconds, httponly=True,
-        secure=s.cookie_secure, samesite="strict", path="/",
+        s.cookie_name,
+        token,
+        max_age=s.token_ttl_seconds,
+        httponly=True,
+        secure=s.cookie_secure,
+        samesite="strict",
+        path="/",
     )
 
 
@@ -93,9 +98,7 @@ def signup(body: SignupIn, request: Request, response: Response, db: Session = D
         return HTTPException(400, "Invalid or expired invite code")
 
     code = body.invite_code.strip()
-    invite = db.scalar(
-        select(InviteCode).where(InviteCode.code_prefix == code[:INVITE_PREFIX_LEN])
-    )
+    invite = db.scalar(select(InviteCode).where(InviteCode.code_prefix == code[:INVITE_PREFIX_LEN]))
     if invite is None:
         burn_verify()
         raise bad_code()
@@ -129,7 +132,9 @@ def signup(body: SignupIn, request: Request, response: Response, db: Session = D
         db.rollback()
         raise bad_code()
     audit(
-        db, user.id, "user_create",
+        db,
+        user.id,
+        "user_create",
         f"username={username} role={user.role} via=invite:{invite.id}",
     )
     db.commit()

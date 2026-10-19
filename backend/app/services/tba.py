@@ -69,15 +69,24 @@ def import_event(
 
     upsert(
         Event,
-        {"key": event_key, "season": year, "name": ev.get("name"),
-         "start_date": ev.get("start_date"), "end_date": ev.get("end_date")},
+        {
+            "key": event_key,
+            "season": year,
+            "name": ev.get("name"),
+            "start_date": ev.get("start_date"),
+            "end_date": ev.get("end_date"),
+        },
         ["key"],
     )
     for t in teams:
         upsert(
             FrcTeam,
-            {"number": t["team_number"], "name": t.get("nickname"), "city": t.get("city"),
-             "state_prov": t.get("state_prov")},
+            {
+                "number": t["team_number"],
+                "name": t.get("nickname"),
+                "city": t.get("city"),
+                "state_prov": t.get("state_prov"),
+            },
             ["number"],
         )
 
@@ -87,10 +96,16 @@ def import_event(
         rs, bs = _score(red.get("score")), _score(blue.get("score"))
         upsert(
             Match,
-            {"key": m["key"], "event_key": event_key, "comp_level": m.get("comp_level"),
-             "set_number": m.get("set_number"), "match_number": m.get("match_number"),
-             "red_score": rs, "blue_score": bs,
-             "played": int(rs is not None and bs is not None)},
+            {
+                "key": m["key"],
+                "event_key": event_key,
+                "comp_level": m.get("comp_level"),
+                "set_number": m.get("set_number"),
+                "match_number": m.get("match_number"),
+                "red_score": rs,
+                "blue_score": bs,
+                "played": int(rs is not None and bs is not None),
+            },
             ["key"],
         )
         # Schedule can change (surrogates, replays): rebuild this match's rows.
@@ -104,6 +119,9 @@ def import_event(
         db.flush()
 
     return ImportSummaryOut(
-        event_key=event_key, season=year, teams=len(teams), matches=len(matches),
+        event_key=event_key,
+        season=year,
+        teams=len(teams),
+        matches=len(matches),
         match_teams=mt_count,
     )

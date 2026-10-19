@@ -13,8 +13,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 log = logging.getLogger(__name__)
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-_WEAK_FRAGMENTS = ("changeme", "change-me", "secret", "password", "example", "placeholder",
-                   "replace", "default", "test", "dev", "1234")
+_WEAK_FRAGMENTS = (
+    "changeme",
+    "change-me",
+    "secret",
+    "password",
+    "example",
+    "placeholder",
+    "replace",
+    "default",
+    "test",
+    "dev",
+    "1234",
+)
 MIN_SECRET_LEN = 32
 
 
@@ -28,7 +39,9 @@ class Settings(BaseSettings):
 
     env: Literal["dev", "prod"] = Field("dev", validation_alias="ENV")
     secret_key: SecretStr = Field(SecretStr(""), validation_alias="SECRET_KEY")
-    database_url: str = Field(f"sqlite:///{BACKEND_DIR / 'scout.db'}", validation_alias="DATABASE_URL")
+    database_url: str = Field(
+        f"sqlite:///{BACKEND_DIR / 'scout.db'}", validation_alias="DATABASE_URL"
+    )
     cookie_secure: bool = Field(True, validation_alias="COOKIE_SECURE")
     cookie_name: str = "scout_session"
     token_ttl_seconds: int = 12 * 3600

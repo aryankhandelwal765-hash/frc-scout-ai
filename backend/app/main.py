@@ -16,7 +16,9 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         title="FRC Scout AI backend",
         version="0.1.0",
         # No interactive docs / live schema: contract is exported to openapi.json.
-        docs_url=None, redoc_url=None, openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
     )
     app.state.settings = settings
     app.state.engine = engine or make_engine(settings.database_url)

@@ -3,6 +3,7 @@
 Revision ID: 0001
 Revises:
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -150,7 +151,9 @@ def upgrade() -> None:
         "pit_photos",
         _id(),
         sa.Column(
-            "pit_id", sa.Integer, sa.ForeignKey("pit_scouting.id", ondelete="CASCADE"),
+            "pit_id",
+            sa.Integer,
+            sa.ForeignKey("pit_scouting.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("path", sa.Text, nullable=False),
@@ -174,7 +177,9 @@ def upgrade() -> None:
         "prescout_entries",
         _id(),
         sa.Column(
-            "batch_id", sa.Integer, sa.ForeignKey("prescout_batches.id", ondelete="CASCADE"),
+            "batch_id",
+            sa.Integer,
+            sa.ForeignKey("prescout_batches.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("team_number", sa.Integer, sa.ForeignKey("frc_teams.number"), nullable=False),
@@ -225,7 +230,9 @@ def upgrade() -> None:
     op.create_table(
         "picklist_items",
         sa.Column(
-            "picklist_id", sa.Integer, sa.ForeignKey("picklists.id", ondelete="CASCADE"),
+            "picklist_id",
+            sa.Integer,
+            sa.ForeignKey("picklists.id", ondelete="CASCADE"),
             primary_key=True,
         ),
         sa.Column("team_number", sa.Integer, sa.ForeignKey("frc_teams.number"), primary_key=True),
@@ -237,9 +244,24 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     for t in (
-        "picklist_items", "picklists", "ai_reports", "video_tracks", "prescout_entries",
-        "prescout_batches", "pit_photos", "pit_scouting", "scouting_entries", "external_stats",
-        "match_teams", "matches", "frc_teams", "events", "seasons", "audit_log",
-        "app_settings", "invite_codes", "users",
+        "picklist_items",
+        "picklists",
+        "ai_reports",
+        "video_tracks",
+        "prescout_entries",
+        "prescout_batches",
+        "pit_photos",
+        "pit_scouting",
+        "scouting_entries",
+        "external_stats",
+        "match_teams",
+        "matches",
+        "frc_teams",
+        "events",
+        "seasons",
+        "audit_log",
+        "app_settings",
+        "invite_codes",
+        "users",
     ):
         op.drop_table(t)

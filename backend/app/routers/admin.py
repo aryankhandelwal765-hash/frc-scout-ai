@@ -38,8 +38,11 @@ def create_invite(
             "%Y-%m-%d %H:%M:%S"
         )
     invite = InviteCode(
-        code_hash=hash_secret(code), code_prefix=code[:INVITE_PREFIX_LEN], role=body.role,
-        expires_at=expires, created_by=admin.id,
+        code_hash=hash_secret(code),
+        code_prefix=code[:INVITE_PREFIX_LEN],
+        role=body.role,
+        expires_at=expires,
+        created_by=admin.id,
     )
     db.add(invite)
     db.flush()
@@ -53,9 +56,7 @@ def list_users(db: Session = Depends(get_db), _admin: User = Depends(ADMIN)):
     return db.scalars(select(User).order_by(User.id)).all()
 
 
-@router.post(
-    "/users/{user_id}/deactivate", response_model=UserOut, responses={404: {}, 409: {}}
-)
+@router.post("/users/{user_id}/deactivate", response_model=UserOut, responses={404: {}, 409: {}})
 def deactivate_user(
     user_id: int = Path(ge=1), db: Session = Depends(get_db), admin: User = Depends(ADMIN)
 ):
@@ -78,7 +79,8 @@ def deactivate_user(
 
 
 @router.post(
-    "/import/event/{event_key}", response_model=ImportSummaryOut,
+    "/import/event/{event_key}",
+    response_model=ImportSummaryOut,
     responses={404: {}, 409: {}, 422: {}, 502: {}, 503: {}},
 )
 def import_event(
