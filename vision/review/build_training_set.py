@@ -10,8 +10,9 @@ Split:
   train = the rest, but only when the reviewers' verdicts leave a COMPLETE label set:
             - Opus reviewed it  -> apply Opus verdicts (keep / recolor / delete)
             - else cheap model  -> only if it said "keep" for every box
-          Frames are dropped from training when the reviewer was unsure, listed a robot
-          the prelabel missed (we cannot draw it, so the label set is incomplete), or
+          Frames are dropped from training when the reviewer was unsure (cheap model
+          only; Opus flags nearly every crowded frame, so its "unsure" is ignored),
+          listed a robot the prelabel missed (we cannot draw it, so the label set is incomplete), or
           fewer than --min-boxes boxes survive. A missing label on a visible robot
           teaches the detector that robots are background, which is worse than less data.
 
@@ -27,8 +28,11 @@ import os
 import shutil
 
 
-def apply_verdict(lines, verdict):
-    """Prelabel YOLO lines + verdict -> (kept lines, complete?)."""
+def apply_verdict(lines, verdict, ignore_unsure=False):
+    """Prelabel YOLO lines + verdict -> (kept lines, complete?).
+
+    ignore_unsure: a strong reviewer flags "unsure" on most crowded frames while its box
+    verdicts stay reliable, so only a listed MISSED robot (incomplete label set) rejects."""
     by_id = {b["id"]: b for b in verdict.get("boxes", [])}
     out = []
     for i, ln in enumerate(lines):
@@ -39,7 +43,7 @@ def apply_verdict(lines, verdict):
         if v.get("verdict") == "recolor" and v.get("colour") in ("blue", "red"):
             parts[0] = "0" if v["colour"] == "blue" else "1"
         out.append(" ".join(parts))
-    complete = not verdict.get("unsure") and not verdict.get("missed")
+    complete = not verdict.get("missed") and (ignore_unsure or not verdict.get("unsure"))
     return out, complete
 
 
@@ -86,7 +90,7 @@ def main():
         op = os.path.join(args.opus, n + ".json") if args.opus else None
         cp = os.path.join(args.mlx, n + ".json")
         if op and os.path.exists(op):
-            lines, complete = apply_verdict(pre_lines, json.load(open(op)))
+            lines, complete = apply_verdict(pre_lines, json.load(open(op)), ignore_unsure=True)
             kind = "train_opus"
         elif os.path.exists(cp):
             v = json.load(open(cp))
