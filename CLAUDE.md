@@ -293,6 +293,11 @@ classic/            — v1 classic-CV tracker, self-contained:
 detector_estimator.py — YOLO variant, builds on classic/scoring_estimator.py
 train_detector.py   — fine-tune YOLO on labeled frames
 annotate.py / extract_frames.py — labeling toolchain
+prelabel.py         — drafts YOLO labels across many matches (fine-tuned detector, person veto,
+                      nested-box merge, colour-by-elimination); writes dataset_v2/ + review_order.txt
+review/             — AI box review: a vision model says keep/delete/recolour per prelabel box,
+                      scored against human labels (ai_review*.py, review_bench.py; see its README)
+match_pipeline/robot_filters.py — pure-python person veto / nested merge / alliance elimination
 ```
 
 ### Architecture — vision/match_pipeline/

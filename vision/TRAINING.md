@@ -50,3 +50,18 @@ weights and I'll wire the detector-based estimator.
   EasyOCR and snaps to the six teams TBA says are playing. (At 720p they were
   genuinely unreadable, which is why older notes say identity is impossible.)
 - Bulk-dump attribution is still hard, but now built on real robots, not proxies.
+
+## Pre-labelling (faster than drawing every box)
+
+Instead of annotating from scratch, draft labels over many matches and correct them:
+
+```bash
+python prelabel.py --matches 40 --per-video 15        # -> dataset_v2/ (images, labels, previews)
+python annotate.py --images dataset_v2/images --order dataset_v2/review_order.txt
+```
+
+`prelabel.py` runs the fine-tuned detector at two scales, drops boxes on refs/FTA/drivers
+(COCO person veto), merges nested duplicates, and fills unreadable bumper colours by the
+3-robots-per-alliance rule. Review order puts the frames most likely to need fixes first.
+YOLO-World was tried as a zero-shot prelabeler and found useless here (no "robot" boxes).
+`review/` holds an optional AI reviewer that proposes keep/delete/recolour per box.
