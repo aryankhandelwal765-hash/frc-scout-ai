@@ -159,11 +159,15 @@ def main():
     p = argparse.ArgumentParser(description="Annotate robots by bumper color for YOLO training.")
     p.add_argument("--images", default="dataset/images")
     p.add_argument("--labels", help="default: sibling 'labels' dir")
+    p.add_argument("--order", help="text file of image paths (e.g. prelabel's review_order.txt)")
     args = p.parse_args()
-    paths = sorted(
-        glob.glob(os.path.join(args.images, "*.jpg"))
-        + glob.glob(os.path.join(args.images, "*.png"))
-    )
+    if args.order:
+        paths = [ln.strip() for ln in open(args.order) if ln.strip()]
+    else:
+        paths = sorted(
+            glob.glob(os.path.join(args.images, "*.jpg"))
+            + glob.glob(os.path.join(args.images, "*.png"))
+        )
     if not paths:
         raise SystemExit(f"No images in {args.images} -- run extract_frames.py first.")
     labels = args.labels or os.path.join(os.path.dirname(args.images.rstrip("/")), "labels")
