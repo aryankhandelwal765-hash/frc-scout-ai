@@ -24,12 +24,29 @@ from ai_review_local import PROMPT
 
 DEFAULT_MODEL = "mlx-community/Qwen3.6-35B-A3B-4bit"
 
+# MLX cannot force a JSON schema (Ollama can), so the reply shape is shown in the prompt.
+SCHEMA_HINT = (
+    "\n\nReply with ONLY a JSON object in exactly this shape, one entry per box id:\n"
+    '{"boxes":[{"id":0,"verdict":"keep"},{"id":1,"verdict":"recolor","colour":"red"},'
+    '{"id":2,"verdict":"delete"}],"missed":[{"colour":"blue","box":[0.1,0.4,0.2,0.7]}],'
+    '"unsure":false}'
+)
+
 
 def parse_verdict(text):
     i = text.find("{")
     if i < 0:
         raise ValueError("no JSON object in reply")
     v = json.JSONDecoder().raw_decode(text[i:])[0]
+    if isinstance(v, dict) and "boxes" not in v:
+        # tolerate {"box_0": "delete", ...}: models sometimes invent this shape
+        flat = [
+            {"id": int(k.split("_")[1]), "verdict": str(x).split("_")[0]}
+            for k, x in v.items()
+            if k.startswith("box_") and k.split("_")[1].isdigit() and isinstance(x, str)
+        ]
+        if flat:
+            v["boxes"] = flat
     if not isinstance(v, dict) or "boxes" not in v:
         raise ValueError("JSON has no boxes list")
     v.setdefault("missed", [])
@@ -90,7 +107,7 @@ def main():
         lines = [
             f"  id {b['id']}: drawn {b['drawn_colour']}, box {b['box_frac']}" for b in meta["boxes"]
         ]
-        text = PROMPT.format(boxes="\n".join(lines) or "  (no boxes)")
+        text = PROMPT.format(boxes="\n".join(lines) or "  (no boxes)") + SCHEMA_HINT
         png = os.path.join(args.inputs, n + ".png")
 
         verdict, stats, err = None, {}, ""
