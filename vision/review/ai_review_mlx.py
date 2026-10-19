@@ -45,6 +45,30 @@ SCHEMA_HINT_REASON = (
 )
 
 
+def fewshot_block(names, inputs, pre, truth):
+    """Worked examples (numbered image + the answer a human's corrections imply)."""
+    from ai_review import human_verdict
+
+    parts, images = [], []
+    for k, n in enumerate(names, 1):
+        meta = json.load(open(os.path.join(inputs, n + ".boxes.json")))
+        lines = [
+            f"  id {b['id']}: drawn {b['drawn_colour']}, box {b['box_frac']}" for b in meta["boxes"]
+        ]
+        ans = json.dumps(human_verdict(pre, truth, n), separators=(",", ":"))
+        parts.append(
+            f"EXAMPLE {k} (image {k}). Boxes:\n" + "\n".join(lines) + f"\nCorrect answer: {ans}\n"
+        )
+        images.append(os.path.join(inputs, n + ".png"))
+    head = (
+        f"Below are {len(names)} worked examples from the same cameras, each with the "
+        "answer a careful human reviewer gave. Learn their judgement: what counts as a "
+        "robot, when to delete, how colours are decided. The image to review is the "
+        "LAST image, after the examples.\n\n"
+    )
+    return head + "\n".join(parts) + "\nNow the REAL task.\n", images
+
+
 def parse_verdict(text):
     text = text.split("</think>")[-1]  # thinking runs: the answer follows the reasoning
     i = text.find("{")
@@ -76,6 +100,10 @@ def main():
     p.add_argument("--max-tokens", type=int, default=900)
     p.add_argument("--limit", type=int, help="only the first N unfinished frames")
     p.add_argument("--think", action="store_true", help="leave the model's thinking on")
+    p.add_argument("--fewshot", help="text file of example frame names (NOT in the eval set)")
+    p.add_argument("--fewshot-inputs", help="numbered-image dir covering the example frames")
+    p.add_argument("--fewshot-pre", help="prelabel dir (images/ + labels/) for the examples")
+    p.add_argument("--fewshot-truth", help="human-corrected labels dir for the examples")
     p.add_argument(
         "--reason",
         action="store_true",
@@ -97,13 +125,22 @@ def main():
     config = load_config(args.model)
     print(f"model loaded in {time.time() - t0:.1f}s", flush=True)
 
+    shots_text, shots_images = "", []
+    if args.fewshot:
+        shots_names = [ln.strip() for ln in open(args.fewshot) if ln.strip()]
+        shots_text, shots_images = fewshot_block(
+            shots_names, args.fewshot_inputs, args.fewshot_pre, args.fewshot_truth
+        )
+        print(f"few-shot: {len(shots_names)} examples", flush=True)
+
     def build_prompt(text):
+        k = 1 + len(shots_images)
         try:
             return apply_chat_template(
-                processor, config, text, num_images=1, enable_thinking=args.think
+                processor, config, text, num_images=k, enable_thinking=args.think
             )
         except TypeError:
-            return apply_chat_template(processor, config, text, num_images=1)
+            return apply_chat_template(processor, config, text, num_images=k)
 
     done = 0
     for n in names:
@@ -137,8 +174,8 @@ def main():
             res = generate(
                 model,
                 processor,
-                build_prompt(text + suffix),
-                image=[png],
+                build_prompt(shots_text + text + suffix),
+                image=[*shots_images, png],
                 max_tokens=args.max_tokens,
                 temperature=0.0,
                 verbose=False,

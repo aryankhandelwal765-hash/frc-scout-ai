@@ -102,6 +102,48 @@ def prepare(args):
     print(f"prepared {len(frame_names(args.frames))} frames -> {args.out}")
 
 
+def human_verdict(pre_dir, truth_dir, name):
+    """What a human's corrected labels imply for each prelabel box (keep/delete/recolor),
+    plus the robots they had to add. Same matching rules as evaluate()."""
+    img = cv2.imread(os.path.join(pre_dir, "images", name + ".jpg"))
+    h, w = img.shape[:2]
+    pre = read_labels(os.path.join(pre_dir, "labels", name + ".txt"), w, h)
+    truth = read_labels(os.path.join(truth_dir, name + ".txt"), w, h)
+    used, boxes = set(), []
+    for i, b in enumerate(pre):
+        best, bi = 0.0, None
+        for j, t in enumerate(truth):
+            if j in used:
+                continue
+            v = iou(b["box"], t["box"])
+            if v > best:
+                best, bi = v, j
+        if bi is not None and best >= 0.3:
+            used.add(bi)
+            if truth[bi]["cls"] == b["cls"]:
+                boxes.append({"id": i, "verdict": "keep"})
+            else:
+                boxes.append(
+                    {"id": i, "verdict": "recolor", "colour": CLASS_NAMES[truth[bi]["cls"]]}
+                )
+        else:
+            boxes.append({"id": i, "verdict": "delete"})
+    missed = [
+        {
+            "colour": CLASS_NAMES[t["cls"]],
+            "box": [
+                round(t["box"][0] / w, 3),
+                round(t["box"][1] / h, 3),
+                round(t["box"][2] / w, 3),
+                round(t["box"][3] / h, 3),
+            ],
+        }
+        for t in truth
+        if not any(iou(t["box"], p_["box"]) >= 0.3 for p_ in pre)
+    ]
+    return {"boxes": boxes, "missed": missed, "unsure": False}
+
+
 def evaluate(args):
     """Compare verdicts to human labels. Returns a metrics dict (no printing)."""
     tp = fp = fn = col_ok = col_n = 0
