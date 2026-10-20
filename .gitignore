@@ -17,6 +17,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-*/
 venv/
 env/
 .pytest_cache/
@@ -120,3 +121,5 @@ prescout_export*.csv
 vision/digit_data/
 vision/digit_*.log
 vision/digit_data_synth/
+vision/reid_data/
+vision/reid_harvest.log

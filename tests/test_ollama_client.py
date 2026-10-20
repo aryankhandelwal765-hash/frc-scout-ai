@@ -127,3 +127,61 @@ def test_list_models_returns_empty_when_ollama_is_down(monkeypatch):
 
     monkeypatch.setattr(oc.requests, "get", boom)
     assert oc.list_models() == []
+
+
+# --- MLX backend -------------------------------------------------------------
+
+
+def sse(*deltas):
+    out = [f"data: {json.dumps({'choices': [{'delta': d}]})}" for d in deltas]
+    return [*out, "data: [DONE]"]
+
+
+@pytest.fixture
+def mlx(monkeypatch):
+    monkeypatch.setattr(oc, "BACKEND", "mlx")
+    return monkeypatch
+
+
+def test_mlx_separates_reasoning_from_content(mlx, post):
+    post(sse({"reasoning": "hmm"}, {"content": "Answer"}))
+    assert list(oc.stream_chat_verbose("m", "s", "u")) == [
+        ("thinking", "hmm"),
+        ("content", "Answer"),
+    ]
+
+
+def test_mlx_posts_to_the_openai_endpoint_and_maps_options(mlx, post):
+    captured = post(sse({"content": "x"}))
+    list(
+        oc.stream_chat_verbose("qwen3:8b", "SYS", "USR", think=False, options={"num_predict": 160})
+    )
+    assert captured["url"].endswith("/v1/chat/completions")
+    p = captured["payload"]
+    assert p["chat_template_kwargs"] == {"enable_thinking": False}
+    assert p["max_tokens"] == 160
+    assert p["messages"][0] == {"role": "system", "content": "SYS"}
+    assert "think" not in p
+
+
+def test_mlx_generate_retries_invalid_json_once(mlx):
+    replies = iter(["not json", '{"ok": true}'])
+
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"content": next(replies)}}]}
+
+    mlx.setattr(oc.requests, "post", lambda *a, **k: R())
+    assert json.loads(oc.generate("m", "s", "u", fmt="json")) == {"ok": True}
+
+
+def test_mlx_list_models_empty_when_server_down(mlx):
+    def boom(*a, **k):
+        raise OSError("refused")
+
+    mlx.setattr(oc.requests, "get", boom)
+    assert oc.list_models() == []
+    assert oc.is_running() is False
