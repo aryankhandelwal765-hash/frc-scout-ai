@@ -31,6 +31,7 @@ def main():
     p.add_argument("--patience", type=int, default=20)
     p.add_argument("--imgsz", type=int, default=1280)
     p.add_argument("--batch", type=int, default=8)
+    p.add_argument("--close-mosaic", type=int, default=10)
     p.add_argument("--device", default=None, help="default: mps if available")
     p.add_argument("--project", default=PROJECT)
     p.add_argument("--resume", action="store_true")
@@ -61,7 +62,7 @@ def main():
         exist_ok=False,
         workers=4,
         save_period=5,
-        close_mosaic=10,
+        close_mosaic=args.close_mosaic,
         hsv_h=0.008,
         plots=False,
     )

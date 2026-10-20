@@ -7,6 +7,8 @@ Build a YOLO training set from reviewed prelabels, keeping only labels we can tr
 Split:
   val   = frames a HUMAN corrected (their saved labels differ from the prelabel). These
           are gold; the model never trains on them, so metrics on val are honest.
+  checked = frames a human reviewed after the AI pass (--checked): gold, every Nth to val
+            (default every 6th, deterministic), the rest to train
   train = the rest, but only when the reviewers' verdicts leave a COMPLETE label set:
             - Opus reviewed it  -> apply Opus verdicts (keep / recolor / delete)
             - else cheap model  -> only if it said "keep" for every box
@@ -59,6 +61,8 @@ def main():
     p.add_argument("--opus", help="strong-model verdicts dir (hard frames)")
     p.add_argument("--out", required=True)
     p.add_argument("--min-boxes", type=int, default=3)
+    p.add_argument("--checked", help="labels dir of frames a human checked after the AI pass (gold)")
+    p.add_argument("--checked-val-every", type=int, default=6, help="every Nth checked frame goes to val")
     args = p.parse_args()
 
     edited_dir = args.prelabel_labels or os.path.join(args.pre, "labels")
@@ -76,7 +80,8 @@ def main():
         with open(os.path.join(args.out, "labels", split, n + ".txt"), "w") as fh:
             fh.write("\n".join(lines) + ("\n" if lines else ""))
 
-    stats = {"val_human": 0, "train_opus": 0, "train_cheap_clean": 0}
+    seen = 0
+    stats = {"checked_train": 0, "checked_val": 0, "val_human": 0, "train_opus": 0, "train_cheap_clean": 0}
     dropped = {"no_verdict": 0, "unsure_or_missed": 0, "cheap_had_changes": 0, "too_few_boxes": 0}
     counts = {"train_boxes": 0, "val_boxes": 0}
     for n in names:
@@ -86,6 +91,18 @@ def main():
             emit(n, "val", edited)
             stats["val_human"] += 1
             counts["val_boxes"] += len(edited)
+            continue
+        ck = os.path.join(args.checked, n + ".txt") if args.checked else None
+        if ck and os.path.exists(ck):  # human-checked: gold labels, no reviewer needed
+            lines = read_lines(ck)
+            seen += 1
+            split = "val" if seen % args.checked_val_every == 0 else "train"
+            if split == "train" and len(lines) < args.min_boxes:
+                dropped["too_few_boxes"] += 1
+                continue
+            emit(n, split, lines)
+            stats["checked_" + split] += 1
+            counts[split + "_boxes"] += len(lines)
             continue
         op = os.path.join(args.opus, n + ".json") if args.opus else None
         cp = os.path.join(args.mlx, n + ".json")

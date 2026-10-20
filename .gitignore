@@ -61,6 +61,8 @@ vision/match_pipeline/videos_raw/
 vision/dataset/
 vision/dataset_v2/
 vision/dataset_v3/
+vision/dataset_v4/
+vision/dataset_v5/
 vision/runs/experiments/
 vision/review/review_bench_data/
 
