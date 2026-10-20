@@ -96,7 +96,7 @@ def main():
         patience=30,
     )
     print(f"\nDone. Detector weights: runs/detect/{args.name}/weights/best.pt")
-    print("Next: point detector_estimator.py at these weights for per-robot attribution.")
+    print("Next: run match_pipeline/batch_trajectories.py (it picks the newest runs/detect/*/weights/best.pt).")
 
 
 if __name__ == "__main__":

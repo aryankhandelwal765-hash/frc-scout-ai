@@ -2,7 +2,7 @@
 Per-frame robot TRAJECTORY logger (foundation for auto-path analysis).
 
 Runs the trained YOLO robot detector + ByteTrack across a match video and writes
-every robot's ground position each frame. Unlike detector_estimator.py (which only
+every robot's ground position each frame. Unlike scoring_estimator.py (which only
 keeps a cumulative activity number), this keeps the whole path.
 
 Runs on the Apple-Silicon GPU (MPS) if available -- this is the one pipeline in the

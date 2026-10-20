@@ -290,7 +290,6 @@ classic/            — v1 classic-CV tracker, self-contained:
   scoring_estimator.py — rate-apportionment estimator (match_pipeline imports it)
   make_test_clip.py   — synthetic clip w/ a known answer (RED 2 / BLUE 1)
   calibrate.py / tune_color_masks.py — HSV tuning helpers
-detector_estimator.py — YOLO variant, builds on classic/scoring_estimator.py
 train_detector.py   — fine-tune YOLO on labeled frames
 annotate.py / extract_frames.py — labeling toolchain
 prelabel.py         — drafts YOLO labels across many matches (fine-tuned detector, person veto,
