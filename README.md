@@ -1,6 +1,6 @@
 # FRC Scout AI
 
-Measures FRC robots from match video and fuses that with The Blue Alliance into a strategy brief.
+Measures FRC robots from match video and fuses that with The Blue Alliance into a strategy brief. The repo also holds the Phase 0 team scouting app (`backend/`, `frontend/`).
 
 [![CI](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/aryankhandelwal765-hash/frc-scout-ai/actions/workflows/ci.yml)
 
@@ -171,7 +171,7 @@ notes are facts only, with no human judgement mixed in.
 
 2026 Hopper division. 140 matches were processed; 112 produced both an
 `estimate.json` and an `identity.json`. Numbers below are computed from
-`examples/2026hop/report.json`, which is committed — rerun `compare_tba.py` to
+`examples/2026hop/report.json` (kept locally, not committed) — rerun `compare_tba.py` to
 reproduce them.
 
 Vision's per-alliance ball count vs TBA's `hubScore.totalCount`:
@@ -204,8 +204,8 @@ cannot be identified, pathed, or credited with a score.
 ### Rule violations in auto
 
 `validate_paths.py` counts illegal centre-line crossings. As above: a **lower
-bound on error**, not a measure of path accuracy. Computed from the committed
-[`examples/2026hop/path_quality.csv`](examples/2026hop/path_quality.csv):
+bound on error**, not a measure of path accuracy. Computed from the local
+`examples/2026hop/path_quality.csv` (not committed; rerun `validate_paths.py`):
 
 | identity source | violations | n | rate |
 |---|---:|---:|---:|
@@ -225,7 +225,7 @@ the current 1080p crop.
 
 ## Strategy
 
-The decision half, in `strategy/scout/engine/`:
+The decision half, in `legacy/strategy/scout/engine/`:
 
 - **`archetype_engine`** — playstyle from the EPA breakdown: phase shares and a
   label (auto specialist, teleop workhorse, balanced contributor, …).
@@ -262,26 +262,26 @@ cd frc-scout-ai
 
 cp .env.example .env          # then put your TBA_AUTH_KEY in it
 
-python3 -m venv strategy/.venv
-strategy/.venv/bin/python -m pip install -r strategy/requirements.txt
+python3 -m venv legacy/strategy/.venv
+legacy/strategy/.venv/bin/python -m pip install -r legacy/strategy/requirements.txt
 
 ollama serve &                 # in its own terminal
 ollama pull qwen3:8b
 
-strategy/.venv/bin/python -m uvicorn scout.api.main:app --port 8000 --app-dir strategy &
+legacy/strategy/.venv/bin/python -m uvicorn scout.api.main:app --port 8000 --app-dir legacy/strategy &
 
-npm --prefix strategy/frontend install
-npm --prefix strategy/frontend run dev
+npm --prefix legacy/strategy/frontend install
+npm --prefix legacy/strategy/frontend run dev
 ```
 
 The app is at http://localhost:5173, the API docs at http://localhost:8000/docs.
-`strategy/start.sh` runs all three together.
+`legacy/strategy/start.sh` runs all three together.
 
 Tests:
 
 ```bash
-strategy/.venv/bin/python -m pip install -r requirements-dev.txt
-strategy/.venv/bin/python -m pytest
+legacy/strategy/.venv/bin/python -m pip install -r requirements-dev.txt
+legacy/strategy/.venv/bin/python -m pytest
 ```
 
 ### With Docker (untested)
@@ -295,7 +295,7 @@ strategy/.venv/bin/python -m pytest
 
 ```bash
 git clone https://github.com/aryankhandelwal765-hash/frc-scout-ai.git
-cd frc-scout-ai/strategy
+cd frc-scout-ai/legacy/strategy
 
 cp ../.env.example .env       # then put your TBA_AUTH_KEY in it
 
@@ -324,17 +324,18 @@ brew install ffmpeg tesseract
 ## Repo layout
 
 ```
-strategy/           FastAPI + React + LLM synthesis
-  scout/engine/     archetype · volatility · chemistry · prediction · synthesis
-  scout/api/        NDJSON streaming endpoints
-  frontend/         React 19 dashboard
+backend/            Phase 0 team scouting app: FastAPI + SQLAlchemy + Alembic (auth, invites, TBA import)
+frontend/           Phase 0 React 19 + Vite PWA, built against backend/openapi.json
 vision/
-  classic/          v1 classic-CV tracker (no ML; runs on any clip)
-  match_pipeline/   the production pipeline: detect, track, identify, calibrate
-  *.py              YOLO detector training toolchain
-examples/2026hop/   one event's real pipeline output, committed
-tests/              pytest suite, no network
-docs/               deployment guide and development notes
+  match_pipeline/   the production pipeline: detect, track, stitch, identify, calibrate
+  review/           AI box review, training-set builder, detector eval and training (train_v3.py)
+  prelabel.py       drafts detector labels (person veto, nested merge, colour elimination)
+  annotate.py       OpenCV labelling tool
+  _archive/         v1 classic-CV tracker, kept for reference
+legacy/strategy/    older FastAPI + React + Ollama strategy app (still runnable; reads vision output)
+examples/           local-only sample pipeline output (gitignored)
+tests/              pytest suite for vision + legacy strategy, no network
+docs/               BUILD_SPEC.md (Phase 0), deployment guide, development notes
 ```
 
 ## Known limitations

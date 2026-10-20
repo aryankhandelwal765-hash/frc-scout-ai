@@ -67,7 +67,8 @@ vision/runs/experiments/
 vision/review/review_bench_data/
 
 # ─── Generated pipeline output (regenerate; see docs) ──────────────────────
-# One representative event is committed under examples/ instead.
+# examples/ holds local sample output only (not committed).
+examples/
 vision/match_pipeline/results/
 vision/match_pipeline/topdown_paths/
 vision/match_pipeline/zone_paths/

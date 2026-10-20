@@ -4,15 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repo layout
 
-Two sub-projects, now fused into one system via `scout/engine/vision_loader.py`:
+Three parts. The Phase 0 team scouting app (`backend/`, `frontend/`) is new and independent (spec:
+`docs/BUILD_SPEC.md`, run commands: `backend/README.md`). The older strategy app and the vision pipeline
+are fused via `scout/engine/vision_loader.py`:
 
 ```
 frc-scout-ai/
-  strategy/       — FRC Scout AI: FastAPI + React + LLM synthesis + SQLite cache
-  vision/  — CV pipeline: ByteTrack/YOLO robots + ball scoring + match renders
+  backend/         — Phase 0 app: FastAPI + SQLAlchemy + Alembic, argon2/JWT-cookie auth, invites, TBA import
+  frontend/        — Phase 0 app: React 19 + Vite PWA (builds only against backend/openapi.json)
+  legacy/strategy/ — older FRC Scout AI: FastAPI + React + LLM synthesis + SQLite cache
+  vision/          — CV pipeline: YOLO + ByteTrack robots, stitching, prelabel/review/training, match renders
 ```
 
-**Fusion point:** `strategy/scout/engine/vision_loader.py` reads
+All `strategy/...` paths and commands below are relative to `legacy/strategy/` (e.g. `cd legacy/strategy &&
+./start.sh`); `npm --prefix frontend` in that section means `legacy/strategy/frontend`, not the root `frontend/`.
+
+**Fusion point:** `legacy/strategy/scout/engine/vision_loader.py` reads
 `vision/match_pipeline/results/*/estimate.json` + `identity.json`, joins by team
 number, and injects vision-measured scoring into `build_strategy_brief()`. The
 LLM now cites CV-measured ball counts alongside TBA OPR aggregates.
@@ -24,7 +31,7 @@ LLM now cites CV-measured ball counts alongside TBA OPR aggregates.
 ### Running the stack (dev)
 
 ```bash
-cd strategy && ./start.sh           # Ollama + API + Vite together
+cd legacy/strategy && ./start.sh           # Ollama + API + Vite together
 # Or individually:
 ollama serve
 .venv/bin/python -m uvicorn scout.api.main:app --port 8000   # NO --reload — restart to reload
@@ -54,7 +61,7 @@ deploy works too (`docker run -p 8000:8000 frc-scout-ai`).
 
 ### Python environment
 
-- Venv: `strategy/.venv` (Python 3.13). Always use `.venv/bin/python`.
+- Venv: `legacy/strategy/.venv` (Python 3.13). Always use `.venv/bin/python`.
 - Providers are lazy-imported (only the active one loads), so the app runs on
   TBA without `statbotics` installed. FastAPI **requires** the venv.
 - One-off scripts: `PYTHONPATH=<strategy root> .venv/bin/python <script>`.
@@ -204,12 +211,12 @@ GET  /scouting/clip/{team}/{key}      — 30s ffmpeg-cut highlight (~1 MB, cache
 ### Tests
 
 ```bash
-strategy/.venv/bin/python -m pip install -r requirements-dev.txt
-strategy/.venv/bin/python -m pytest          # 115 tests, no network
-strategy/.venv/bin/python -m pytest -m "not slow"   # skip the video e2e
+legacy/strategy/.venv/bin/python -m pip install -r requirements-dev.txt
+legacy/legacy/strategy/.venv/bin/python -m pytest          # 115 tests, no network
+legacy/legacy/strategy/.venv/bin/python -m pytest -m "not slow"   # skip the video e2e
 ```
 
-Root `conftest.py` puts `strategy/`, `vision/classic/` and
+Root `conftest.py` puts `legacy/strategy/` and
 `vision/match_pipeline/` on `sys.path`. An autouse fixture blocks real sockets,
 so an unmocked TBA/Statbotics/Ollama call fails loudly. Detector tests skip
 themselves when YOLO weights are absent.
@@ -243,16 +250,12 @@ brew install ffmpeg tesseract        # non-pip prereqs
 pip install yt-dlp                   # match video downloader
 ```
 
-### Two workflows
+### Workflows
 
-**1. Standalone scoring on any clip** — from `vision/classic/track_match.py`:
-```bash
-python classic/track_match.py --input clip.mp4 --zones zones.json --outdir out --ball-color yellow
-```
-Outputs per-robot ball tally + annotated mp4. See `vision/README.md` for
-the full flow (goal-zone picker, tuning levers, HSV calibration).
+The v1 classic-CV standalone tracker was archived (`vision/_archive/classic/`). The live
+workflow is:
 
-**2. TBA batch pipeline** — from `vision/match_pipeline/`. This is what feeds
+**TBA batch pipeline** — from `vision/match_pipeline/`. This is what feeds
 strategy's vision fusion. Multi-stage:
 
 ```bash
@@ -280,17 +283,9 @@ polls `GET /scouting/render/{key}`.
 ### Architecture — vision (root level)
 
 ```
-classic/            — v1 classic-CV tracker, self-contained:
-  track_match.py      — standalone entry (robots + balls + scoring)
-  config.py           — HSV color presets, tunable params
-  detection.py        — color masks, robot + ball blob extraction
-  tracking.py         — nearest-centroid tracker w/ grace period
-  scoring.py          — possession attribution + goal-zone scoring
-  overlay.py          — annotated-video drawing
-  scoring_estimator.py — rate-apportionment estimator (match_pipeline imports it)
-  make_test_clip.py   — synthetic clip w/ a known answer (RED 2 / BLUE 1)
-  calibrate.py / tune_color_masks.py — HSV tuning helpers
-train_detector.py   — fine-tune YOLO on labeled frames
+_archive/classic/   — v1 classic-CV tracker, archived (not imported by anything live)
+train_detector.py   — original YOLO training recipe (review/train_v3.py is the current one: yolov8m, 1280px,
+                      writes to runs/experiments/; promote by copying best.pt into runs/detect/<name>/weights/)
 annotate.py / extract_frames.py — labeling toolchain
 prelabel.py         — drafts YOLO labels across many matches (fine-tuned detector, person veto,
                       nested-box merge, colour-by-elimination); writes dataset_v2/ + review_order.txt
@@ -303,6 +298,7 @@ match_pipeline/robot_filters.py — pure-python person veto / nested merge / all
 
 ```
 download_matches.py      — yt-dlp per TBA event
+scoring_estimator.py     — rate-apportionment ball estimator (moved here from classic/)
 batch_run.py             — scoring estimator (parallel workers)
 batch_trajectories.py    — ByteTrack (parallel workers)
 batch_auto.py            — auto path detection
@@ -316,7 +312,7 @@ render_full_match.py     — final MATCH render (used by strategy API on demand)
 
 ### Vision fusion — how strategy reads it
 
-`strategy/scout/engine/vision_loader.py::_load_match()` reads
+`legacy/strategy/scout/engine/vision_loader.py::_load_match()` reads
 `results/<match_key>/estimate.json` (per-robot `est_balls_scored`, `activity`,
 `position`) and `identity.json` (track_id → team w/ confidence). It approximates
 slot → team by pairing estimate slots to identity tracks sorted by confidence

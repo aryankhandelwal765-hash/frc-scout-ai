@@ -1,3 +1,6 @@
+> **Note:** the v1 classic-CV tracker described below was archived to `vision/_archive/classic/` and is no longer
+> maintained. The live pipeline is `match_pipeline/` (YOLO + ByteTrack); see the root `README.md` and `CLAUDE.md`.
+
 # FRC Match Vision — Robot + Ball Scoring Tracker
 
 Tracks robots by alliance color (red/blue bumpers) **and** the game-piece balls

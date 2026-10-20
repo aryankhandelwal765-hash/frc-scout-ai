@@ -7,7 +7,7 @@
 
 ## Quick start (Docker)
 
-All commands below run from `strategy/`.
+All commands below run from `legacy/strategy/` (the older strategy app; the Phase 0 app in `backend/` + `frontend/` has no Docker setup yet).
 
 ```bash
 # 1. Configure
