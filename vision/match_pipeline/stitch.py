@@ -268,6 +268,18 @@ def slot_chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None,
     return out
 
 
+def whole_match_chains(match, tracks, alliance_of, read_id, fps=60.0, window=None):
+    """The linker whole-match consumers should call: duplicate tracks folded together,
+    then per-alliance slots steered by the bumper reads in `read_id` (tid -> team).
+
+    Prefer this over chains() for anything that spans more than the auto window. chains()
+    only bridges gaps of MAX_GAP_SEC where the position gate holds; slots also bridge long
+    occlusions, and the reads keep one slot from absorbing two different teams.
+    """
+    tracks, _absorbed = dedupe(tracks, alliance_of, crop_width(match))
+    return slot_chains(match, tracks, alliance_of, fps=fps, window=window, reads=read_id)
+
+
 def lock_identity(chain_list, read_id, tracks=None):
     """chain -> team, by majority read across the chain. A read ANYWHERE on a chain
     locks the whole chain -- that is the entire point.

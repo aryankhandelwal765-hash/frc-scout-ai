@@ -124,3 +124,53 @@ def test_same_team_may_claim_chains_that_do_not_overlap_in_time():
     _per_tid, per_chain = stitch.lock_identity(chain_list, {1: 1706, 2: 1706}, tracks)
     assert per_chain.get(0) == 1706
     assert per_chain.get(1) == 1706, "non-overlapping chains must both keep the id"
+
+
+# --- dedupe + slot stitching ------------------------------------------------
+
+
+def test_dedupe_folds_a_track_riding_on_another():
+    tracks = {1: frag(0, 60, 500, 300), 2: frag(10, 30, 505, 301)}
+    kept, merged = stitch.dedupe(tracks, {1: "red", 2: "red"}, CW)
+    assert merged == {2: 1}
+    assert set(kept) == {1}
+
+
+def test_dedupe_keeps_two_robots_side_by_side():
+    tracks = {1: frag(0, 60, 500, 300), 2: frag(0, 60, 700, 300)}
+    kept, merged = stitch.dedupe(tracks, {1: "red", 2: "red"}, CW)
+    assert not merged and set(kept) == {1, 2}
+
+
+def test_dedupe_never_merges_across_alliances():
+    tracks = {1: frag(0, 60, 500, 300), 2: frag(0, 60, 500, 300)}
+    _kept, merged = stitch.dedupe(tracks, {1: "red", 2: "blue"}, CW)
+    assert not merged
+
+
+def test_slots_bridge_a_gap_longer_than_the_greedy_limit():
+    """8 s blind is past MAX_GAP_SEC for chains(); a free slot still takes the robot back."""
+    tracks = {1: frag(0, 120, 500, 300), 2: frag(120 + int(8 * FPS), 120, 520, 310)}
+    al = {1: "red", 2: "red"}
+    assert sorted(len(c) for c in stitch.chains("m", tracks, al, fps=FPS)) == [1, 1]
+    assert stitch.slot_chains("m", tracks, al, fps=FPS) == [[1, 2]]
+
+
+def test_slots_never_exceed_three_robots_per_alliance():
+    """Four long concurrent fragments: the fourth cannot found a robot, it is junk."""
+    tracks = {i: frag(0, 120, 100 + 200 * i, 300) for i in range(4)}
+    out = stitch.slot_chains("m", tracks, {i: "red" for i in range(4)}, fps=FPS)
+    assert sum(1 for c in out if len(c) >= 1) == 4  # 3 slots + 1 junk singleton
+    assert sum(1 for c in out if c[0] != 3 or len(c) > 1) >= 3
+
+
+def test_slot_reads_keep_teams_apart():
+    """Both candidates are equally near; the bumper read decides which slot takes it."""
+    a = frag(0, 120, 400, 300)
+    b = frag(0, 120, 600, 300)
+    late = frag(120 + int(2 * FPS), 60, 500, 300)  # midway between the two
+    tracks = {1: a, 2: b, 3: late}
+    al = {1: "red", 2: "red", 3: "red"}
+    out = stitch.slot_chains("m", tracks, al, fps=FPS, reads={1: "111", 2: "222", 3: "222"})
+    assert [3] in [c[-1:] for c in out if 2 in c]
+    assert not any(1 in c and 3 in c for c in out)

@@ -73,8 +73,9 @@ def run_match(match, mapper=None):
 
     al_of = {t: ap._voted_alliance(match, t, r) for t, r in tracks.items()}
     last = max(r[0] for rows in tracks.values() for r in rows)
-    chain_list = stitch.chains(match, tracks, al_of, fps=fps, window=(0, last))
-    locked, _ = stitch.lock_identity(chain_list, ap._read_identity(match), tracks)
+    read_id = ap._read_identity(match)
+    chain_list = stitch.whole_match_chains(match, tracks, al_of, read_id, fps=fps, window=(0, last))
+    locked, _ = stitch.lock_identity(chain_list, read_id, tracks)
 
     # a team's teleop is spread over several chains, so accumulate per team
     per = defaultdict(lambda: {"samples": 0, "seq": [], "zone_time": Counter()})

@@ -134,8 +134,9 @@ def run_match(match):
     al_of = {tid: ap._voted_alliance(match, tid, rows) for tid, rows in tracks.items()}
     # whole-match chains: a robot crossing the field is exactly when its id breaks
     last = max(r[0] for rows in tracks.values() for r in rows)
-    chain_list = stitch.chains(match, tracks, al_of, fps=fps, window=(0, last))
-    locked, _ = stitch.lock_identity(chain_list, ap._read_identity(match), tracks)
+    read_id = ap._read_identity(match)
+    chain_list = stitch.whole_match_chains(match, tracks, al_of, read_id, fps=fps, window=(0, last))
+    locked, _ = stitch.lock_identity(chain_list, read_id, tracks)
 
     teams = json.load(open(apf)).get("teams", {})
     blue_left = tp._match_blue_left(teams)

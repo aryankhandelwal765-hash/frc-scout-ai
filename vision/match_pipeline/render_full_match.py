@@ -101,8 +101,9 @@ def build(match=MATCH, stride=STRIDE, width=WIDTH, out=""):
     # whole-match identity: chain fragments, then a read anywhere locks the chain
     al_of = {t: ap._voted_alliance(match, t, r) for t, r in tracks.items()}
     last = max(r[0] for rows in tracks.values() for r in rows)
-    chains = stitch.chains(match, tracks, al_of, fps=fps, window=(0, last))
-    locked, _ = stitch.lock_identity(chains, ap._read_identity(match), tracks)
+    read_id = ap._read_identity(match)
+    chains = stitch.whole_match_chains(match, tracks, al_of, read_id, fps=fps, window=(0, last))
+    locked, _ = stitch.lock_identity(chains, read_id, tracks)
     tid_team = dict(locked)
 
     # the auto book knows HOW each station's team was decided -- reuse that label

@@ -100,8 +100,9 @@ def _weights(match, mapper, rosters=None):
 
     al_of = {t: ap._voted_alliance(match, t, r) for t, r in tracks.items()}
     last = max(r[0] for rows in tracks.values() for r in rows)
-    chain_list = stitch.chains(match, tracks, al_of, fps=fps, window=(0, last))
-    locked, _ = stitch.lock_identity(chain_list, ap._read_identity(match), tracks)
+    read_id = ap._read_identity(match)
+    chain_list = stitch.whole_match_chains(match, tracks, al_of, read_id, fps=fps, window=(0, last))
+    locked, _ = stitch.lock_identity(chain_list, read_id, tracks)
 
     teams = json.load(open(apf)).get("teams", {})
     blue_left = tp._match_blue_left(teams)
