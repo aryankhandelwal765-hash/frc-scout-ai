@@ -117,3 +117,6 @@ backend/*.db
 data/private/
 scouting_export*.csv
 prescout_export*.csv
+vision/digit_data/
+vision/digit_*.log
+vision/digit_data_synth/
