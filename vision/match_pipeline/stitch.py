@@ -46,6 +46,57 @@ def crop_width(match):
     return float(x2 - x1)
 
 
+DUP_DIST_FRAC = 0.025  # two tracks closer than this (crop widths) at the same frame are one robot
+DUP_MIN_SHARED = 0.5  # share of the shorter track's frames that must coincide with the longer
+
+
+def dedupe(tracks, alliance_of, cw):
+    """Merge duplicate tracks: same alliance, same frames, same place = one robot.
+
+    A detector that boxes one robot twice (or ByteTrack spawning a second id on it) gives
+    two tracks that run side by side. Stitching then treats them as two robots and they
+    steal each other's successors. Fold the shorter into the longer: its rows only fill
+    frames the longer one lacks.
+
+    returns (tracks without the absorbed ids, {absorbed_tid: kept_tid})
+    """
+    dist = DUP_DIST_FRAC * cw
+    by_len = sorted(tracks, key=lambda t: len(tracks[t]), reverse=True)
+    rows = {t: {r[0]: r for r in tracks[t]} for t in by_len}
+    merged, kept = {}, []
+    for t in by_len:
+        if len(tracks[t]) < 3:
+            continue
+        host = None
+        for k in kept:
+            if alliance_of.get(k) != alliance_of.get(t):
+                continue
+            shared = [f for f in rows[t] if f in rows[k]]
+            if len(shared) < DUP_MIN_SHARED * len(rows[t]):
+                continue
+            close = sum(
+                1
+                for f in shared
+                if ((rows[t][f][3] - rows[k][f][3]) ** 2 + (rows[t][f][4] - rows[k][f][4]) ** 2)
+                ** 0.5
+                <= dist
+            )
+            if close >= DUP_MIN_SHARED * len(rows[t]):
+                host = k
+                break
+        if host is None:
+            kept.append(t)
+        else:
+            merged[t] = host
+            for f, r in rows[t].items():
+                rows[host].setdefault(f, r)
+    out = {t: sorted(rows[t].values()) for t in kept}
+    for t in tracks:  # tiny tracks pass through untouched
+        if t not in out and t not in merged:
+            out[t] = tracks[t]
+    return out, merged
+
+
 def _endpoints(rows):
     """(first_frame, last_frame, start_xy, end_xy, vx, vy) for one fragment.
 
@@ -65,7 +116,7 @@ def _endpoints(rows):
     return f0, f1, (sx, sy), (ex, ey), vx, vy
 
 
-def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
+def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None, dedup=False):
     """Group track ids into per-robot chains.
 
     tracks       : tid -> [(frame, t, alliance, cx, cy, conf), ...]
@@ -74,6 +125,8 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
     returns      : list of [tid, ...], each list ordered in time
     """
     cw = crop_width(match)
+    if dedup:
+        tracks, _gone = dedupe(tracks, alliance_of, cw)
     base = BASE_GATE_FRAC * cw
     growth = GATE_GROWTH_FRAC * cw
     max_speed = MAX_SPEED_FRAC * cw / fps  # px per frame
@@ -134,6 +187,84 @@ def chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None):
         if tid not in done:
             out.append([tid])
             done.add(tid)
+    return out
+
+
+SLOT_ANCHOR_SEC = 1.5  # a fragment this long may claim an empty slot; shorter ones only join one
+SLOT_OVERLAP_SEC = 0.5  # a new id may start this long before the old one is dropped
+ALLIANCE_SIZE = 3
+
+
+def slot_chains(match, tracks, alliance_of, fps=60.0, min_frames=3, window=None, reads=None):
+    """Chains via persistent per-alliance slots ("ghost" robots).
+
+    An alliance fields exactly ALLIANCE_SIZE robots, so instead of asking "which fragment
+    follows this one" we keep ALLIANCE_SIZE slots alive for the whole match. A slot that
+    lost its robot stays where it vanished (ghost) and the next fragment that starts
+    reachable from it takes it over, however long the blind gap was. A fragment that
+    appears while every slot is busy is a duplicate or junk, so it is attached to the
+    nearest busy slot instead of founding a fourth robot.
+
+    reads: optional tid -> team (bumper reads). A slot belongs to the first team read on it;
+    a fragment reading a different team can never join it, and one reading the slot's team
+    is pulled to it. Same return shape as chains().
+    """
+    cw = crop_width(match)
+    max_speed = MAX_SPEED_FRAC * cw / fps
+    base = BASE_GATE_FRAC * cw
+    overlap = SLOT_OVERLAP_SEC * fps
+    anchor = SLOT_ANCHOR_SEC * fps
+
+    info = {}
+    for tid, rows in tracks.items():
+        r = [x for x in rows if not window or window[0] <= x[0] <= window[1]]
+        if len(r) >= min_frames:
+            info[tid] = _endpoints(r)
+
+    out = []
+    for ally in sorted({alliance_of.get(t) for t in info}):
+        frags = sorted((t for t in info if alliance_of.get(t) == ally), key=lambda t: info[t][0])
+        slots = []  # each: {"chain": [tids], "end": f1, "pos": (x, y), "vel": (vx, vy)}
+        junk = []
+        for tid in frags:
+            f0, f1, start, end, vx, vy = info[tid]
+            best, best_cost = None, None
+            team = (reads or {}).get(tid)
+            for sl in slots:
+                if team and sl["team"] and sl["team"] != team:
+                    continue  # the bumper says a different robot
+                gap = f0 - sl["end"]
+                if gap < -overlap:
+                    continue  # slot still held by a concurrent fragment
+                gap = max(gap, 0)
+                sp = min((sl["vel"][0] ** 2 + sl["vel"][1] ** 2) ** 0.5, max_speed)
+                norm = (sl["vel"][0] ** 2 + sl["vel"][1] ** 2) ** 0.5 or 1.0
+                # the ghost drifts at its last velocity for a few seconds, then holds still
+                drift = min(gap, 3 * fps)
+                px = sl["pos"][0] + sl["vel"][0] / norm * sp * drift
+                py = sl["pos"][1] + sl["vel"][1] / norm * sp * drift
+                d = ((start[0] - px) ** 2 + (start[1] - py) ** 2) ** 0.5
+                reach = base + max_speed * gap  # farthest it could physically have gone
+                if d > reach:
+                    continue
+                cost = d / (base + max_speed * gap * 0.5)
+                if team and sl["team"] == team:
+                    cost -= 100.0  # a matching read beats any geometry
+                if best_cost is None or cost < best_cost:
+                    best, best_cost = sl, cost
+            if best is None and len(slots) < ALLIANCE_SIZE and f1 - f0 >= anchor:
+                best = {"chain": [], "end": f0, "pos": start, "vel": (0.0, 0.0), "team": None}
+                slots.append(best)
+            if best is None:
+                junk.append(tid)
+                continue
+            best["chain"].append(tid)
+            if team and not best["team"]:
+                best["team"] = team
+            if f1 >= best["end"]:
+                best["end"], best["pos"], best["vel"] = f1, end, (vx, vy)
+        out.extend(sl["chain"] for sl in slots)
+        out.extend([t] for t in junk)
     return out
 
 
