@@ -13,11 +13,9 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PARENT = os.path.dirname(HERE)
-# The classic-CV modules (scoring_estimator, ...) live in vision/classic.
-CLASSIC = os.path.join(PARENT, "classic")
+# scoring_estimator.py lives next to this script (on sys.path as the script dir).
 sys.path.insert(0, HERE)
 sys.path.insert(0, PARENT)
-sys.path.insert(0, CLASSIC)
 VIDEOS = os.path.join(HERE, "videos")
 RESULTS = os.path.join(HERE, "results")
 TRUTH = os.path.join(HERE, "truth")

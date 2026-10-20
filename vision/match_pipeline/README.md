@@ -107,7 +107,7 @@ published layout file as a lookup table; it is independent of the AprilTag
 | `autofit_fieldmap.py` | camera→field map **in use** (9-landmark polynomial) |
 | `multi_video_apriltag_calib.py` + `fit_2d_correction.py` | AprilTag map — attempted, not converging; unused (see `_archive/README.md`) |
 | `topdown.py` / `topdown_paths.py` / `team_routes.py` | bird's-eye field + route books |
-| `render_full_match.py` / `render_fusion.py` / `render_autopaths.py` | visual checks |
+| `render_full_match.py` / `render_autopaths.py` | visual checks |
 
 **Traps that have each cost hours here:**
 - Hardcoded 1280x720 pixel boxes. Use `trajectories.field_crop()`,

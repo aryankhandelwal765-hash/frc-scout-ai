@@ -312,7 +312,6 @@ stitch.py                — combines broadcast + top-down + HUD into one frame
 topdown.py + topdown_paths.py — field homography + trajectory rendering
 auto_paths.py            — per-robot auto trajectory extraction
 render_full_match.py     — final MATCH render (used by strategy API on demand)
-render_match.py / render_fusion.py / render_masks.py — other render variants
 ```
 
 ### Vision fusion — how strategy reads it

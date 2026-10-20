@@ -38,3 +38,9 @@ get the AprilTag path converging — see Roadmap in the root README.
 `field_calibrate.py` is **not** archived — it is the one-time interactive anchor
 picker that `auto_paths.py` and `preferred_paths.py` tell the user to run.
 `make_zones.py` is not archived either; it authors zone config into `calib.json`.
+
+## Also archived: old render variants
+
+`render_match.py`, `render_fusion.py`, `render_masks.py` — superseded by `render_full_match.py`
+(and `render_autopaths.py`). Nothing imports them. Not maintained; `render_match.py` expects
+`scoring_estimator.py` on the path (it sits one directory up).

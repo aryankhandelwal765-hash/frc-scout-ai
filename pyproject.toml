@@ -10,8 +10,9 @@ exclude = [
     "venv",
     "node_modules",
     "dist",
-    # Superseded calibration scripts, kept verbatim for reference.
+    # Superseded scripts, kept verbatim for reference.
     "vision/match_pipeline/_archive",
+    "vision/_archive",
 ]
 
 [tool.ruff.lint]
@@ -27,4 +28,4 @@ select = [
 # The vision trees are flat script directories on sys.path, not packages, so
 # their sibling imports are first-party rather than third-party.
 known-first-party = ["scout", "boxes", "topdown", "topdown_paths", "zones",
-                     "stitch", "trajectories", "auto_paths", "tba"]
+                     "stitch", "trajectories", "auto_paths", "tba", "scoring_estimator"]
