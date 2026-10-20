@@ -20,9 +20,7 @@ from pathlib import Path
 from scout.db import cache_get, cache_set
 
 # vision output root — mirrors the SCOUTING_ROOT in api/main.py.
-VISION_ROOT = (
-    Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
-)
+VISION_ROOT = Path(__file__).resolve().parents[4] / "vision" / "match_pipeline" / "results"
 
 # Cache TTL — vision output rarely changes, but bump if user re-runs the pipeline.
 TTL_VISION = 6 * 3600  # 6 h

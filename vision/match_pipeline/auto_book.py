@@ -27,7 +27,7 @@ import sys
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-STRATEGY_DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "strategy")
+STRATEGY_DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "legacy", "strategy")
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 sys.path.insert(0, STRATEGY_DIR)

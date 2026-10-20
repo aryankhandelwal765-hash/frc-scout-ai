@@ -37,7 +37,7 @@ sys.path.insert(0, HERE)
 # ===========================================================================
 # Resolved relative to this repo (match_pipeline/ -> vision/ -> repo root),
 # same as interpret_auto.py and auto_book.py. Override with --strategy.
-STRATEGY_DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "strategy")
+STRATEGY_DIR = os.path.join(os.path.dirname(os.path.dirname(HERE)), "legacy", "strategy")
 TABLE = os.path.join(HERE, "scout_table.csv")
 OUT_NAME = "vision_2026hop.csv"  # lands in strategy/scout/data/scouting/
 WRITE = True  # False = report only, touch nothing

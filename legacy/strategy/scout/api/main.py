@@ -33,9 +33,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 # Scouting video directory (vision output).
-SCOUTING_ROOT = (
-    Path(__file__).resolve().parent.parent.parent.parent / "vision" / "match_pipeline" / "results"
-)
+SCOUTING_ROOT = Path(__file__).resolve().parents[4] / "vision" / "match_pipeline" / "results"
 
 from scout.config import BOT_MODEL, SYNTHESIS_MODEL
 from scout.db import cache_clear, cache_purge_expired, cache_stats, init_db

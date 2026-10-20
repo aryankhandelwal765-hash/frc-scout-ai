@@ -14,8 +14,8 @@ except ImportError:  # pragma: no cover - dotenv is a convenience, not a require
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Repo root is strategy/scout -> strategy -> <root>.
-REPO_ROOT = BASE_DIR.parent.parent
+# Repo root is legacy/strategy/scout -> legacy/strategy -> legacy -> <root>.
+REPO_ROOT = BASE_DIR.parents[2]
 
 if load_dotenv is not None:
     # Never overrides a variable already set in the real environment.

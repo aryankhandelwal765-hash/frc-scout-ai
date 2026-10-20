@@ -3,7 +3,7 @@
 Lives at the repo root so the source trees are importable without an
 install step or a PYTHONPATH export:
 
-  strategy/               -> `scout.*`
+  legacy/strategy/        -> `scout.*`
   vision/match_pipeline/  -> `stitch`, `topdown`, `scoring_estimator`, ...
 
 The vision tree is a flat script directory by design (no __init__.py), so it goes
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-STRATEGY = ROOT / "strategy"
+STRATEGY = ROOT / "legacy" / "strategy"
 VISION_PIPELINE = ROOT / "vision" / "match_pipeline"
 
 # ROOT so `from tests.conftest import ...` resolves regardless of invocation dir.

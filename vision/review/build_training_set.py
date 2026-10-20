@@ -61,8 +61,12 @@ def main():
     p.add_argument("--opus", help="strong-model verdicts dir (hard frames)")
     p.add_argument("--out", required=True)
     p.add_argument("--min-boxes", type=int, default=3)
-    p.add_argument("--checked", help="labels dir of frames a human checked after the AI pass (gold)")
-    p.add_argument("--checked-val-every", type=int, default=6, help="every Nth checked frame goes to val")
+    p.add_argument(
+        "--checked", help="labels dir of frames a human checked after the AI pass (gold)"
+    )
+    p.add_argument(
+        "--checked-val-every", type=int, default=6, help="every Nth checked frame goes to val"
+    )
     args = p.parse_args()
 
     edited_dir = args.prelabel_labels or os.path.join(args.pre, "labels")
@@ -81,7 +85,13 @@ def main():
             fh.write("\n".join(lines) + ("\n" if lines else ""))
 
     seen = 0
-    stats = {"checked_train": 0, "checked_val": 0, "val_human": 0, "train_opus": 0, "train_cheap_clean": 0}
+    stats = {
+        "checked_train": 0,
+        "checked_val": 0,
+        "val_human": 0,
+        "train_opus": 0,
+        "train_cheap_clean": 0,
+    }
     dropped = {"no_verdict": 0, "unsure_or_missed": 0, "cheap_had_changes": 0, "too_few_boxes": 0}
     counts = {"train_boxes": 0, "val_boxes": 0}
     for n in names:

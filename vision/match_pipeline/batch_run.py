@@ -60,6 +60,7 @@ def _run_one(args):
         os.environ.setdefault(v, "1")
     sys.path.insert(0, PARENT)
     import cv2
+
     import scoring_estimator as se
 
     cv2.setNumThreads(1)
