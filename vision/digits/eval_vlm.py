@@ -44,7 +44,7 @@ def prep(a):
         for r in csv.DictReader(open(os.path.join(a.data, "labels.csv")))
         if int(r["box_w"]) >= a.min_box_w
     ]
-    random.Random(1).shuffle(rows)
+    random.Random(a.seed).shuffle(rows)
     cands_of, out = {}, []
     for r in rows:
         if len(out) >= a.n:
@@ -60,6 +60,7 @@ def prep(a):
             {
                 "file": path,
                 "team": r["team"],
+                "box_w": int(r["box_w"]),
                 "cands": sorted(cands),
                 "easyocr": [t for t, _c in rn._ocr_digits(big)],
             }
@@ -79,7 +80,9 @@ def vlm(a):
 
     def ask(text, path):
         try:
-            prompt = apply_chat_template(processor, config, text, num_images=1, enable_thinking=False)
+            prompt = apply_chat_template(
+                processor, config, text, num_images=1, enable_thinking=False
+            )
         except TypeError:
             prompt = apply_chat_template(processor, config, text, num_images=1)
         res = generate(
@@ -92,7 +95,15 @@ def vlm(a):
         s["open"] = ask(OPEN_PROMPT, s["file"])
         s["pick"] = ask(PICK_PROMPT.format(cands=", ".join(s["cands"])), s["file"])
         if i % 25 == 0:
-            print(i, f"{time.time() - t0:.0f}s", s["team"], s["easyocr"], s["open"], s["pick"], flush=True)
+            print(
+                i,
+                f"{time.time() - t0:.0f}s",
+                s["team"],
+                s["easyocr"],
+                s["open"],
+                s["pick"],
+                flush=True,
+            )
     json.dump(sample, open(a.out, "w"))
     print(f"{len(sample)} crops, {(time.time() - t0) / len(sample):.2f}s per crop (two asks)")
 
@@ -109,27 +120,40 @@ def score(a):
             return sc[0][1]
         return None
 
-    rows = json.load(open(a.reads))
-    n = len(rows)
+    allrows = json.load(open(a.reads))
+    buckets = [("all", 0, 9999), ("<50px", 0, 50), ("50-100px", 50, 100), (">=100px", 100, 9999)]
     digits = lambda t: re.sub(r"\D", "", t or "")  # noqa: E731
     readers = {
         "easyocr": lambda r: ("snap", r["easyocr"]),
         "vlm-open": lambda r: ("snap", [digits(r["open"])] if digits(r["open"]) else []),
-        "vlm-pick": lambda r: ("direct", digits(r["pick"]) if digits(r["pick"]) in r["cands"] else None),
+        "vlm-pick": lambda r: (
+            "direct",
+            digits(r["pick"]) if digits(r["pick"]) in r["cands"] else None,
+        ),
     }
-    for k, f in readers.items():
-        exact = acc = right = 0
-        for r in rows:
-            mode, v = f(r)
-            got = snap(v, r["cands"]) if mode == "snap" and v else (v if mode == "direct" else None)
-            exact += bool(v) and (v[0] if mode == "snap" else v) == r["team"]
-            if got:
-                acc += 1
-                right += got == r["team"]
-        print(
-            f"{k:9s} exact {exact / n:.3f}  accepted {acc / n:.3f}  "
-            f"right-when-accepted {right / max(acc, 1):.3f}  correct overall {right / n:.3f}"
-        )
+    for bname, lo, hi in buckets:
+        rows = [r for r in allrows if lo <= r.get("box_w", 100) < hi]
+        n = len(rows)
+        if not n:
+            continue
+        print(f"-- {bname}: {n} crops")
+        for k, f in readers.items():
+            exact = acc = right = 0
+            for r in rows:
+                mode, v = f(r)
+                got = (
+                    snap(v, r["cands"])
+                    if mode == "snap" and v
+                    else (v if mode == "direct" else None)
+                )
+                exact += bool(v) and (v[0] if mode == "snap" else v) == r["team"]
+                if got:
+                    acc += 1
+                    right += got == r["team"]
+            print(
+                f"{k:9s} exact {exact / n:.3f}  accepted {acc / n:.3f}  "
+                f"right-when-accepted {right / max(acc, 1):.3f}  correct overall {right / n:.3f}"
+            )
 
 
 def main():
@@ -140,6 +164,7 @@ def main():
     p.add_argument("--out", required=True)
     p.add_argument("--n", type=int, default=300)
     p.add_argument("--min-box-w", type=int, default=50)
+    p.add_argument("--seed", type=int, default=1)
     p = sub.add_parser("vlm")
     p.add_argument("--sample", required=True)
     p.add_argument("--out", required=True)
