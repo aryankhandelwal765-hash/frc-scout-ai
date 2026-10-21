@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react'
-import { admin } from '../api'
+import { admin, ApiError } from '../api'
 import type { User, Role } from '../types'
 import styles from './AdminPage.module.css'
 
@@ -16,6 +16,7 @@ export function AdminPage() {
   const [importLoading, setImportLoading] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [importResult, setImportResult] = useState<any>(null)
+  const [visionResult, setVisionResult] = useState<string | null>(null)
   const [deactivateLoading, setDeactivateLoading] = useState<number | null>(null)
   const [deactivateError, setDeactivateError] = useState<string | null>(null)
   const [userToConfirmDeactivate, setUserToConfirmDeactivate] = useState<User | null>(null)
@@ -60,6 +61,24 @@ export function AdminPage() {
     }
   }
 
+  const handleImportVision = async () => {
+    setImportError(null)
+    setImportResult(null)
+    if (!importEventKey.trim()) {
+      setImportError('Event key is required')
+      return
+    }
+    try {
+      setImportLoading(true)
+      const r = await admin.importVision(importEventKey)
+      setVisionResult(`Loaded ${r.rows} video rows across ${r.matches} matches.`)
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Failed to import video data')
+    } finally {
+      setImportLoading(false)
+    }
+  }
+
   const handleImportEvent = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setImportError(null)
@@ -77,11 +96,12 @@ export function AdminPage() {
       setImportEventKey('')
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to import event'
-      if (msg.includes('409')) {
+      const status = err instanceof ApiError ? err.status : 0
+      if (status === 409) {
         setImportError('Season not seeded. Please seed the season first.')
-      } else if (msg.includes('503')) {
+      } else if (status === 503) {
         setImportError('TBA API key not configured.')
-      } else if (msg.includes('502')) {
+      } else if (status === 502) {
         setImportError('Failed to reach TBA API.')
       } else {
         setImportError(msg)
@@ -296,7 +316,11 @@ export function AdminPage() {
             <button type="submit" disabled={importLoading} className={styles.primaryButton}>
               {importLoading ? 'Importing...' : 'Import Event'}
             </button>
+            <button type="button" onClick={handleImportVision} disabled={importLoading} className={styles.primaryButton}>
+              Import video data
+            </button>
           </form>
+          {visionResult && <div className={styles.success}>{visionResult}</div>}
         </div>
       )}
     </div>

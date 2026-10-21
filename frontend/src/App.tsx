@@ -4,12 +4,10 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { Shell } from './components/Shell'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
-import {
-  DashboardPage,
-  ScoutingPage,
-  PrescoutPage,
-  StrategyPage
-} from './pages/EmptyStatePage'
+import { DashboardPage } from './pages/DashboardPage'
+import { ScoutingPage } from './pages/ScoutingPage'
+import { PrescoutPage } from './pages/PrescoutPage'
+import { StrategyPage } from './pages/StrategyPage'
 import { AdminPage } from './pages/AdminPage'
 import './global.css'
 
