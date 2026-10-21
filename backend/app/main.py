@@ -6,7 +6,7 @@ from sqlalchemy import Engine
 
 from app.config import Settings, get_settings
 from app.db import make_engine, make_session_factory
-from app.routers import admin, auth
+from app.routers import admin, auth, picklists, pit, prescout, scouting, vision
 from app.security import RateLimiter
 
 
@@ -35,6 +35,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
         )
     app.include_router(auth.router)
     app.include_router(admin.router)
+    for r in (scouting, pit, picklists, prescout, vision):
+        app.include_router(r.router)
     return app
 
 

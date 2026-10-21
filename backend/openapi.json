@@ -1,6 +1,78 @@
 {
   "components": {
     "schemas": {
+      "EntryStatusIn": {
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "flagged",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "EntryStatusIn",
+        "type": "object"
+      },
+      "EventOut": {
+        "properties": {
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "key",
+          "season",
+          "name",
+          "start_date",
+          "end_date"
+        ],
+        "title": "EventOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -139,6 +211,126 @@
         "title": "LoginIn",
         "type": "object"
       },
+      "MatchOut": {
+        "properties": {
+          "blue_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blue Score"
+          },
+          "comp_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comp Level"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "match_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Number"
+          },
+          "played": {
+            "title": "Played",
+            "type": "boolean"
+          },
+          "red_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Red Score"
+          },
+          "set_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set Number"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/MatchTeamOut"
+            },
+            "title": "Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "comp_level",
+          "set_number",
+          "match_number",
+          "red_score",
+          "blue_score",
+          "played",
+          "teams"
+        ],
+        "title": "MatchOut",
+        "type": "object"
+      },
+      "MatchTeamOut": {
+        "properties": {
+          "alliance": {
+            "enum": [
+              "red",
+              "blue"
+            ],
+            "title": "Alliance",
+            "type": "string"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slot"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "team_number",
+          "alliance",
+          "slot"
+        ],
+        "title": "MatchTeamOut",
+        "type": "object"
+      },
       "OkOut": {
         "properties": {
           "ok": {
@@ -148,6 +340,749 @@
           }
         },
         "title": "OkOut",
+        "type": "object"
+      },
+      "PicklistCreateIn": {
+        "properties": {
+          "event_key": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Event Key",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_key",
+          "name"
+        ],
+        "title": "PicklistCreateIn",
+        "type": "object"
+      },
+      "PicklistItemIO": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "rank": {
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Rank",
+            "type": "integer"
+          },
+          "team_number": {
+            "maximum": 99999.0,
+            "minimum": 1.0,
+            "title": "Team Number",
+            "type": "integer"
+          },
+          "tier": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier"
+          }
+        },
+        "required": [
+          "team_number",
+          "rank"
+        ],
+        "title": "PicklistItemIO",
+        "type": "object"
+      },
+      "PicklistItemsIn": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PicklistItemIO"
+            },
+            "maxItems": 200,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "PicklistItemsIn",
+        "type": "object"
+      },
+      "PicklistOut": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "event_key": {
+            "title": "Event Key",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PicklistItemIO"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "event_key",
+          "name",
+          "created_by",
+          "created_at"
+        ],
+        "title": "PicklistOut",
+        "type": "object"
+      },
+      "PitIn": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_key": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Event Key",
+            "type": "string"
+          },
+          "team_number": {
+            "maximum": 99999.0,
+            "minimum": 1.0,
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_key",
+          "team_number",
+          "data"
+        ],
+        "title": "PitIn",
+        "type": "object"
+      },
+      "PitOut": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "event_key": {
+            "title": "Event Key",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "scouter_id": {
+            "title": "Scouter Id",
+            "type": "integer"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "event_key",
+          "team_number",
+          "scouter_id",
+          "data",
+          "submitted_at"
+        ],
+        "title": "PitOut",
+        "type": "object"
+      },
+      "PrescoutBatchIn": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "source_type": {
+            "default": "manual",
+            "enum": [
+              "csv",
+              "video",
+              "manual",
+              "api"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "target_event_key": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Event Key"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "PrescoutBatchIn",
+        "type": "object"
+      },
+      "PrescoutBatchOut": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "target_event_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Event Key"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source_type",
+          "target_event_key",
+          "created_by",
+          "created_at"
+        ],
+        "title": "PrescoutBatchOut",
+        "type": "object"
+      },
+      "PrescoutEntryIn": {
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "season_year": {
+            "maximum": 2100.0,
+            "minimum": 1992.0,
+            "title": "Season Year",
+            "type": "integer"
+          },
+          "source_event_key": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Event Key"
+          },
+          "source_match_key": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Match Key"
+          },
+          "team_number": {
+            "maximum": 99999.0,
+            "minimum": 1.0,
+            "title": "Team Number",
+            "type": "integer"
+          },
+          "video_url": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Url"
+          }
+        },
+        "required": [
+          "team_number",
+          "data",
+          "season_year"
+        ],
+        "title": "PrescoutEntryIn",
+        "type": "object"
+      },
+      "PrescoutEntryOut": {
+        "properties": {
+          "batch_id": {
+            "title": "Batch Id",
+            "type": "integer"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "scouter_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scouter Id"
+          },
+          "source_event_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Event Key"
+          },
+          "source_match_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Match Key"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          },
+          "video_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Url"
+          }
+        },
+        "required": [
+          "id",
+          "batch_id",
+          "team_number",
+          "source_event_key",
+          "source_match_key",
+          "data",
+          "video_url",
+          "notes",
+          "confidence",
+          "scouter_id",
+          "created_at"
+        ],
+        "title": "PrescoutEntryOut",
+        "type": "object"
+      },
+      "ScoutingBatchIn": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/ScoutingEntryIn"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "title": "ScoutingBatchIn",
+        "type": "object"
+      },
+      "ScoutingBatchItemOut": {
+        "properties": {
+          "client_uuid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Uuid"
+          },
+          "errors": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "result": {
+            "enum": [
+              "created",
+              "duplicate",
+              "invalid"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "client_uuid",
+          "result"
+        ],
+        "title": "ScoutingBatchItemOut",
+        "type": "object"
+      },
+      "ScoutingBatchOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ScoutingBatchItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ScoutingBatchOut",
+        "type": "object"
+      },
+      "ScoutingEntryIn": {
+        "properties": {
+          "client_uuid": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Uuid"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "match_key": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Match Key",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "team_number": {
+            "maximum": 99999.0,
+            "minimum": 1.0,
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "match_key",
+          "team_number",
+          "data"
+        ],
+        "title": "ScoutingEntryIn",
+        "type": "object"
+      },
+      "ScoutingEntryOut": {
+        "properties": {
+          "client_uuid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Uuid"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "match_key": {
+            "title": "Match Key",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "scouter_id": {
+            "title": "Scouter Id",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "flagged",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "match_key",
+          "team_number",
+          "scouter_id",
+          "data",
+          "notes",
+          "status",
+          "client_uuid",
+          "submitted_at"
+        ],
+        "title": "ScoutingEntryOut",
+        "type": "object"
+      },
+      "SeasonOut": {
+        "properties": {
+          "game_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Game Name"
+          },
+          "prescout_schema": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prescout Schema"
+          },
+          "scouting_schema": {
+            "additionalProperties": true,
+            "title": "Scouting Schema",
+            "type": "object"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "game_name",
+          "scouting_schema",
+          "prescout_schema"
+        ],
+        "title": "SeasonOut",
         "type": "object"
       },
       "SignupIn": {
@@ -188,6 +1123,72 @@
           "password"
         ],
         "title": "SignupIn",
+        "type": "object"
+      },
+      "TeamSummaryOut": {
+        "properties": {
+          "event_key": {
+            "title": "Event Key",
+            "type": "string"
+          },
+          "matches_scouted": {
+            "title": "Matches Scouted",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "pit_entries": {
+            "title": "Pit Entries",
+            "type": "integer"
+          },
+          "prescout_entries": {
+            "title": "Prescout Entries",
+            "type": "integer"
+          },
+          "scouting_means": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Scouting Means",
+            "type": "object"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          },
+          "vision_matches": {
+            "title": "Vision Matches",
+            "type": "integer"
+          },
+          "vision_means": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Vision Means",
+            "type": "object"
+          }
+        },
+        "required": [
+          "team_number",
+          "name",
+          "event_key",
+          "matches_scouted",
+          "scouting_means",
+          "vision_matches",
+          "vision_means",
+          "prescout_entries",
+          "pit_entries"
+        ],
+        "title": "TeamSummaryOut",
         "type": "object"
       },
       "UserOut": {
@@ -279,6 +1280,53 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "VisionImportOut": {
+        "properties": {
+          "event_key": {
+            "title": "Event Key",
+            "type": "string"
+          },
+          "matches": {
+            "title": "Matches",
+            "type": "integer"
+          },
+          "rows": {
+            "title": "Rows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_key",
+          "matches",
+          "rows"
+        ],
+        "title": "VisionImportOut",
+        "type": "object"
+      },
+      "VisionRowOut": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "match_key": {
+            "title": "Match Key",
+            "type": "string"
+          },
+          "team_number": {
+            "title": "Team Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "match_key",
+          "team_number",
+          "data"
+        ],
+        "title": "VisionRowOut",
+        "type": "object"
       }
     }
   },
@@ -333,6 +1381,45 @@
         "summary": "Import Event",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/admin/import/vision/{event_key}": {
+      "post": {
+        "operationId": "import_vision_admin_import_vision__event_key__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_key",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9]{4}[a-z0-9]{2,30}$",
+              "title": "Event Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisionImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Import Vision",
+        "tags": [
+          "vision"
         ]
       }
     },
@@ -587,6 +1674,1055 @@
         "summary": "Signup",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/events": {
+      "get": {
+        "operationId": "list_events_events_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EventOut"
+                  },
+                  "title": "Response List Events Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Events",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/events/{event_key}/matches": {
+      "get": {
+        "operationId": "event_matches_events__event_key__matches_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_key",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Event Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MatchOut"
+                  },
+                  "title": "Response Event Matches Events  Event Key  Matches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Event Matches",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/events/{event_key}/teams/{team}/summary": {
+      "get": {
+        "operationId": "team_summary_events__event_key__teams__team__summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_key",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Event Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "team",
+            "required": true,
+            "schema": {
+              "maximum": 99999,
+              "minimum": 1,
+              "title": "Team",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamSummaryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Team Summary",
+        "tags": [
+          "vision"
+        ]
+      }
+    },
+    "/picklists": {
+      "get": {
+        "operationId": "list__picklists_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "event_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Event Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PicklistOut"
+                  },
+                  "title": "Response List  Picklists Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List ",
+        "tags": [
+          "picklists"
+        ]
+      },
+      "post": {
+        "operationId": "create_picklists_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PicklistCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PicklistOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "picklists"
+        ]
+      }
+    },
+    "/picklists/{picklist_id}": {
+      "delete": {
+        "operationId": "delete__picklists__picklist_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "picklist_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Picklist Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete ",
+        "tags": [
+          "picklists"
+        ]
+      },
+      "get": {
+        "operationId": "get_picklists__picklist_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "picklist_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Picklist Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PicklistOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get",
+        "tags": [
+          "picklists"
+        ]
+      }
+    },
+    "/picklists/{picklist_id}/items": {
+      "put": {
+        "operationId": "replace_items_picklists__picklist_id__items_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "picklist_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Picklist Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PicklistItemsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PicklistOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Replace Items",
+        "tags": [
+          "picklists"
+        ]
+      }
+    },
+    "/pit": {
+      "get": {
+        "operationId": "list__pit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "event_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Event Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "team",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99999,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Team"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PitOut"
+                  },
+                  "title": "Response List  Pit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List ",
+        "tags": [
+          "pit"
+        ]
+      },
+      "post": {
+        "operationId": "submit_pit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PitIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PitOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Submit",
+        "tags": [
+          "pit"
+        ]
+      }
+    },
+    "/prescout/batches": {
+      "get": {
+        "operationId": "list_batches_prescout_batches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrescoutBatchOut"
+                  },
+                  "title": "Response List Batches Prescout Batches Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Batches",
+        "tags": [
+          "prescout"
+        ]
+      },
+      "post": {
+        "operationId": "create_batch_prescout_batches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescoutBatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescoutBatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Batch",
+        "tags": [
+          "prescout"
+        ]
+      }
+    },
+    "/prescout/batches/{batch_id}/entries": {
+      "post": {
+        "operationId": "add_entry_prescout_batches__batch_id__entries_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "batch_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Batch Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrescoutEntryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescoutEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Add Entry",
+        "tags": [
+          "prescout"
+        ]
+      }
+    },
+    "/prescout/entries": {
+      "get": {
+        "operationId": "list_entries_prescout_entries_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "team",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99999,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Team"
+            }
+          },
+          {
+            "in": "query",
+            "name": "batch_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrescoutEntryOut"
+                  },
+                  "title": "Response List Entries Prescout Entries Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Entries",
+        "tags": [
+          "prescout"
+        ]
+      }
+    },
+    "/scouting/entries": {
+      "get": {
+        "operationId": "list_entries_scouting_entries_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "match_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Match Key"
+            }
+          },
+          {
+            "in": "query",
+            "name": "team",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 99999,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Team"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(ok|flagged|rejected)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScoutingEntryOut"
+                  },
+                  "title": "Response List Entries Scouting Entries Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Entries",
+        "tags": [
+          "scouting"
+        ]
+      },
+      "post": {
+        "operationId": "submit_entry_scouting_entries_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoutingEntryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoutingEntryOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoutingEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          }
+        },
+        "summary": "Submit Entry",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/scouting/entries/batch": {
+      "post": {
+        "description": "Offline sync: one transaction, deduped on client_uuid; invalid items are reported.",
+        "operationId": "submit_batch_scouting_entries_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoutingBatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoutingBatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Batch",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/scouting/entries/mine": {
+      "get": {
+        "operationId": "my_entries_scouting_entries_mine_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScoutingEntryOut"
+                  },
+                  "title": "Response My Entries Scouting Entries Mine Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Entries",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/scouting/entries/{entry_id}/status": {
+      "patch": {
+        "operationId": "set_status_scouting_entries__entry_id__status_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryStatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoutingEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Status",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/seasons/{year}": {
+      "get": {
+        "operationId": "get_season_seasons__year__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 1992,
+              "title": "Year",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeasonOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Season",
+        "tags": [
+          "scouting"
+        ]
+      }
+    },
+    "/vision/team/{team}": {
+      "get": {
+        "operationId": "vision_team_vision_team__team__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "team",
+            "required": true,
+            "schema": {
+              "maximum": 99999,
+              "minimum": 1,
+              "title": "Team",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VisionRowOut"
+                  },
+                  "title": "Response Vision Team Vision Team  Team  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Vision Team",
+        "tags": [
+          "vision"
         ]
       }
     }

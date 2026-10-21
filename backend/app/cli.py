@@ -1,4 +1,4 @@
-"""Admin CLI: python -m app.cli {create-admin,import-event,seed-season,migrate}.
+"""Admin CLI: python -m app.cli {create-admin,import-event,seed-season,migrate,backup}.
 
 No default credentials exist anywhere; the admin password is prompted (getpass)
 or read from the ADMIN_PASSWORD environment variable for scripted use.
@@ -90,6 +90,19 @@ def cmd_migrate(_args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_backup(args: argparse.Namespace) -> int:
+    from app.services import backup
+
+    s = get_settings()
+    try:
+        dest = backup.backup(s.database_url, args.dir or s.backup_dir, keep=args.keep)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Backup failed: {e}", file=sys.stderr)
+        return 1
+    print(f"Wrote {dest}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="app.cli")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -104,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
     sd.set_defaults(fn=cmd_seed_season)
     m = sub.add_parser("migrate")
     m.set_defaults(fn=cmd_migrate)
+    b = sub.add_parser("backup", help="consistent copy of the database, keeps the newest 14")
+    b.add_argument("--dir")
+    b.add_argument("--keep", type=int, default=14)
+    b.set_defaults(fn=cmd_backup)
     args = p.parse_args(argv)
     return args.fn(args)
 

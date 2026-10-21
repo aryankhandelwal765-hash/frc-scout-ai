@@ -42,3 +42,4 @@ def require_role(*roles: str) -> Callable[..., User]:
 
 ANY_USER = require_role()
 ADMIN = require_role("admin")
+STRATEGIST = require_role("strategist")

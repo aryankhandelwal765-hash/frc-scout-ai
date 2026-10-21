@@ -57,6 +57,13 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field("", validation_alias="CORS_ORIGINS")
 
+    # Vision pipeline output (vision/match_pipeline/scout_table.csv) and the DB backup folder.
+    vision_scout_table: str = Field(
+        str(BACKEND_DIR.parent / "vision" / "match_pipeline" / "scout_table.csv"),
+        validation_alias="VISION_SCOUT_TABLE",
+    )
+    backup_dir: str = Field(str(BACKEND_DIR / "backups"), validation_alias="BACKUP_DIR")
+
     login_max_failures: int = 5
     login_window_seconds: int = 900
 

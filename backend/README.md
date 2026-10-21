@@ -49,7 +49,10 @@ cp .env.example .env            # then edit; .env is gitignored. Dev: COOKIE_SEC
   HTTP routes in Phase 0.
 - Alembic runs with `render_as_batch=True`. Later migrations that rebuild tables on SQLite should
   disable FK enforcement for that migration (batch recreate + `foreign_keys=ON` can fail).
-- Not yet implemented (later phases): nightly backups, picklists/AI/scouting routes.
+- Routes: scouting entries (single + offline batch, deduped on `client_uuid`), pit scouting, picklists,
+  pre-scout batches/entries, vision import (`POST /admin/import/vision/{event}` loads `VISION_SCOUT_TABLE`),
+  team summary. Backups: `python -m app.cli backup` (sqlite backup API, keeps 14; schedule it from cron).
+- Not yet implemented: pit photo upload, AI reports, the nightly backup scheduler itself.
 
 ## Cookies / CORS (frontend)
 
