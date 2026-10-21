@@ -19,7 +19,8 @@ import type {
   PicklistItem,
   TeamSummary,
   VisionImportResponse,
-  EntryStatus
+  EntryStatus,
+  Prediction
 } from './types'
 
 const BASE = '/api'
@@ -175,3 +176,6 @@ export const picklists = {
     fetchApi<Picklist>(`/picklists/${id}/items`, { method: 'PUT', body: JSON.stringify({ items }) }),
   remove: (id: number) => fetchApi<OkResponse>(`/picklists/${id}`, { method: 'DELETE' })
 }
+
+export const predict = (red: number[], blue: number[]) =>
+  fetchApi<Prediction>(`/predict?red=${red.join(',')}&blue=${blue.join(',')}`)

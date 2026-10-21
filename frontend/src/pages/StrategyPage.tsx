@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { events, picklists, scouting } from '../api'
-import type { EventSummary, Picklist, PicklistItem, ScoutingEntry, TeamSummary } from '../types'
+import { events, picklists, predict, scouting } from '../api'
+import type { EventSummary, Picklist, PicklistItem, Prediction, ScoutingEntry, TeamSummary } from '../types'
 import styles from './Pages.module.css'
 
 function Means({ title, data }: { title: string; data: Record<string, number> }) {
@@ -29,6 +29,9 @@ export function StrategyPage() {
   const [newName, setNewName] = useState('')
   const [addTeam, setAddTeam] = useState('')
   const [err, setErr] = useState<string | null>(null)
+  const [redIn, setRedIn] = useState('')
+  const [blueIn, setBlueIn] = useState('')
+  const [pred, setPred] = useState<Prediction | null>(null)
 
   const fail = (e: unknown) => setErr((e as Error).message)
 
@@ -49,6 +52,17 @@ export function StrategyPage() {
     if (!eventKey || !teamInput) return
     try {
       setSummary(await events.teamSummary(eventKey, parseInt(teamInput, 10)))
+    } catch (e) {
+      fail(e)
+    }
+  }
+
+  const runPredict = async () => {
+    setErr(null)
+    setPred(null)
+    const nums = (t: string) => t.split(/[ ,]+/).filter(Boolean).map(Number)
+    try {
+      setPred(await predict(nums(redIn), nums(blueIn)))
     } catch (e) {
       fail(e)
     }
@@ -110,6 +124,11 @@ export function StrategyPage() {
         {summary && (
           <>
             <p><strong>{summary.team_number}</strong> {summary.name ?? ''}</p>
+            {summary.history_rating !== null && (
+              <p className={styles.muted}>
+                Ten-season rating {Math.round(summary.history_rating)} (rank {summary.history_rank})
+              </p>
+            )}
             <p className={styles.muted}>
               {summary.matches_scouted} scouted matches, {summary.vision_matches} video matches,{' '}
               {summary.pit_entries} pit, {summary.prescout_entries} pre-scout
@@ -117,6 +136,23 @@ export function StrategyPage() {
             <Means title="Scouted averages" data={summary.scouting_means} />
             <Means title="Video averages" data={summary.vision_means} />
           </>
+        )}
+      </div>
+
+      <div className={styles.card}>
+        <h2>Match prediction</h2>
+        <div className={styles.row}>
+          <input className={styles.input} placeholder="Red teams, e.g. 254 1678 971" value={redIn} onChange={(e) => setRedIn(e.target.value)} />
+          <input className={styles.input} placeholder="Blue teams" value={blueIn} onChange={(e) => setBlueIn(e.target.value)} />
+          <button className={styles.button} onClick={runPredict}>Predict</button>
+        </div>
+        {pred && (
+          <p>
+            Red {Math.round(pred.red_win_prob * 100)}% · Blue {Math.round(pred.blue_win_prob * 100)}%
+            {pred.unknown_teams.length > 0 && (
+              <span className={styles.muted}> (no history for {pred.unknown_teams.join(', ')}; counted as average)</span>
+            )}
+          </p>
         )}
       </div>
 

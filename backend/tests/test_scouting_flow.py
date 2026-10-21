@@ -219,3 +219,43 @@ def test_vision_import_and_summary(seeded, app, admin_client, make_user, login, 
 def test_vision_import_needs_the_table(seeded, app, admin_client):
     app.state.settings.vision_scout_table = "/nonexistent/scout_table.csv"
     assert admin_client.post(f"/admin/import/vision/{EVENT}").status_code == 422
+
+
+def _ratings(app, tmp_path):
+    import json
+
+    p = tmp_path / "team_ratings.json"
+    p.write_text(
+        json.dumps({"logistic_scale": 400, "ratings": {"254": 1900, "1678": 1500, "971": 1100}})
+    )
+    app.state.settings.history_ratings = str(p)
+
+
+def test_predict_uses_ratings_and_reports_unknown_teams(seeded, app, make_user, login, tmp_path):
+    _ratings(app, tmp_path)
+    make_user("stan", "strategist")
+    c = login("stan")
+    r = c.get("/predict", params={"red": "254,1678", "blue": "971,5"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["red_win_prob"] > 0.5 and body["unknown_teams"] == [5]
+    assert abs(body["red_win_prob"] + body["blue_win_prob"] - 1) < 1e-9
+    assert c.get("/predict", params={"red": "x", "blue": "1"}).status_code == 422
+
+
+def test_predict_needs_a_built_ratings_file(seeded, app, make_user, login):
+    app.state.settings.history_ratings = "/nonexistent/team_ratings.json"
+    make_user("stan", "strategist")
+    assert login("stan").get("/predict", params={"red": "1", "blue": "2"}).status_code == 503
+
+
+def test_scouts_cannot_predict(seeded, make_user, login):
+    make_user("sam", "scout")
+    assert login("sam").get("/predict", params={"red": "1", "blue": "2"}).status_code == 403
+
+
+def test_summary_carries_the_history_rating(seeded, app, make_user, login, tmp_path):
+    _ratings(app, tmp_path)
+    make_user("stan", "strategist")
+    s = login("stan").get(f"/events/{EVENT}/teams/254/summary").json()
+    assert s["history_rating"] == 1900 and s["history_rank"] == 1

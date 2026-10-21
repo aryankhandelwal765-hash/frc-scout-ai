@@ -24,7 +24,7 @@ from app.models import (
     VideoTrack,
 )
 from app.schemas import TeamSummaryOut, VisionImportOut, VisionRowOut
-from app.services import tba, vision_import
+from app.services import ratings, tba, vision_import
 
 router = APIRouter(tags=["vision"])
 
@@ -82,6 +82,7 @@ def vision_team(
     "/events/{event_key}/teams/{team}/summary", response_model=TeamSummaryOut, responses={404: {}}
 )
 def team_summary(
+    request: Request,
     event_key: str = Path(min_length=1, max_length=64),
     team: int = Path(ge=1, le=99999),
     db: Session = Depends(get_db),
@@ -117,6 +118,7 @@ def team_summary(
         .where(MatchTeam.team_number == team, MatchTeam.match_key.in_(in_event))
     )
     del played  # kept out of the response; scouting/vision counts are what a strategist acts on
+    rating, rank = ratings.rating_and_rank(request.app.state.settings.history_ratings, team)
     return TeamSummaryOut(
         team_number=team,
         name=t.name if t else None,
@@ -128,6 +130,8 @@ def team_summary(
         prescout_entries=db.scalar(
             select(func.count()).select_from(PrescoutEntry).where(PrescoutEntry.team_number == team)
         ),
+        history_rating=rating,
+        history_rank=rank,
         pit_entries=db.scalar(
             select(func.count())
             .select_from(PitScouting)

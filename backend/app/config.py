@@ -62,6 +62,18 @@ class Settings(BaseSettings):
         str(BACKEND_DIR.parent / "vision" / "match_pipeline" / "scout_table.csv"),
         validation_alias="VISION_SCOUT_TABLE",
     )
+    history_ratings: str = Field(
+        str(
+            BACKEND_DIR.parent
+            / "legacy"
+            / "strategy"
+            / "scout"
+            / "data"
+            / "history"
+            / "team_ratings.json"
+        ),
+        validation_alias="HISTORY_RATINGS",
+    )
     backup_dir: str = Field(str(BACKEND_DIR / "backups"), validation_alias="BACKUP_DIR")
 
     login_max_failures: int = 5

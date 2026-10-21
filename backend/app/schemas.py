@@ -243,3 +243,12 @@ class TeamSummaryOut(BaseModel):
     vision_means: dict[str, float]
     prescout_entries: int
     pit_entries: int
+    history_rating: float | None = None
+    history_rank: int | None = None
+
+
+class PredictOut(BaseModel):
+    red_win_prob: float
+    blue_win_prob: float
+    rating_diff: float
+    unknown_teams: list[int]

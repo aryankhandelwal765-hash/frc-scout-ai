@@ -5,6 +5,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
+from scout.engine import history_ratings
 from scout.engine.data_source import get_team_stats
 from scout.engine.feature_engineering import (
     build_matchup_features,
@@ -57,6 +58,8 @@ def predict_match(
     except Exception:
         model_score_diff = epa_diff
 
+    history = history_ratings.win_prob(red_teams, blue_teams)
+
     return {
         "red_teams": red_teams,
         "blue_teams": blue_teams,
@@ -70,6 +73,8 @@ def predict_match(
         "blue_win_prob": blue_win_prob,
         "winner": "RED" if epa_diff > 0 else "BLUE",
         "missing_teams": missing,
+        # Win probability from ten seasons of results; None when no ratings file is present.
+        "history_win_prob": history,
     }
 
 

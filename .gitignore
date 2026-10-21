@@ -126,3 +126,5 @@ vision/reid_harvest.log
 vision/vlm_data/
 vision/runs/vlm/
 vision/.venv-vlm/
+
+legacy/strategy/scout/data/history/

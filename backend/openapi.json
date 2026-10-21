@@ -542,6 +542,37 @@
         "title": "PitOut",
         "type": "object"
       },
+      "PredictOut": {
+        "properties": {
+          "blue_win_prob": {
+            "title": "Blue Win Prob",
+            "type": "number"
+          },
+          "rating_diff": {
+            "title": "Rating Diff",
+            "type": "number"
+          },
+          "red_win_prob": {
+            "title": "Red Win Prob",
+            "type": "number"
+          },
+          "unknown_teams": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Unknown Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "red_win_prob",
+          "blue_win_prob",
+          "rating_diff",
+          "unknown_teams"
+        ],
+        "title": "PredictOut",
+        "type": "object"
+      },
       "PrescoutBatchIn": {
         "properties": {
           "name": {
@@ -1130,6 +1161,28 @@
           "event_key": {
             "title": "Event Key",
             "type": "string"
+          },
+          "history_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Rank"
+          },
+          "history_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Rating"
           },
           "matches_scouted": {
             "title": "Matches Scouted",
@@ -2150,6 +2203,55 @@
         "summary": "Submit",
         "tags": [
           "pit"
+        ]
+      }
+    },
+    "/predict": {
+      "get": {
+        "operationId": "predict_predict_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "red",
+            "required": true,
+            "schema": {
+              "maxLength": 40,
+              "title": "Red",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "blue",
+            "required": true,
+            "schema": {
+              "maxLength": 40,
+              "title": "Blue",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Predict",
+        "tags": [
+          "predict"
         ]
       }
     },

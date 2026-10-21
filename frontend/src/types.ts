@@ -162,6 +162,15 @@ export interface TeamSummary {
   vision_means: Record<string, number>
   prescout_entries: number
   pit_entries: number
+  history_rating: number | null
+  history_rank: number | null
+}
+
+export interface Prediction {
+  red_win_prob: number
+  blue_win_prob: number
+  rating_diff: number
+  unknown_teams: number[]
 }
 
 export interface VisionImportResponse {
