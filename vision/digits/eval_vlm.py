@@ -39,10 +39,11 @@ def prep(a):
     import cv2
     import read_numbers as rn
 
+    only = set(open(a.teams).read().split()) if a.teams else None
     rows = [
         r
         for r in csv.DictReader(open(os.path.join(a.data, "labels.csv")))
-        if int(r["box_w"]) >= a.min_box_w
+        if int(r["box_w"]) >= a.min_box_w and (only is None or r["team"] in only)
     ]
     random.Random(a.seed).shuffle(rows)
     cands_of, out = {}, []
@@ -75,7 +76,7 @@ def vlm(a):
     from mlx_vlm.utils import load_config
 
     sample = json.load(open(a.sample))
-    model, processor = load(a.model)
+    model, processor = load(a.model, adapter_path=a.adapter)
     config = load_config(a.model)
 
     def ask(text, path):
@@ -165,10 +166,14 @@ def main():
     p.add_argument("--n", type=int, default=300)
     p.add_argument("--min-box-w", type=int, default=50)
     p.add_argument("--seed", type=int, default=1)
+    p.add_argument(
+        "--teams", help="file of team numbers to restrict the sample to (held-out teams)"
+    )
     p = sub.add_parser("vlm")
     p.add_argument("--sample", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--model", default=DEFAULT_MODEL)
+    p.add_argument("--adapter", help="LoRA adapter dir or file to load on top of --model")
     p = sub.add_parser("score")
     p.add_argument("--sample")
     p.add_argument("--reads", required=True)
