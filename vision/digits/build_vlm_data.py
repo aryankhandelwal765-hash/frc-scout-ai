@@ -1,7 +1,7 @@
 """
 Turn the labelled bumper crops into an mlx_vlm fine-tuning set, held out by TEAM.
 
-    python build_vlm_data.py --data ../digit_data --out ../vlm_data [--val-frac 0.15] [--max-train 6000]
+    python build_vlm_data.py --data ../digit_data --out ../vlm_data [--val-frac 0.15]
 
 Writes <out>/train.jsonl, <out>/valid.jsonl and <out>/val_teams.txt. A held-out team never appears
 in train, so the validation score measures reading, not remembering which team looks like what.
@@ -68,7 +68,10 @@ def main():
             for r in rs:
                 fh.write(json.dumps(row(os.path.join(crops, r["file"]), r["team"])) + "\n")
     open(os.path.join(a.out, "val_teams.txt"), "w").write("\n".join(sorted(val_teams)))
-    print(f"teams {len(teams)} (val {len(val_teams)}); train {len(train)} crops; valid {len(val)} crops")
+    print(
+        f"teams {len(teams)} (val {len(val_teams)}); "
+        f"train {len(train)} crops; valid {len(val)} crops"
+    )
 
 
 if __name__ == "__main__":

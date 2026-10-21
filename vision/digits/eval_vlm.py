@@ -7,7 +7,7 @@ Compare an MLX vision model with EasyOCR at reading bumper numbers.
 
 prep   samples labelled crops, runs EasyOCR on each, stores the match's six TBA teams
 vlm    asks the model twice per crop: an open read, and a pick among the six candidates
-score  same accounting as eval_digits.py: exact, accepted (snapped to a candidate), right-when-accepted
+score  same accounting as eval_digits.py: exact, accepted (snapped), right-when-accepted
        (needs mlx-vlm, which lives in its own venv because it pins a different transformers)
 """
 

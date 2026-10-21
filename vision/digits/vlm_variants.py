@@ -1,7 +1,7 @@
 """
 Try cheap ways to make the MLX vision model read bumpers better, on one fixed sample.
 
-    ../.venv-vlm/bin/python vlm_variants.py --sample S/hard_sample.json --data ../digit_data --out S/variants.json
+    ../.venv-vlm/bin/python vlm_variants.py --sample S/s.json --data ../digit_data --out S/v.json
 
 Variants (all open reads, snapped to the match's six teams the way identify.py does):
   base      the prompt eval_vlm.py uses
@@ -109,9 +109,16 @@ def main():
             shot_imgs = [prep_image(p, tmp) if prep else p for p, _t in shots]
             msgs = []
             for _p, t in shots:
-                msgs.append({"role": "user", "content": [{"type": "image"}, {"type": "text", "text": SHOT_Q}]})
+                msgs.append(
+                    {
+                        "role": "user",
+                        "content": [{"type": "image"}, {"type": "text", "text": SHOT_Q}],
+                    }
+                )
                 msgs.append({"role": "assistant", "content": [{"type": "text", "text": t}]})
-            msgs.append({"role": "user", "content": [{"type": "image"}, {"type": "text", "text": SHOT_Q}]})
+            msgs.append(
+                {"role": "user", "content": [{"type": "image"}, {"type": "text", "text": SHOT_Q}]}
+            )
             return chat(msgs, [*shot_imgs, img])
         return chat(text, [img])
 
@@ -124,7 +131,7 @@ def main():
         n = len(sample)
         digits = lambda t: re.sub(r"\D", "", t or "")  # noqa: E731
         acc = right = 0
-        for s, r in zip(sample, reads):
+        for s, r in zip(sample, reads, strict=True):
             d = digits(r)
             if not d:
                 continue

@@ -58,6 +58,8 @@ BUMPER_TOP = 0.62  # bumper band starts this far down the robot box
 UPSCALE = 6  # digits are small; upscale before OCR
 MIN_MARGIN = 0.15  # best candidate must beat 2nd by this much
 MIN_SCORE = 0.55  # and clear this absolute similarity
+# Which reader feeds the candidate snap: easyocr (default), vlm (needs vlm_reader's server), both.
+BUMPER_READER = os.environ.get("BUMPER_READER", "easyocr").lower()
 
 
 def _variants(gray):
@@ -126,8 +128,15 @@ def read_bumper(img, box, candidates, debug=False):
     gray = cv2.cvtColor(cv2.cvtColor(cv2.merge([l, a, b]), cv2.COLOR_LAB2BGR), cv2.COLOR_BGR2GRAY)
 
     reads = []
-    for cand_img in (big, cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)):
-        reads += [t for t, c in _ocr_digits(cand_img)]
+    if BUMPER_READER in ("easyocr", "both"):
+        for cand_img in (big, cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)):
+            reads += [t for t, c in _ocr_digits(cand_img)]
+    if BUMPER_READER in ("vlm", "both"):
+        import vlm_reader
+
+        v = vlm_reader.read_digits(crop)
+        if v:
+            reads.append(v)
     if not reads:
         return None, 0.0
 
