@@ -48,6 +48,7 @@ def main():
     ap.add_argument("--chunk", type=int, default=3)
     ap.add_argument("--no-track", action="store_true")
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--max-minutes", type=float, help="stop starting new matches after this long")
     ap.add_argument("--mark-done", nargs="*")
     a = ap.parse_args()
 
@@ -73,6 +74,9 @@ def main():
         if not a.no_track:
             run(["batch_trajectories.py", "--force", "--only", *chunk], log)
         for m in chunk:
+            if a.max_minutes and (time.time() - t_all) / 60 > a.max_minutes:
+                log("time budget reached, stopping (rerun to resume)")
+                return
             log(f"  {m}")
             ok = run(["identify.py", "--match", m], log)
             ok = ok and run(["auto_paths.py", "--match", m], log)
