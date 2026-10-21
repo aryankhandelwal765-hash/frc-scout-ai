@@ -123,3 +123,6 @@ vision/digit_*.log
 vision/digit_data_synth/
 vision/reid_data/
 vision/reid_harvest.log
+vision/vlm_data/
+vision/runs/vlm/
+vision/.venv-vlm/
