@@ -60,7 +60,11 @@ async function fetchApi<T>(
       // no JSON body
     }
     const error = new ApiError(response.status, response.statusText, message)
-    if (response.status === 401) {
+    // A 401 from the auth endpoints is an answer (not logged in, wrong password), not a reason to
+    // reload. Only a protected call that fails mid-session sends you to the login page, and never
+    // when you are already on it: that was an endless reload loop.
+    const onAuthPage = ['/login', '/signup'].includes(window.location.pathname)
+    if (response.status === 401 && !path.startsWith('/auth/') && !onAuthPage) {
       sessionStorage.removeItem('auth_state')
       window.location.href = '/login'
     }
