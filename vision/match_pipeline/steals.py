@@ -170,7 +170,28 @@ def run_match(match):
                 }
             )
             rows.append(e)
-    return rows
+    return _merge_overlaps(rows)
+
+
+def _merge_overlaps(rows):
+    """One team is one robot: two excursions of the same team whose out->home spans overlap
+    are the same trip seen through two chains (or one chain mislabelled), so keep the deeper.
+    Unidentified rows have no team to compare, so they pass through."""
+    keep, by_team = [], defaultdict(list)
+    for r in rows:
+        (by_team[r["team"]] if r["team"] else keep).append(r)
+    for rs in by_team.values():
+        rs.sort(key=lambda r: r["out_frame"])
+        cur = rs[0]
+        for r in rs[1:]:
+            if r["out_frame"] < cur["home_frame"]:
+                if r["max_depth_in"] > cur["max_depth_in"]:
+                    cur = {**r, "out_frame": min(r["out_frame"], cur["out_frame"])}
+                continue
+            keep.append(cur)
+            cur = r
+        keep.append(cur)
+    return sorted(keep, key=lambda r: r["out_frame"])
 
 
 def main():
